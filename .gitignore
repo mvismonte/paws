@@ -3,10 +3,7 @@
 *.log
 local_settings.py
 tmp/*
-upe.db
 static/*
-hackhackwithme/static/*
-room_manager/node_modules/*
 
 .*
 !.gitignore
