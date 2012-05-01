@@ -1,5 +1,5 @@
-San Diego Zoo PAWS (Progressive Animimal Wildlife Stimulator)
-====================
+# San Diego Zoo PAWS
+## Progressive Animimal Wildlife Stimulator
 
 #### Authors
 * Mark Vismonte (mark.vismonte@gmail.com)
