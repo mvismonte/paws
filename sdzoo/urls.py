@@ -1,17 +1,18 @@
-from django.conf.urls import patterns, include, url
+# Copyright 2012 PAWS. All rights reserved.
+# Date: 4/30/2012
+# urls.py - Main django urls file for the PAWS project.
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+from django.conf.urls import patterns, include, url
+from django.contrib import admin
+
+# Discover admin.
+admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'sdzoo.views.home', name='home'),
-    # url(r'^sdzoo/', include('sdzoo.foo.urls')),
+  # Set up admin pages.
+  url(r'^admin/', include(admin.site.urls)),
 
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+  # Main pages.
 
-    # Uncomment the next line to enable the admin:
-    # url(r'^admin/', include(admin.site.urls)),
+  # API calls.
 )

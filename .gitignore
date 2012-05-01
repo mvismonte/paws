@@ -1,3 +1,7 @@
+# Copyright 2012 PAWS. All rights reserved.
+# Date: 4/30/2012
+# .gitignore - .gitignore file for the PAWS project.
+
 *.pyc
 *.swp
 *.log

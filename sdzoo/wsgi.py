@@ -1,4 +1,8 @@
 """
+Copyright 2012 PAWS. All rights reserved.
+Date: 4/30/2012
+wsgi.py - wsgi file for the PAWS project.
+
 WSGI config for sdzoo project.
 
 This module contains the WSGI application used by Django's development server

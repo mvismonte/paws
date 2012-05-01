@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+# Copyright 2012 PAWS. All rights reserved.
+# Date: 4/30/2012
+# manager.py - Django manager file for the PAWS project.
+
 import os
 import sys
 
