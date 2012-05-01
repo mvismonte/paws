@@ -1,20 +1,9 @@
-A First Level Header
+San Diego Zoo PAWS (Progressive Animimal Wildlife Stimulator)
 ====================
 
-A Second Level Header
----------------------
+#### Authors
+* Mark Vismonte (mark.vismonte@gmail.com)
+* Add your name to this list...
 
-Now is the time for all good men to come to
-the aid of their country. This is just a
-regular paragraph.
-
-The quick brown fox jumped over the lazy
-dog's back.
-
-### Header 3
-
-> This is a blockquote.
-> 
-> This is the second paragraph in the blockquote.
->
-> ## This is an H2 in a blockquote
+## Description
+CS 130 Spring 2012. Finish this descrption!!!
