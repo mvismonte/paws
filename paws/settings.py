@@ -17,8 +17,10 @@ MANAGERS = ADMINS
 
 DATABASES = {
   'default': {
-    'ENGINE': 'django_mongodb_engine',
+    'ENGINE': 'django.db.backends.mysql',
     'NAME': 'sdzoo_paws',
+    'USER': 'paws',
+    'PASSWORD': 'paws',
   }
 }
 
@@ -35,7 +37,7 @@ TIME_ZONE = 'America/Los_Angeles'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
-SITE_ID = u'4fa4f15230a8b10c7e000000'
+SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -130,8 +132,7 @@ INSTALLED_APPS = [
   'django.contrib.admin',
 
   # Project specific apps.
-  'django_mongodb_engine',
-  'djangotoolbox',
+  'south',  # Used for migrations.
   'api',
   'main',
 ]
