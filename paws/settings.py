@@ -35,7 +35,7 @@ TIME_ZONE = 'America/Los_Angeles'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
-SITE_ID = 1
+SITE_ID = u'4fa4f15230a8b10c7e000000'
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -108,10 +108,10 @@ MIDDLEWARE_CLASSES = (
   # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'sdzoo.urls'
+ROOT_URLCONF = 'paws.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'sdzoo.wsgi.application'
+WSGI_APPLICATION = 'paws.wsgi.application'
 
 TEMPLATE_DIRS = (
   # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -130,6 +130,8 @@ INSTALLED_APPS = [
   'django.contrib.admin',
 
   # Project specific apps.
+  'django_mongodb_engine',
+  'djangotoolbox',
   'api',
   'main',
 ]
