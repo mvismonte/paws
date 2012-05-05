@@ -2,7 +2,7 @@
 # Date: 4/30/2012
 # urls.py - Main django urls file for the PAWS project.
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls.defaults import patterns, include, url
 from django.contrib import admin
 
 # Discover admin.
