@@ -80,14 +80,17 @@
 <script type="text/javascript">
   {% inlinecoffeescript %}
   $(document).ready ->
-    $('.carousel-scroller').width $('.carousel-scroller li').length*$('.carousel-scroller li:first').outerWidth(true)
+    resizeCarousels = ->
+      $('.carousel-scroller').width $('.carousel-scroller li').length*$('.carousel-scroller li:first').outerWidth(true)
+    resizeCarousels()
+    $(window).resize ->
+      resizeCarousels()
     window.categoryScroll = new iScroll 'category-selector', {
         vScroll: false
         momentum: true
         bounce: true
         hScrollbar: false
       }
-    
   {% endinlinecoffeescript %}
 </script>
 {% endblock scripts %}
