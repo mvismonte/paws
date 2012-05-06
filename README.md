@@ -5,7 +5,9 @@
 * Mark Vismonte (mark.vismonte@gmail.com)
 * Steven La (mrstevenla@gmail.com)
 * Timothy Wang (timzwang@gmail.com)
-* Add your name to this list...
+* Stephen Phillips (chengdu.scp@gmail.com)
+* Diana Angwar (angwar.diana@gmail.com)
+* Minh Diep (minhthediep@gmail.com)
 
 ## Description
 CS 130 Spring 2012. Finish this descrption!!!

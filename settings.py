@@ -10,7 +10,11 @@ PROJECT_DIR = os.path.dirname(__file__)
 
 ADMINS = (
   ('Mark Vismonte', 'mark.vismonte@gmail.com'),
-  # Add your name/email address tuple.
+  ('Timothy Wang', 'timzwang@gmail.com'),
+  ('Steven La', 'mrstevenla@gmail.com'),
+  ('Stephen Phillips', 'chengdu.scp@gmail.com'),
+  ('Diana Angwar', 'angwar.diana@gmail.com'),
+  ('Minh Diep', 'minhthediep@gmail.com'),
 )
 
 MANAGERS = ADMINS

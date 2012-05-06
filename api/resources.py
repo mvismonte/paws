@@ -6,9 +6,8 @@
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from django.forms.models import model_to_dict
 from paws.main import models
-from tastypie.resources import ModelResource,fields
+from tastypie.resources import fields, ModelResource
 
 # AnimalObservation Resource.
 class AnimalObservationResource(ModelResource):
@@ -98,7 +97,7 @@ class EnrichmentNoteResource(ModelResource):
 
     # Try filtering by enrichment next.
     try:
-      enrichment=models.Enrichment.objects.get(id=enrichment_id)
+      enrichment = models.Enrichment.objects.get(id=enrichment_id)
       q_set = q_set.filter(enrichment=enrichment)
       return q_set
     except ObjectDoesNotExist:
