@@ -19,17 +19,38 @@
   <!-- Your styles -->
   {% block styles %}
   <link rel="stylesheet" href="{{ STATIC_URL }}css/styles.css" type="text/css" media="screen" />
+  <link type="text/css" href="{{ STATIC_URL }}css/smoothness/jquery-ui-1.8.20.custom.css" rel="Stylesheet" /> 
+ 
   {% endblock %}
   
   <!--css3-mediaqueries-js - http://code.google.com/p/css3-mediaqueries-js/ - Enables media queries in some unsupported browsers-->
-  {% block scripts %}
-  <script type="text/javascript" src="{{ STATIC_URL }}js/css3-mediaqueries.js"></script>
-  {% endblock %}
 </head>
 
 
 <body>
+{% block header %}
+  <div class="container">
+    <div class="row">
+      <div id="topbar" class="twelvecol last">
+        <h1 id="logo">
+          <a href="/"><span class="hidden">SD Zoo PAWS</span></a>
+        </h1>
+        <div id="login-info">
+          Hello, <a href="#">Tim Wang</a>. <a href="/logout">Logout</a>
+        </div>
+        <div class="clear"></div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
 {% block body %}
+{% endblock %}
+
+{% block scripts %}
+  <script type="text/javascript" src="{{ STATIC_URL }}js/css3-mediaqueries.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.7.2.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-ui-1.8.20.custom.min.js"></script>
 {% endblock %}
 </body>
 
