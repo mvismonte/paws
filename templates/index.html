@@ -1,0 +1,21 @@
+{# Copyright 2012 PAWS. All right reserved #}
+{# Date: 5/05/2012 #}
+{# base.html - Base HTML template for the PAWS project #}
+
+{% extends "base.html" %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block body %}
+{% endblock body %}
+
+{% block scripts %}
+{% load coffeescript %}
+{{ block.super }}
+<script type="text/javascript">
+  {% inlinecoffeescript %}
+    console.log "Hello, World!"
+  {% endinlinecoffeescript %}
+</script>
+{% endblock scripts %}

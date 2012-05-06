@@ -28,7 +28,11 @@ urlpatterns = patterns('',
   url(r'^admin/', include(admin.site.urls)),
 
   # Main pages.
+  url(r'^$', 'paws.main.views.home'),
 
   # API calls.
-  (r'^api/', include(api.urls)),
+  url(r'^api/', include(api.urls)),
+
+  # Debugging templates
+  url(r'^templates/(?P<templ>[^/]+)$', 'paws.main.views.template_debug'),
 )
