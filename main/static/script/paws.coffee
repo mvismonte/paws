@@ -14,6 +14,9 @@ $(document).ready ->
       @speciesId = ko.observable data.species.id
       @speciesScientificName = ko.observable data.species.scientific_name
 
+      @staffName = ko.observable data.staff.name
+      @staff = ko.observable data.staff.id
+
       @active = ko.observable false
     toggleActive: () ->
       @active !@active()
@@ -197,7 +200,6 @@ $(document).ready ->
             return staff
         @staff mappedStaff
         resizeAllCarousels()
-         
 
 
   # The big momma
