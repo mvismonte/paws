@@ -9,5 +9,5 @@ from paws.main import models
 
 class SpeciesResource(ModelResource):
   class Meta:
-        queryset = models.Species.objects.all()
-        resource_name = 'species'
+    queryset = models.Species.objects.all()
+    resource_name = 'species'
