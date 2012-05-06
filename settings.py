@@ -6,7 +6,7 @@ import os.path
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+PROJECT_DIR = os.path.dirname(__file__)
 
 ADMINS = (
   ('Mark Vismonte', 'mark.vismonte@gmail.com'),
@@ -112,9 +112,6 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'paws.urls'
 
-# Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'paws.wsgi.application'
-
 TEMPLATE_DIRS = (
   # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
   # Always use forward slashes, even on Windows.
@@ -133,8 +130,8 @@ INSTALLED_APPS = [
 
   # Project specific apps.
   'south',  # Used for migrations.
-  'api',
-  'main',
+  'paws.api',
+  'paws.main',
 ]
 
 # A sample logging configuration. The only tangible logging
