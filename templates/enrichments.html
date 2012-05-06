@@ -69,6 +69,37 @@
       </ul>
     </div>
   </div>
+  <div class="carousel" id="subcategory-selector">
+    <div class="carousel-scroller">
+      <ul>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+      </ul>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -80,12 +111,20 @@
 <script type="text/javascript">
   {% inlinecoffeescript %}
   $(document).ready ->
-    resizeCarousels = ->
-      $('.carousel-scroller').width $('.carousel-scroller li').length*$('.carousel-scroller li:first').outerWidth(true)
-    resizeCarousels()
+    resizeCarousel = (scroller) ->
+      $(scroller).width $(scroller).find('ul li').length*$(scroller).find('ul li:first').outerWidth(true)
+    $('.carousel-scroller').each ->
+      resizeCarousel(this)
     $(window).resize ->
-      resizeCarousels()
+      $('.carousel-scroller').each ->
+        resizeCarousel(this)
     window.categoryScroll = new iScroll 'category-selector', {
+        vScroll: false
+        momentum: true
+        bounce: true
+        hScrollbar: false
+      }
+    window.subcategoryScroll = new iScroll 'subcategory-selector', {
         vScroll: false
         momentum: true
         bounce: true
