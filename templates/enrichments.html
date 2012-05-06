@@ -29,11 +29,34 @@
 .carousel .carousel-scroller li {
   display:block; float:left;
 }
-#category-selector li{
+#category-selector li, #subcategory-selector li, #enrichment-selector li {
   text-align:center;
   padding: 10px;
   margin: 0 5px;
   background:#aaa;
+}
+#enrichment-selector li {
+  float: left;
+  list-style: none;
+  margin: 5px;
+}
+#category-selector, #subcategory-selector {
+  margin: 10px;
+  right: 10px;
+}
+#enrichment-selector {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  top: 120px;
+  bottom: 0;
+}
+#enrichment-selector div {
+  position: absolute;
+  width: 100%;
+}
+#enrichment-selector ul {
+  width: 100%;
 }
 
 </style>
@@ -100,6 +123,56 @@
       </ul>
     </div>
   </div>
+  <div id="enrichment-selector">
+    <div>
+    <ul>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+      <li>Enrichment</li>
+    </ul>
+  </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -129,6 +202,11 @@
         momentum: true
         bounce: true
         hScrollbar: false
+      }
+    window.enrichmentScroll = new iScroll 'enrichment-selector', {
+        hScroll: false
+        momentum: true
+        bounce: false
       }
   {% endinlinecoffeescript %}
 </script>
