@@ -23,3 +23,11 @@ def logout(request):
 
     redirect = request.GET.get('next','/')
     return HttpResponseRedirect(redirect)
+
+# Template debug View.
+# TODO(steven): Remove this view when debugging is finished.
+def template_debug(request, templ):
+  t = get_template(templ)
+  context = { 'page': 'debug' }
+  html = t.render(RequestContext(request, context))
+  return HttpResponse(html)

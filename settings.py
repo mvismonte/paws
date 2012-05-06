@@ -135,6 +135,7 @@ INSTALLED_APPS = [
   # Extra Applications.
   'south',  # For migrations.
   'tastypie',  # For RESTful API.
+  'coffeescript', # For coffee.
 ]
 
 # A sample logging configuration. The only tangible logging
