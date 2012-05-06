@@ -18,6 +18,7 @@ urlpatterns = patterns('',
   url(r'^admin/', include(admin.site.urls)),
 
   # Main pages.
+  url(r'^', 'paws.main.views.home'),
 
   # API calls.
   (r'^api/', include(api.urls)),
