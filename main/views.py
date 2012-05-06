@@ -19,10 +19,10 @@ def home(request):
 
 # Logout View.
 def logout(request):
-    django_logout(request)
-
-    redirect = request.GET.get('next','/')
-    return HttpResponseRedirect(redirect)
+  # Logout of the application and redirect.
+  django_logout(request)
+  redirect = request.GET.get('next','/auth/login/')
+  return HttpResponseRedirect(redirect)
 
 # Template debug View.
 # TODO(steven): Remove this view when debugging is finished.
