@@ -7,7 +7,7 @@
 <style type="text/css">
 .carousel {
   width:100%;
-  float:left;
+  /*float:left;*/
   position:relative;  /* On older OS versions "position" and "z-index" must be defined, */
   z-index:1;      /* it seems that recent webkit is less picky and works anyway. */
   overflow:hidden;
@@ -29,6 +29,9 @@
 .carousel .carousel-scroller li {
   display:block; float:left;
 }
+.carousel .carousel-scroller .carousel-rows {
+  display: none;
+}
 #category-selector li, #subcategory-selector li, #enrichment-selector li {
   text-align:center;
   padding: 10px;
@@ -36,27 +39,13 @@
   background:#aaa;
 }
 #enrichment-selector li {
-  float: left;
+  display: inline-block;
   list-style: none;
   margin: 5px;
 }
-#category-selector, #subcategory-selector {
+#category-selector, #subcategory-selector, #enrichment-selector {
   margin: 10px;
   right: 10px;
-}
-#enrichment-selector {
-  position: absolute;
-  z-index: 1;
-  width: 100%;
-  top: 120px;
-  bottom: 0;
-}
-#enrichment-selector div {
-  position: absolute;
-  width: 100%;
-}
-#enrichment-selector ul {
-  width: 100%;
 }
 
 </style>
@@ -123,54 +112,55 @@
       </ul>
     </div>
   </div>
-  <div id="enrichment-selector">
-    <div>
-    <ul>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-      <li>Enrichment</li>
-    </ul>
+  <div class="carousel" id="enrichment-selector">
+    <div class="carousel-scroller">
+      <div class="carousel-rows">3</div>
+      <ul>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+      </ul>
   </div>
   </div>
 </div>
@@ -184,13 +174,18 @@
 <script type="text/javascript">
   {% inlinecoffeescript %}
   $(document).ready ->
-    resizeCarousel = (scroller) ->
-      $(scroller).width $(scroller).find('ul li').length*$(scroller).find('ul li:first').outerWidth(true)
-    $('.carousel-scroller').each ->
-      resizeCarousel(this)
-    $(window).resize ->
+    resizeCarousel = (scroller, numRows=1) ->
+      $(scroller).width Math.ceil($(scroller).find('ul li').length/numRows)*$(scroller).find('ul li:first').outerWidth(true)
+    resizeAllCarousels = ->
       $('.carousel-scroller').each ->
-        resizeCarousel(this)
+        rows = $(this).children('.carousel-rows').text()
+        if (rows)
+          resizeCarousel this, rows
+        else
+          resizeCarousel this
+    resizeAllCarousels()
+    $(window).resize ->
+      resizeAllCarousels()
     window.categoryScroll = new iScroll 'category-selector', {
         vScroll: false
         momentum: true
@@ -204,9 +199,10 @@
         hScrollbar: false
       }
     window.enrichmentScroll = new iScroll 'enrichment-selector', {
-        hScroll: false
+        vScroll: false
         momentum: true
-        bounce: false
+        bounce: true
+        hScrollbar: false
       }
   {% endinlinecoffeescript %}
 </script>
