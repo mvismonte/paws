@@ -129,9 +129,12 @@ INSTALLED_APPS = [
   'django.contrib.admin',
 
   # Project specific apps.
-  'south',  # Used for migrations.
   'paws.api',
   'paws.main',
+
+  # Extra Applications.
+  'south',  # For migrations.
+  'tastypie',  # For RESTful API.
 ]
 
 # A sample logging configuration. The only tangible logging
