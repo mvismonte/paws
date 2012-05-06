@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+# Copyright 2012 PAWS. All rights reserved.
+# Date: 5/5/2012
+# manage.py
+
 from django.core.management import execute_manager
 import imp
 try:
