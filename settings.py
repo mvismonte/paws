@@ -81,9 +81,6 @@ ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-  # Put strings here, like "/home/html/static" or "C:/www/django/static".
-  # Always use forward slashes, even on Windows.
-  # Don't forget to use absolute paths, not relative paths.
   os.path.join(PROJECT_DIR, 'main', 'static'),
 )
 
@@ -118,9 +115,6 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'paws.urls'
 
 TEMPLATE_DIRS = (
-  # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-  # Always use forward slashes, even on Windows.
-  # Don't forget to use absolute paths, not relative paths.
   os.path.join(PROJECT_DIR, 'templates'),
 )
 
@@ -140,7 +134,7 @@ INSTALLED_APPS = [
   # Extra Applications.
   'south',  # For migrations.
   'tastypie',  # For RESTful API.
-  'coffeescript', # For coffee.
+  'coffeescript', # For coffeescript.
 ]
 
 # A sample logging configuration. The only tangible logging

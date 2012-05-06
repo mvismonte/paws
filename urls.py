@@ -9,16 +9,16 @@ from tastypie.api import Api
 
 # Create the API and register Resources.
 api = Api(api_name='v1')
-api.register(resources.UserResource())
-api.register(resources.StaffResource())
-api.register(resources.SpeciesResource())
-api.register(resources.CategoryResource())
-api.register(resources.SubcategoryResource())
-api.register(resources.AnimalResource())
-api.register(resources.EnrichmentResource())
-api.register(resources.EnrichmentNoteResource())
 api.register(resources.AnimalObservationResource())
+api.register(resources.AnimalResource())
+api.register(resources.CategoryResource())
+api.register(resources.EnrichmentNoteResource())
+api.register(resources.EnrichmentResource())
 api.register(resources.ObservationResource())
+api.register(resources.SpeciesResource())
+api.register(resources.StaffResource())
+api.register(resources.SubcategoryResource())
+api.register(resources.UserResource())
 
 # Discover admin.
 admin.autodiscover()
@@ -26,6 +26,9 @@ admin.autodiscover()
 urlpatterns = patterns('',
   # Set up admin pages.
   url(r'^admin/', include(admin.site.urls)),
+
+  # API calls.
+  url(r'^api/', include(api.urls)),
 
   # Authentication views.
   url(r'^auth/login/$', 'django.contrib.auth.views.login',
@@ -35,9 +38,6 @@ urlpatterns = patterns('',
   # Main pages.
   url(r'^$', 'paws.main.views.home'),
 
-  # API calls.
-  url(r'^api/', include(api.urls)),
-
-  # Debugging templates
+  # Debugging templates.
   url(r'^templates/(?P<templ>[^/]+)$', 'paws.main.views.template_debug'),
 )
