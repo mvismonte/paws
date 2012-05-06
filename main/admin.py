@@ -4,7 +4,7 @@
 # This file registers all of the models in models.py with Django admin.
 
 from django.contrib import admin
-from main import models
+from paws.main import models
 
 admin.site.register(models.Staff)
 admin.site.register(models.Species)
