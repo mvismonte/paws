@@ -18,7 +18,7 @@ class UserResource(ModelResource):
 		excludes=['email','password','is_superuser']
 
 class StaffResource(ModelResource):
-	user=fields.ForeignKey(UserResource,'user', full= True)
+	user=fields.ToOneField(UserResource,'user', full= True)
 	class Meta:
 		queryset=models.Staff.objects.all()
 		resource_name='staff'
@@ -91,17 +91,77 @@ class EnrichmentNoteResource(ModelResource):
 	class Meta:
 		queryset= models.EnrichmentNote.objects.all()
 		resource_name='enrichmentNote'
+	def get_object_list(self, request):
+		species_id=request.GET.get('species_id', None)
+		enrichment_id=request.GET.get('enrichment_id', None)
+		q_set=super(EnrichmentNoteResource, self).get_object_list(request)
+		try:
+			species=models.Species.objects.get(id=species_id)
+			q_set=q_set.filter(species=species)
+			try:
+				enrichment=models.Enrichment.objects.get(id=enrichment_id)
+				q_set=q_set.filter(Q(species=species) & Q(enrichment=enrichment))				
+			except ObjectDoesNotExist:
+				return q_set
+		except ObjectDoesNotExist:
+			try:
+				enrichment=models.Enrichment.objects.get(id=enrichment_id)
+				q_set=q_set.filter(enrichment=enrichment)
+				return q_set
+			except ObjectDoesNotExist:
+				pass
+		return q_set
 
 class ObservationResource(ModelResource):
 	enrichment=fields.ForeignKey(EnrichmentResource,'enrichment')
-	staff=fields.ForeignKey(StaffResource,'staff')
+	staff=fields.ForeignKey(StaffResource,'staff', full= True)
 	class Meta:
 		queryset=models.Observation.objects.all()
 		resource_name='observation'
+	def get_object_list(self, request):
+		staff_id=request.GET.get('staff_id', None)
+		enrichment_id=request.GET.get('enrichment_id', None)
+		q_set=super(ObservationResource, self).get_object_list(request)
+		try:
+			staff=models.Staff.objects.get(id=staff_id)
+			q_set=q_set.filter(staff=staff)
+			try:
+				enrichment=models.Enrichment.objects.get(id=enrichment_id)
+				q_set=q_set.filter(Q(staff=staff) & Q(enrichment=enrichment))				
+			except ObjectDoesNotExist:
+				return q_set
+		except ObjectDoesNotExist:
+			try:
+				enrichment=models.Enrichment.objects.get(id=enrichment_id)
+				q_set=q_set.filter(enrichment=enrichment)
+				return q_set
+			except ObjectDoesNotExist:
+				pass
+		return q_set
 
 class AnimalObservationResource(ModelResource):
 	animal=fields.ForeignKey(AnimalResource,'animal', full = True)
-	observation=fields.ForeignKey(ObservationResource,'observation')
+	observation=fields.ForeignKey(ObservationResource,'observation', full = True)
 	class Meta:
 		queryset=models.AnimalObservation.objects.all()
 		resource_name='animalObservation'
+	def get_object_list(self, request):
+		animal_id=request.GET.get('animal_id', None)
+		observation_id=request.GET.get('observation_id', None)
+		q_set=super(AnimalObservationResource, self).get_object_list(request)
+		try:
+			animal=models.Animal.objects.get(id=animal_id)
+			q_set=q_set.filter(animal=animal)
+			try:
+				observation=models.Observation.objects.get(id=observation_id)
+				q_set=q_set.filter(Q(animal=animal) & Q(observation=observation))				
+			except ObjectDoesNotExist:
+				return q_set
+		except ObjectDoesNotExist:
+			try:
+				observation=models.Observation.objects.get(id=observation_id)
+				q_set=q_set.filter(observation=observation)
+				return q_set
+			except ObjectDoesNotExist:
+				pass
+		return q_set
