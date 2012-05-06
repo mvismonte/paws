@@ -7,6 +7,7 @@ from django.contrib import admin
 from paws.api import resources
 from tastypie.api import Api
 
+# Create the API and register Resources.
 api = Api(api_name='v1')
 api.register(resources.UserResource())
 api.register(resources.StaffResource())
@@ -19,13 +20,17 @@ api.register(resources.EnrichmentNoteResource())
 api.register(resources.AnimalObservationResource())
 api.register(resources.ObservationResource())
 
-
 # Discover admin.
 admin.autodiscover()
 
 urlpatterns = patterns('',
   # Set up admin pages.
   url(r'^admin/', include(admin.site.urls)),
+
+  # Authentication views.
+  url(r'^auth/login/$', 'django.contrib.auth.views.login',
+      { 'template_name': 'login.html', 'redirect_field_name':'next'}),
+  url(r'^auth/logout/', 'paws.main.views.logout'),
 
   # Main pages.
   url(r'^$', 'paws.main.views.home'),
