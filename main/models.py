@@ -46,7 +46,7 @@ class EnrichmentNote(models.Model):
   limitations = models.TextField()
   instructions = models.TextField()
   def __unicode__(self):
-    return "%s for %s" % (self.enrichment.name, self.enrichment.name)
+    return "%s for %s" % (self.enrichment.name, self.species.common_name)
 
 # Enrichment Model
 class Enrichment(models.Model):
