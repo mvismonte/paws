@@ -4,6 +4,11 @@
 
 from django.conf.urls.defaults import patterns, include, url
 from django.contrib import admin
+from paws.api import resources
+from tastypie.api import Api
+
+api = Api(api_name='v1')
+api.register(resources.SpeciesResource())
 
 # Discover admin.
 admin.autodiscover()
@@ -15,4 +20,5 @@ urlpatterns = patterns('',
   # Main pages.
 
   # API calls.
+  (r'^api/', include(api.urls)),
 )
