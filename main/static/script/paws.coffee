@@ -198,7 +198,7 @@ $(document).ready ->
             staff = new Staff item
             staff.animals = @loadAnimals(staff.id)
             return staff
-        @staff mappedStaff
+          @staff mappedStaff
         resizeAllCarousels()
 
 
