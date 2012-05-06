@@ -13,3 +13,9 @@ def home(request):
   context = { 'page': 'home' }
   html = t.render(RequestContext(request, context))
   return HttpResponse(html)
+
+def template_debug(request, templ):
+  t = get_template(templ)
+  context = { 'page': 'debug' }
+  html = t.render(RequestContext(request, context))
+  return HttpResponse(html)
