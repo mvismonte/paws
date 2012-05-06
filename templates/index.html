@@ -9,3 +9,13 @@
 
 {% block body %}
 {% endblock body %}
+
+{% block scripts %}
+{% load coffeescript %}
+{{ block.super }}
+<script type="text/javascript">
+  {% inlinecoffeescript %}
+    console.log "Hello, World!"
+  {% endinlinecoffeescript %}
+</script>
+{% endblock scripts %}
