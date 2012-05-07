@@ -8,6 +8,7 @@
 local_settings.py
 tmp/*
 static/*
+main/static/CACHE/*
 
 .*
 !.gitignore

@@ -169,8 +169,7 @@
 {% block scripts %}
 {% load coffeescript %}
 {{ block.super }}
-<script src="{{ STATIC_URL }}js/jquery-1.7.2.min.js"></script>
-<script src="{{ STATIC_URL }}js/iscroll.js"></script>
+<script src="{{ STATIC_URL }}script/iscroll.js"></script>
 <script type="text/javascript">
   {% inlinecoffeescript %}
   $(document).ready ->

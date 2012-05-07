@@ -10,6 +10,7 @@ PROJECT_DIR = os.path.dirname(__file__)
 
 ADMINS = (
   ('Mark Vismonte', 'mark.vismonte@gmail.com'),
+  ('Steven La', 'mrstevenla@gmail.com'),
   # Add your name/email address tuple.
 )
 
@@ -69,6 +70,13 @@ STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
 
+# URL prefix for Compressor
+COMPRESS_ROOT = os.path.join(PROJECT_DIR, 'main', 'static')
+COMPRESS_PRECOMPILERS = (
+  ('text/less', 'lessc {infile} {outfile}'),
+  ('text/coffeescript', 'coffee --compile --stdio'),
+)
+
 # URL prefix for admin static files -- CSS, JavaScript and images.
 # Make sure to use a trailing slash.
 # Examples: "http://foo.com/static/admin/", "/static/admin/".
@@ -88,6 +96,7 @@ STATICFILES_FINDERS = (
   'django.contrib.staticfiles.finders.FileSystemFinder',
   'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+  'compressor.finders.CompressorFinder', # For Compressor
 )
 
 # Make this unique, and don't share it with anybody.
@@ -136,7 +145,7 @@ INSTALLED_APPS = [
   'south',  # For migrations.
   'tastypie',  # For RESTful API.
   'coffeescript', # For coffee.
-  'less', # for LESS-CSS
+  'compressor', # for Compressor
 ]
 
 # A sample logging configuration. The only tangible logging
