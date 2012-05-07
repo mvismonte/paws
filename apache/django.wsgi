@@ -4,7 +4,7 @@ import sys
 # Fix path
 path = '/paws/'
 if path not in sys.path:
-    sys.path.insert(1,path)
+  sys.path.insert(1,path)
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'paws.settings'
 
