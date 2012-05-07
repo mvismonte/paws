@@ -3,34 +3,74 @@
 {# base.html - Base HTML template for the PAWS project #}
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}San Diego Zoo - PAWS{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<head>
-  <meta charset="utf-8" />
-  <title>{% block title %}The 1140px Grid &middot; Fluid down to mobile{% endblock %}</title>
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    
+    <!-- Styles --> 
+    {% block styles %}
+    {% load compress %}
+    {% compress css %}
+    <link href="{{ STATIC_URL }}style/custom-theme/jquery-ui-1.8.16.custom.css" rel="stylesheet">
+    <!--<link href="{{ STATIC_URL }}css/paws.css" rel="stylesheet">-->
+    <link href="{{ STATIC_URL }}style/less/bootstrap.less" rel="stylesheet" type="text/less">
+    <link href="{{ STATIC_URL }}style/less/responsive.less" rel="stylesheet" type="text/less">
+    {% endcompress %}
+    <!--[if IE]>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}style/custom-theme/jquery.ui.1.8.16.ie.css"/>
+    <![endif]-->
+    {% endblock %}
+  </head>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <!-- 1140px Grid styles for IE -->
-  <!--[if lte IE 9]><link rel="stylesheet" href="{{ STATIC_URL }}css/ie.css" type="text/css" media="screen" /><![endif]-->
+  <body>
+    {% block navbar %}
+      <nav class="navbar navbar-fixed-top">
+          
+        <div class="navbar-inner">
+          <div class="container">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </a>
 
-  <!-- The 1140px Grid - http://cssgrid.net/ -->
-  <link rel="stylesheet" href="{{ STATIC_URL }}css/1140.css" type="text/css" media="screen" />
-  
-  <!-- Your styles -->
-  {% block styles %}
-  <link rel="stylesheet" href="{{ STATIC_URL }}css/styles.css" type="text/css" media="screen" />
+            <a href="/" class="brand"><img src="{{ STATIC_URL }}img/logo.png" alt="SD PAWS"></a>
+
+            <div class="nav-collapse">
+              <ul class="nav">
+                <li><a href="/observe/">Observe <small>Record animal behavior</small></a>
+                <li><a href="/enrichment/">Enrichment <small>Manage, edit, add</small></a>
+                <li><a href="/animal/">Animals <small>Manage, edit, add</small></a>
+                <li><a href="/zookeeper/">Zookeepers <small>Manage, edit, add</small></a>
+              </ul>
+              {% block nav_actions %}
+              <ul class="nav actions">
+                <li><a href="/login/">Log In</a>
+              </ul>
+              {% endblock %}
+            </div>
+
+          </div>
+        </div>
+      
+      </nav>
+    {% endblock %}
+
+  {% block body %}
   {% endblock %}
-  
-  <!--css3-mediaqueries-js - http://code.google.com/p/css3-mediaqueries-js/ - Enables media queries in some unsupported browsers-->
+
   {% block scripts %}
-  <script type="text/javascript" src="{{ STATIC_URL }}js/css3-mediaqueries.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/jquery-ui-1.8.16.custom.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/bootstrap.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/scripts.js"></script>
   {% endblock %}
-</head>
-
-
-<body>
-{% block body %}
-{% endblock %}
-</body>
+  </body>
 
 </html>

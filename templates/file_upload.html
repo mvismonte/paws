@@ -1,0 +1,15 @@
+<input type="file" id="file_upload">
+<script>
+var input_file = document.getElementById('file_upload');
+input_file.onchange = function() {
+    var file = this.files[0];
+    // Do something with the FileReader object
+    var reader = new FileReader();  
+    reader.onload = function(ev) {
+        // Show content  (ev.target === reader)
+        alert(ev.target.result);
+    };
+    // Read as plain text
+    reader.readAsText(file);  
+};
+</script>
