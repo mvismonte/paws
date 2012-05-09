@@ -4,9 +4,6 @@
 
 {% extends "base.html" %}
 
-{% block styles %}
-{% endblock styles %}
-
 {% block body %}
 <form action="." method="POST">
   {% csrf_token %}
@@ -21,6 +18,3 @@
   <input type="submit" value="Log in">
 </form>
 {% endblock body %}
-
-{% block scripts %}
-{% endblock scripts %}
