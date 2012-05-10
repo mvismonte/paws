@@ -20,11 +20,18 @@ class AnimalAdmin(admin.ModelAdmin):
   inlines = [
     AnimalObservationInline
   ]
-  list_filter = ('species',)
+  list_filter = (
+    'species',
+  )
+
+class EnrichmentAdmin(admin.ModelAdmin):
+  list_filter = (
+    'subcategory',
+  )
 
 admin.site.register(models.Animal, AnimalAdmin)
 admin.site.register(models.Category)
-admin.site.register(models.Enrichment)
+admin.site.register(models.Enrichment, EnrichmentAdmin)
 admin.site.register(models.EnrichmentNote)
 admin.site.register(models.Observation, ObservationAdmin)
 admin.site.register(models.Species)
