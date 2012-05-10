@@ -58,44 +58,34 @@
         @categoryId = ko.observable data.subcategory.category.id
         @subcategoryName = ko.observable data.subcategory.name
         @subcategoryId = ko.observable data.subcategory.id
-    class EnrichmentListViewModel
-      constructor: () ->
-        @enrichments = ko.observableArray []
-        # API limits num results, use &limit=0 (?)
-        $.getJSON '/api/v1/enrichment/?format=json', (data) =>
-          mappedEnrichments = $.map data.objects, (item) ->
-            return new Enrichment item
-          @enrichments mappedEnrichments
-
     class Category
       constructor: (data) ->
         @name = ko.observable data.name
         @id = ko.observable data.id
-    class CategoryListViewModel
+    class Subcategory
+      constructor: (data) ->
+        @name = ko.observable data.name
+        @id = ko.observable data.id
+    class EnrichmentViewModel
       constructor: () ->
         @categories = ko.observableArray []
+        @subcategories = ko.observableArray []
+        @enrichments = ko.observableArray []
         # API limits num results, use &limit=0 (?)
         $.getJSON '/api/v1/category/?format=json', (data) =>
           mappedCategories = $.map data.objects, (item) ->
             return new Category item
           @categories mappedCategories
-
-    class Subcategory
-      constructor: (data) ->
-        @name = ko.observable data.name
-        @id = ko.observable data.id
-    class SubcategoryListViewModel
-      constructor: () ->
-        @subcategories = ko.observableArray []
-        # API limits num results, use &limit=0 (?)
         $.getJSON '/api/v1/subcategory/?format=json', (data) =>
           mappedSubcategories = $.map data.objects, (item) ->
             return new Subcategory item
           @subcategories mappedSubcategories
+        $.getJSON '/api/v1/enrichment/?format=json', (data) =>
+          mappedEnrichments = $.map data.objects, (item) ->
+            return new Enrichment item
+          @enrichments mappedEnrichments
 
-    ko.applyBindings new EnrichmentListViewModel(), document.getElementById 'enrichmentSelector'
-    ko.applyBindings new CategoryListViewModel(), document.getElementById 'categorySelector'
-    ko.applyBindings new SubcategoryListViewModel(), document.getElementById 'subcategorySelector'
+    ko.applyBindings new EnrichmentViewModel(), document.getElementById 'enrichment-container'
 
     # Display
     MAX_SCROLLER_ROWS = 7
