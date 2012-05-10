@@ -10,8 +10,11 @@ PROJECT_DIR = os.path.dirname(__file__)
 
 ADMINS = (
   ('Mark Vismonte', 'mark.vismonte@gmail.com'),
+  ('Timothy Wang', 'timzwang@gmail.com'),
   ('Steven La', 'mrstevenla@gmail.com'),
-  # Add your name/email address tuple.
+  ('Stephen Phillips', 'chengdu.scp@gmail.com'),
+  ('Diana Angwar', 'angwar.diana@gmail.com'),
+  ('Minh Diep', 'minhthediep@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -37,6 +40,11 @@ TIME_ZONE = 'America/Los_Angeles'
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
+
+# Login and Logout URLs.
+LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/auth/login/'
+LOGOUT_URL = '/auth/logout/'
 
 SITE_ID = 1
 
@@ -84,9 +92,6 @@ ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-  # Put strings here, like "/home/html/static" or "C:/www/django/static".
-  # Always use forward slashes, even on Windows.
-  # Don't forget to use absolute paths, not relative paths.
   os.path.join(PROJECT_DIR, 'main', 'static'),
 )
 
@@ -122,9 +127,6 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'paws.urls'
 
 TEMPLATE_DIRS = (
-  # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-  # Always use forward slashes, even on Windows.
-  # Don't forget to use absolute paths, not relative paths.
   os.path.join(PROJECT_DIR, 'templates'),
 )
 
@@ -144,7 +146,7 @@ INSTALLED_APPS = [
   # Extra Applications.
   'south',  # For migrations.
   'tastypie',  # For RESTful API.
-  'coffeescript', # For coffee.
+  'coffeescript', # For coffeescript
   'compressor', # for Compressor
 ]
 
@@ -158,8 +160,8 @@ LOGGING = {
   'disable_existing_loggers': False,
   'handlers': {
     'mail_admins': {
-        'level': 'ERROR',
-         'class': 'django.utils.log.AdminEmailHandler'
+      'level': 'ERROR',
+      'class': 'django.utils.log.AdminEmailHandler'
     }
   },
   'loggers': {
