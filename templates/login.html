@@ -1,0 +1,20 @@
+{# Copyright 2012 PAWS. All right reserved #}
+{# Date: 5/6/2012 #}
+{# login.html - Login HTML template for the PAWS project #}
+
+{% extends "base.html" %}
+
+{% block body %}
+<form action="." method="POST">
+  {% csrf_token %}
+  <div class="form-row">
+    <label for="id_username" class="required">Username:</label>
+    <input id="id_username" type="text" name="username" maxlength="30">
+  </div>
+  <div class="form-row">
+    <label for="id_password" class="required">Password:</label>
+    <input type="password" name="password" id="id_password">
+  </div>
+  <input type="submit" value="Log in">
+</form>
+{% endblock body %}

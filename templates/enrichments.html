@@ -32,18 +32,18 @@
 .carousel .carousel-scroller .carousel-rows {
   display: none;
 }
-#category-selector li, #subcategory-selector li, #enrichment-selector li {
+#categorySelector li, #subcategorySelector li, #enrichmentSelector li {
   text-align:center;
   padding: 10px;
   margin: 0 5px;
   background:#aaa;
 }
-#enrichment-selector li {
+#enrichmentSelector li {
   display: inline-block;
   list-style: none;
   margin: 5px;
 }
-#category-selector, #subcategory-selector, #enrichment-selector {
+#categorySelector, #subcategorySelector, #enrichmentSelector {
   margin: 10px;
   right: 10px;
 }
@@ -52,122 +52,115 @@
 {% endblock styles %}
 
 {% block body %}
-<div class="container">
-  <div class="row">
-    <div class="span12">
-      <div id="enrichment-container">
-        <div class="carousel" id="category-selector">
-          <div class="carousel-scroller">
-            <ul>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-              <li>Category</li>
-            </ul>
-          </div>
-        </div>
-        <div class="carousel" id="subcategory-selector">
-          <div class="carousel-scroller">
-            <ul>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-              <li>Sub Category</li>
-            </ul>
-          </div>
-        </div>
-        <div class="carousel" id="enrichment-selector">
-          <div class="carousel-scroller">
-            <div class="carousel-rows">3</div>
-            <ul>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-              <li>Enrichment</li>
-            </ul>
-        </div>
-        </div>
-      </div>
+<div id="enrichment-container">
+  <div class="carousel" id="categorySelector">
+    <div class="carousel-scroller">
+      <ul>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+        <li>Category</li>
+      </ul>
     </div>
+  </div>
+  <div class="carousel" id="subcategorySelector">
+    <div class="carousel-scroller">
+      <ul>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+        <li>Sub Category</li>
+      </ul>
+    </div>
+  </div>
+  <div class="carousel" id="enrichmentSelector">
+    <div class="carousel-scroller carousel-rows">
+      <ul>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+        <li>Enrichment</li>
+      </ul>
+  </div>
   </div>
 </div>
 {% endblock %}
@@ -179,36 +172,52 @@
 <script type="text/javascript">
   {% inlinecoffeescript %}
   $(document).ready ->
+    MAX_SCROLLER_ROWS = 7
+    window.scrollers = {}
+
     resizeCarousel = (scroller, numRows=1) ->
-      $(scroller).width Math.ceil($(scroller).find('ul li').length/numRows)*$(scroller).find('ul li:first').outerWidth(true)
-    resizeAllCarousels = ->
+      oldWidth = $(scroller).width()
+      newWidth = Math.ceil($(scroller).find('ul li').length/numRows)*$(scroller).find('ul li:first').outerWidth(true)
+      if newWidth != oldWidth
+        console.log 'Resizing carousel from ' + oldWidth + ' to ' + newWidth
+        $(scroller).width newWidth
+        return true
+      return false
+
+    resizeAllCarousels = (refresh=true)->
       $('.carousel-scroller').each ->
-        rows = $(this).children('.carousel-rows').text()
-        if (rows)
-          resizeCarousel this, rows
+        if $(this).hasClass 'carousel-rows'
+          numRows = Math.min Math.floor(($(window).height()-$(this).parent().offset().top)/$(this).find('li:first').outerHeight(true)), MAX_SCROLLER_ROWS
+          resized = resizeCarousel this, numRows
         else
-          resizeCarousel this
-    resizeAllCarousels()
+          resized = resizeCarousel this
+        if refresh and resized
+          console.log 'Refreshing carousel'
+          scrollers[$(this).parent().prop('id')].refresh()
+
+    resizeAllCarousels(false)
+
+    scrollers.categorySelector = new iScroll 'categorySelector', {
+        vScroll: false
+        momentum: true
+        bounce: true
+        hScrollbar: false
+      }
+    scrollers.subcategorySelector = new iScroll 'subcategorySelector', {
+        vScroll: false
+        momentum: true
+        bounce: true
+        hScrollbar: false
+      }
+    scrollers.enrichmentSelector = new iScroll 'enrichmentSelector', {
+        vScroll: false
+        momentum: true
+        bounce: true
+        hScrollbar: false
+      }
     $(window).resize ->
-      resizeAllCarousels()
-    window.categoryScroll = new iScroll 'category-selector', {
-        vScroll: false
-        momentum: true
-        bounce: true
-        hScrollbar: false
-      }
-    window.subcategoryScroll = new iScroll 'subcategory-selector', {
-        vScroll: false
-        momentum: true
-        bounce: true
-        hScrollbar: false
-      }
-    window.enrichmentScroll = new iScroll 'enrichment-selector', {
-        vScroll: false
-        momentum: true
-        bounce: true
-        hScrollbar: false
-      }
+      clearTimeout window.resizeTimeout
+      window.resizeTimeout = setTimeout resizeAllCarousels, 500
   {% endinlinecoffeescript %}
 </script>
 {% endblock scripts %}
