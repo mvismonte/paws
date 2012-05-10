@@ -130,7 +130,7 @@ textarea {
 }
 body {
   margin: 0;
-  padding-top: 80px;
+  padding-top: 90px;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 13px;
   line-height: 18px;
@@ -4188,14 +4188,12 @@ a.badge:hover {
 .invisible {
   visibility: hidden;
 }
-#home > .row {
-  padding: 10px 0;
-}
 .home-button {
   background-position: center center;
   background-repeat: no-repeat;
   display: block;
   padding: 170px 20px 10px;
+  margin: 0 0 20px;
   color: #f0f2f2;
 }
 .home-button:hover {
