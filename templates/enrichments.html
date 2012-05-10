@@ -73,51 +73,10 @@
   </div>
   <div class="carousel" id="enrichmentSelector">
     <div class="carousel-scroller carousel-rows">
-      <ul>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
-        <li>Enrichment</li>
+      <ul data-bind="foreach: enrichments">
+        <li>
+          <div data-bind="text: name"></div>
+        </li>
       </ul>
   </div>
   </div>
@@ -128,6 +87,7 @@
 {% load coffeescript %}
 {{ block.super }}
 <script src="{{ STATIC_URL }}script/iscroll.js"></script>
+<script src="{{ STATIC_URL }}script/knockout-2.0.0.js"></script>
 <script type="text/javascript">
   {% inlinecoffeescript %}
   $(document).ready ->
@@ -154,7 +114,7 @@
           console.log 'Refreshing carousel'
           scrollers[$(this).parent().prop('id')].refresh()
 
-    resizeAllCarousels(false)
+    
 
     scrollers.categorySelector = new iScroll 'categorySelector', {
         vScroll: false
@@ -177,6 +137,23 @@
     $(window).resize ->
       clearTimeout window.resizeTimeout
       window.resizeTimeout = setTimeout resizeAllCarousels, 500
+    # Knockout
+    class Enrichment
+      constructor: (data) ->
+        @name = ko.observable data.name
+        @categoryName = ko.observable data.subcategory.category.name
+        @categoryId = ko.observable data.subcategory.category.id
+        @subcategoryName = ko.observable data.subcategory.name
+        @subcategoryId = ko.observable data.subcategory.id
+    class EnrichmentListViewModel
+      constructor: () ->
+        @enrichments = ko.observableArray []
+        $.getJSON '/api/v1/enrichment/?format=json', (data) =>
+          mappedEnrichments = $.map data.objects, (item) ->
+            return new Enrichment item
+          @enrichments mappedEnrichments
+          resizeAllCarousels(false)
+    ko.applyBindings new EnrichmentListViewModel()
   {% endinlinecoffeescript %}
 </script>
 {% endblock scripts %}
