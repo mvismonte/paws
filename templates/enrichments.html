@@ -14,60 +14,19 @@
 <div id="enrichment-container">
   <div class="carousel" id="categorySelector">
     <div class="carousel-scroller">
-      <ul>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
+      <ul data-bind="foreach: categories">
+        <li>
+          <div data-bind="text: name"></div>
+        </li>
       </ul>
     </div>
   </div>
   <div class="carousel" id="subcategorySelector">
     <div class="carousel-scroller">
-      <ul>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
+      <ul data-bind="foreach: subcategories">
+        <li>
+          <div data-bind="text: name"></div>
+        </li>
       </ul>
     </div>
   </div>
@@ -91,6 +50,54 @@
 <script type="text/javascript">
   {% inlinecoffeescript %}
   $(document).ready ->
+    # Knockout
+    class Enrichment
+      constructor: (data) ->
+        @name = ko.observable data.name # non-observable is fine
+        @categoryName = ko.observable data.subcategory.category.name
+        @categoryId = ko.observable data.subcategory.category.id
+        @subcategoryName = ko.observable data.subcategory.name
+        @subcategoryId = ko.observable data.subcategory.id
+    class EnrichmentListViewModel
+      constructor: () ->
+        @enrichments = ko.observableArray []
+        # API limits num results, use &limit=0 (?)
+        $.getJSON '/api/v1/enrichment/?format=json', (data) =>
+          mappedEnrichments = $.map data.objects, (item) ->
+            return new Enrichment item
+          @enrichments mappedEnrichments
+
+    class Category
+      constructor: (data) ->
+        @name = ko.observable data.name
+        @id = ko.observable data.id
+    class CategoryListViewModel
+      constructor: () ->
+        @categories = ko.observableArray []
+        # API limits num results, use &limit=0 (?)
+        $.getJSON '/api/v1/category/?format=json', (data) =>
+          mappedCategories = $.map data.objects, (item) ->
+            return new Category item
+          @categories mappedCategories
+
+    class Subcategory
+      constructor: (data) ->
+        @name = ko.observable data.name
+        @id = ko.observable data.id
+    class SubcategoryListViewModel
+      constructor: () ->
+        @subcategories = ko.observableArray []
+        # API limits num results, use &limit=0 (?)
+        $.getJSON '/api/v1/subcategory/?format=json', (data) =>
+          mappedSubcategories = $.map data.objects, (item) ->
+            return new Subcategory item
+          @subcategories mappedSubcategories
+
+    ko.applyBindings new EnrichmentListViewModel(), document.getElementById 'enrichmentSelector'
+    ko.applyBindings new CategoryListViewModel(), document.getElementById 'categorySelector'
+    ko.applyBindings new SubcategoryListViewModel(), document.getElementById 'subcategorySelector'
+
+    # Display
     MAX_SCROLLER_ROWS = 7
     window.scrollers = {}
 
@@ -114,7 +121,7 @@
           console.log 'Refreshing carousel'
           scrollers[$(this).parent().prop('id')].refresh()
 
-    
+    resizeAllCarousels(false)
 
     scrollers.categorySelector = new iScroll 'categorySelector', {
         vScroll: false
@@ -137,23 +144,9 @@
     $(window).resize ->
       clearTimeout window.resizeTimeout
       window.resizeTimeout = setTimeout resizeAllCarousels, 500
-    # Knockout
-    class Enrichment
-      constructor: (data) ->
-        @name = ko.observable data.name
-        @categoryName = ko.observable data.subcategory.category.name
-        @categoryId = ko.observable data.subcategory.category.id
-        @subcategoryName = ko.observable data.subcategory.name
-        @subcategoryId = ko.observable data.subcategory.id
-    class EnrichmentListViewModel
-      constructor: () ->
-        @enrichments = ko.observableArray []
-        $.getJSON '/api/v1/enrichment/?format=json', (data) =>
-          mappedEnrichments = $.map data.objects, (item) ->
-            return new Enrichment item
-          @enrichments mappedEnrichments
-          resizeAllCarousels(false)
-    ko.applyBindings new EnrichmentListViewModel()
+
+    
+
   {% endinlinecoffeescript %}
 </script>
 {% endblock scripts %}
