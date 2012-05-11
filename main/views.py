@@ -17,6 +17,22 @@ def home(request):
   html = t.render(RequestContext(request, context))
   return HttpResponse(html)
 
+# Enrichment view.
+@login_required
+def enrichments(request):
+  t = get_template('enrichments.html')
+  context = { 'page': 'enrichment' }
+  html = t.render(RequestContext(request, context))
+  return HttpResponse(html)
+
+# Animal view.
+@login_required
+def animals(request):
+  t = get_template('animals.html')
+  context = { 'page': 'animal' }
+  html = t.render(RequestContext(request, context))
+  return HttpResponse(html)
+
 # Logout View.
 def logout(request):
   # Logout of the application and redirect.

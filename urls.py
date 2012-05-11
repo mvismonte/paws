@@ -37,6 +37,8 @@ urlpatterns = patterns('',
 
   # Main pages.
   url(r'^$', 'paws.main.views.home'),
+  url(r'^animals$', 'paws.main.views.animals'),
+  url(r'^enrichments$', 'paws.main.views.enrichments'),
 
   # Debugging templates.
   url(r'^templates/(?P<templ>[^/]+)$', 'paws.main.views.template_debug'),
