@@ -38,7 +38,7 @@ def importDatabase(file):
     enrichment_limitations = fields[6]
     enrichment_presentation = fields[7]
 
-    # G
+    # Use get_or_create to create all models from the one line of the csv.
     species, created = models.Species.objects.get_or_create(
         common_name=common_name, scientific_name=scientific_name)
     category, create = models.Category.objects.get_or_create(
