@@ -142,6 +142,7 @@
           mappedEnrichments = $.map data.objects, (item) ->
             return new Enrichment item
           @enrichments mappedEnrichments
+          resizeAllCarousels()
 
     ko.applyBindings new EnrichmentViewModel(), document.getElementById 'enrichment-container'
 
@@ -169,6 +170,8 @@
           console.log 'Refreshing carousel'
           scrollers[$(this).parent().prop('id')].refresh()
 
+    #setTimeout resizeAllCarousels, 20
+
     scrollers.categorySelector = new iScroll 'categorySelector', {
         vScroll: false
         momentum: true
@@ -191,7 +194,6 @@
       clearTimeout window.resizeTimeout
       window.resizeTimeout = setTimeout resizeAllCarousels, 500
 
-    setTimeout resizeAllCarousels, 0
 
   {% endinlinecoffeescript %}
 </script>
