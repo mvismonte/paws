@@ -29,7 +29,7 @@
 .carousel .carousel-scroller .carousel-rows {
   display: none;
 }
-#categorySelector li, #subcategorySelector li, #enrichmentSelector li {
+.carousel li {
   text-align:center;
   padding: 10px;
   margin: 0 5px;
@@ -45,13 +45,29 @@
 #enrichmentSelector li.selected {
   opacity: 0.4;
 }
-
-#enrichmentSelector li {
-  margin: 5px;
+.carousel .list-active {
+  outline: 2px solid @yellowGreen;
 }
-#enrichmentSelector .carousel-scroller {
+.list-item li {
+  margin: 5px;
+  width: 200px;
+}
+.list-item .carousel-scroller {
   margin: 0 auto;
 }
-#categorySelector, #subcategorySelector, #enrichmentSelector {
+.list-row {
   margin-top: 10px;
+}
+.list-item-large li {
+  text-align: left;
+  .list-title {
+    font-weight: bold;
+    font-size: @baseFontSize * 2;
+    line-height: @baseLineHeight * 2;
+  }
+  .list-subtext {
+    font-style: italic;
+    font-size: @baseFontSize * 0.9;
+    line-height: @baseLineHeight * 0.9;
+  }
 }
