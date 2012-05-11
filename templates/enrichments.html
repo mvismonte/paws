@@ -81,20 +81,24 @@
 
 
         # Operations
+        # Current Filters
         @categoryFilter = ko.observable ''
         @subcategoryFilter = ko.observable ''
 
+        # Apply filters
         @filterCategory = (category) =>
           if category == @categoryFilter()
             @categoryFilter('')
           else
             @categoryFilter(category)
+          resizeAllCarousels()
 
         @filterSubcategory = (subcategory) =>
           if subcategory == @subcategoryFilter()
             @subcategoryFilter('')
           else
             @subcategoryFilter(subcategory)
+          resizeAllCarousels()
           ## For disable instead of remove, need css rule, not working
           #ko.utils.arrayForEach @enrichments(), (enrichment) ->
           #  if enrichment.subcategoryId() != subcategory.id()
@@ -102,6 +106,7 @@
           #  else
           #    enrichment.disabled = false
 
+        # Filtered lists
         @subcategoriesFilterCategory = ko.computed =>
           category = @categoryFilter()
           if category == ''
@@ -137,6 +142,7 @@
           mappedEnrichments = $.map data.objects, (item) ->
             return new Enrichment item
           @enrichments mappedEnrichments
+          resizeAllCarousels()
 
     ko.applyBindings new EnrichmentViewModel(), document.getElementById 'enrichment-container'
 
@@ -153,7 +159,7 @@
         return true
       return false
 
-    resizeAllCarousels = (refresh=true)->
+    resizeAllCarousels = (refresh=true) ->
       $('.carousel-scroller').each ->
         if $(this).hasClass 'carousel-rows'
           numRows = Math.min Math.floor(($(window).height()-$(this).parent().offset().top)/$(this).find('li:first').outerHeight(true)), MAX_SCROLLER_ROWS
@@ -164,7 +170,7 @@
           console.log 'Refreshing carousel'
           scrollers[$(this).parent().prop('id')].refresh()
 
-    resizeAllCarousels(false)
+    #setTimeout resizeAllCarousels, 20
 
     scrollers.categorySelector = new iScroll 'categorySelector', {
         vScroll: false
@@ -188,7 +194,6 @@
       clearTimeout window.resizeTimeout
       window.resizeTimeout = setTimeout resizeAllCarousels, 500
 
-    
 
   {% endinlinecoffeescript %}
 </script>
