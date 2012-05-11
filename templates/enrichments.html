@@ -18,7 +18,6 @@
         <li data-bind="click: $parent.filterCategory,
             css: { selected: $parent.categoryFilter() == $data }">
           <div data-bind="text: name"></div>
-          <div data-bind="text: id"></div>
         </li>
       </ul>
     </div>
@@ -29,7 +28,6 @@
         <li data-bind="click: $parent.filterSubcategory,
             css: { selected: $parent.subcategoryFilter() == $data }">
           <div data-bind="text: name"></div>
-          <div data-bind="text: id"></div>
         </li>
       </ul>
     </div>
@@ -39,7 +37,8 @@
       <ul data-bind="foreach: enrichmentsFilterSubcategory">
         <li>
           <div data-bind="text: name"></div>
-          <div data-bind="text: subcategoryId"></div>
+          <div data-bind="text: categoryName"></div>
+          <div data-bind="text: subcategoryName"></div>
         </li>
       </ul>
   </div>
