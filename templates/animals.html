@@ -66,7 +66,8 @@
   <div class="carousel list-row list-item list-item-large" id="animalSelector">
     <div class="carousel-scroller carousel-rows">
       <ul data-bind="foreach: animals">
-        <li>
+        <li data-bind="click: $data.toggleActive,
+                       css: { 'list-active': $data.active() == true }">
           <div data-bind="text: name" class="list-title"></div>
           <div data-bind="text: speciesCommonName" class="list-text"></div>
           <div data-bind="text: speciesScientificName" class="list-subtext"></div>
@@ -85,7 +86,7 @@
 <script type="text/javascript">
   {% inlinecoffeescript %}
   $(document).ready ->
-    MAX_SCROLLER_ROWS = 1
+    MAX_SCROLLER_ROWS = 3
     window.scrollers = {}
 
     resizeCarousel = (scroller, numRows=1) ->
@@ -107,8 +108,6 @@
         if refresh and resized
           console.log 'Refreshing carousel'
           scrollers[$(this).parent().prop('id')].refresh()
-
-    
 
     scrollers.categorySelector = new iScroll 'categorySelector', {
         vScroll: false
@@ -134,10 +133,14 @@
     # Knockout
     class Animal
       constructor: (data) ->
+        @active = ko.observable false # For selecting
         @name = ko.observable data.name
         @speciesScientificName = ko.observable data.species.scientific_name
         @speciesCommonName = ko.observable data.species.common_name
         @speciesId = ko.observable data.species.id
+      toggleActive: () ->
+        @active !@active()
+        return
     class AnimalListViewModel
       constructor: () ->
         @animals = ko.observableArray []

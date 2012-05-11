@@ -4273,7 +4273,7 @@ a.badge:hover {
 }
 .list-item li {
   margin: 5px;
-  min-width: 160px;
+  width: 200px;
 }
 .list-item .carousel-scroller {
   margin: 0 auto;
@@ -4285,7 +4285,7 @@ a.badge:hover {
   text-align: left;
 }
 .list-item-large li .list-title {
-  font-weight: strong;
+  font-weight: bold;
   font-size: 26px;
   line-height: 36px;
 }

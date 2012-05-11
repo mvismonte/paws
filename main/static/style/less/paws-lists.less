@@ -38,9 +38,12 @@
   border-style: solid;
   border-color: #a6a6a6;
 }
+.carousel .list-active {
+  outline: 2px solid @yellowGreen;
+}
 .list-item li {
   margin: 5px;
-  min-width: 160px;
+  width: 200px;
 }
 .list-item .carousel-scroller {
   margin: 0 auto;
@@ -54,5 +57,10 @@
     font-weight: bold;
     font-size: @baseFontSize * 2;
     line-height: @baseLineHeight * 2;
+  }
+  .list-subtext {
+    font-style: italic;
+    font-size: @baseFontSize * 0.9;
+    line-height: @baseLineHeight * 0.9;
   }
 }
