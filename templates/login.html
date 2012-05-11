@@ -6,7 +6,7 @@
 
 {# Hide the navbar on login page #}
 {% block navbar %}
-{% endblock %}
+{% endblock navbar %}
 
 {% block body %}
 <div class="container" id="login">
@@ -27,3 +27,15 @@
   </div>
 </div>
 {% endblock body %}
+
+{% block scripts %}
+{% load coffeescript %}
+{{ block.super }}
+<script type="text/javascript">
+  {% inlinecoffeescript %}
+  $(document).ready ->
+    $('#id_username').focus()
+  {% endinlinecoffeescript %}
+</script>
+
+{% endblock scripts %}
