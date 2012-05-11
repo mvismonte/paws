@@ -6,10 +6,9 @@
   width: 100%;
   margin: 0;
   padding: 0;
-  /*float:left;*/
-  position:relative;  /* On older OS versions "position" and "z-index" must be defined, */
-  z-index:1;      /* it seems that recent webkit is less picky and works anyway. */
-  overflow:hidden;
+  position: relative;  /* On older OS versions "position" and "z-index" must be defined, */
+  z-index: 1;      /* it seems that recent webkit is less picky and works anyway. */
+  overflow: hidden;
 }
 .carousel .carousel-scroller {
   margin: 0;
@@ -17,27 +16,26 @@
   overflow: auto;
 }
 .carousel .carousel-scroller ul {
-  list-style:none;
-  display:block;
+  list-style: none;
+  display: block;
   margin: 0;
-  padding:0;
+  padding: 0;
   overflow: auto;
 }
 .carousel .carousel-scroller li {
-  display:inline-block; float:left;
+  display: inline-block;
+  float: left;
 }
 .carousel .carousel-scroller .carousel-rows {
   display: none;
 }
 .carousel li {
-  text-align:center;
+  background: @grayLighter;
+  border: 1px solid darken(@grayLighter, 20%);
+  box-shadow: inset 0px -2px 0px darken(@grayLighter, 10%);
+  text-align: center;
   padding: 10px;
   margin: 0 5px;
-  background: #e0e0e0;
-  border-width: 1px 1px 2px 1px;
-  border-style: solid;
-  border-color: #a6a6a6;
-
   width: 120px;
 }
 #categorySelector li.selected,
@@ -46,28 +44,31 @@
   opacity: 0.4;
 }
 .carousel .list-active {
-  outline: 2px solid @yellowGreen;
+  background: @green;
+  border: 1px solid darken(@green, 20%);
+  box-shadow: inset 0px -2px 0px darken(@green, 10%);
+  color: @almostWhite;
 }
-.list-item li {
+.list-items li {
   margin: 5px;
   width: 200px;
 }
-.list-item .carousel-scroller {
+.list-items .carousel-scroller {
   margin: 0 auto;
 }
 .list-row {
   margin-top: 10px;
 }
-.list-item-large li {
+.list-items-large li {
   text-align: left;
   .list-title {
     font-weight: bold;
     font-size: @baseFontSize * 2;
-    line-height: @baseLineHeight * 2;
+    line-height: @baseLineHeight * 1.6;
   }
   .list-subtext {
     font-style: italic;
-    font-size: @baseFontSize * 0.9;
-    line-height: @baseLineHeight * 0.9;
+    font-size: @baseFontSize;
+    line-height: @baseLineHeight;
   }
 }
