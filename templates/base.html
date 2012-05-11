@@ -51,7 +51,12 @@
               </ul>
               {% block nav_actions %}
               <ul class="nav actions">
-                <li><a href="/auth/login/">Log In</a>
+                {% if user.is_authenticated %}
+                <li>
+                  <span class="navbar-text">
+                    Welcome, {{ user.first_name }}! <a href="/auth/logout/">Log Out</a></span>
+                </li>
+                {% endif %}
               </ul>
               {% endblock %}
             </div>

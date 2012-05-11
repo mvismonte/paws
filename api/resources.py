@@ -35,11 +35,7 @@ class AnimalObservationResource(ModelResource):
     authorization=DjangoAuthorization()
     queryset = models.AnimalObservation.objects.all()
     resource_name = 'animalObservation'
-  #determine user's authority
-  def apply_authorization_limits(self,request,object_list):
-    if request.user.is_superuser==False:
-      return object_list.filter(id=request.user.id)
-    return object_list.all()
+
   # Redefine get_object_list to filter for observation_id and animal_id.
   def get_object_list(self, request):
     animal_id = request.GET.get('animal_id', None)
@@ -74,11 +70,7 @@ class AnimalResource(ModelResource):
     authorization=DjangoAuthorization()
     queryset = models.Animal.objects.all()
     resource_name = 'animal'
-  #determine user's authority
-  def apply_authorization_limits(self,request,object_list):
-    if request.user.is_superuser==False:
-      return object_list.filter(id=request.user.id)
-    return object_list.all()
+
   # Redefine get_object_list to filter for species_id.
   def get_object_list(self, request):
     species_id = request.GET.get('species_id', None)
@@ -177,11 +169,7 @@ class ObservationResource(ModelResource):
     authorization=DjangoAuthorization()
     queryset = models.Observation.objects.all()
     resource_name = 'observation'
-  #determine user's authority
-  def apply_authorization_limits(self,request,object_list):
-    if request.user.is_superuser==False:
-      return object_list.filter(id=request.user.id)
-    return object_list.all()
+
   # Redefine get_object_list to filter for enrichment_id and staff_id.
   def get_object_list(self, request):
     staff_id = request.GET.get('staff_id', None)
@@ -227,11 +215,6 @@ class StaffResource(ModelResource):
     authorization=DjangoAuthorization()
     queryset = models.Staff.objects.all()
     resource_name = 'staff'
-  #determine user's authority
-  def apply_authorization_limits(self,request,object_list):
-    if request.user.is_superuser==False:
-      return object_list.filter(id=request.user.id)
-    return object_list.all()
 
 # Subcategory Resource.
 class SubcategoryResource(ModelResource):
@@ -268,9 +251,5 @@ class UserResource(ModelResource):
     queryset = User.objects.all()
     resource_name = 'user'
     excludes = ['email','password']
-  #Determine user's authority
-  def apply_authorization_limits(self,request,object_list):
-    if request.user.is_superuser==False:
-      return object_list.filter(id=request.user.id)
-    return object_list.all()
+
 
