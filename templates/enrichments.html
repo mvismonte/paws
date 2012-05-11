@@ -88,8 +88,10 @@
         # Apply filters
         @filterCategory = (category) =>
           if category == @categoryFilter()
+            @subcategoryFilter('')
             @categoryFilter('')
           else
+            @subcategoryFilter('')
             @categoryFilter(category)
           resizeAllCarousels()
 
