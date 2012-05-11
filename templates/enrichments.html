@@ -16,7 +16,7 @@
     <div class="carousel-scroller">
       <ul data-bind="foreach: categories">
         <li data-bind="click: $parent.filterCategory,
-            css: { selected: $parent.categoryFilter() == $data }">
+            css: { 'list-active': $parent.categoryFilter() == $data }">
           <div data-bind="text: name"></div>
           <div data-bind="text: id"></div>
         </li>
@@ -27,14 +27,14 @@
     <div class="carousel-scroller">
       <ul data-bind="foreach: subcategoriesFilterCategory">
         <li data-bind="click: $parent.filterSubcategory,
-            css: { selected: $parent.subcategoryFilter() == $data }">
+            css: { 'list-active': $parent.subcategoryFilter() == $data }">
           <div data-bind="text: name"></div>
           <div data-bind="text: id"></div>
         </li>
       </ul>
     </div>
   </div>
-  <div class="carousel list-item" id="enrichmentSelector">
+  <div class="carousel list-items" id="enrichmentSelector">
     <div class="carousel-scroller carousel-rows">
       <ul data-bind="foreach: enrichmentsFilterSubcategory">
         <li>

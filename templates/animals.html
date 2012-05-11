@@ -3,78 +3,43 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div id="animal-container">
-  <div class="carousel list-row" id="categorySelector">
+<div class="container" id="animal-container">
+  <div class="row list-actions">
+    <div class="span4 offset6">
+      <button class="btn">Edit Selected</button>
+    </div>
+  </div>
+</div>
+
+<div>
+
+  <div class="carousel list-row" id="speciesSelector">
     <div class="carousel-scroller">
-      <ul>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
+      <ul data-bind="foreach: species">
+        <li data-bind="click: $parent.setCurrentSpecies,
+            css: { 'list-active': $parent.currentSpecies() == $data }">
+          <div data-bind="text: commonName"></div>
+          <div data-bind="text: id"></div>
+        </li>
       </ul>
     </div>
   </div>
-  <div class="carousel list-row" id="subcategorySelector">
-    <div class="carousel-scroller">
-      <ul>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-      </ul>
-    </div>
-  </div>
+
   <div class="carousel list-row list-items list-items-large" id="animalSelector">
     <div class="carousel-scroller carousel-rows">
-      <ul data-bind="foreach: animals">
+      <ul data-bind="foreach: filterAnimalsBySpecies">
+
         <li data-bind="click: $data.toggleActive,
                        css: { 'list-active': $data.active() == true }">
           <div data-bind="text: name" class="list-title"></div>
           <div data-bind="text: speciesCommonName" class="list-text"></div>
           <div data-bind="text: speciesScientificName" class="list-subtext"></div>
         </li>
+
       </ul>
+    </div>
   </div>
-  </div>
+
 </div>
 {% endblock %}
 
@@ -86,6 +51,68 @@
 <script type="text/javascript">
   {% inlinecoffeescript %}
   $(document).ready ->
+
+    # Knockout
+    # --------
+
+    class Animal
+      constructor: (data) ->
+        @active = ko.observable false
+        @name = ko.observable data.name
+        @speciesScientificName = ko.observable data.species.scientific_name
+        @speciesCommonName = ko.observable data.species.common_name
+        @speciesId = ko.observable data.species.id
+      toggleActive: () ->
+        @active !@active()
+
+    class Species
+      constructor: (data) ->
+        @commonName = ko.observable data.common_name
+        @scientificName = ko.observable data.scientific_name
+        @id = ko.observable data.id
+
+    class AnimalListViewModel
+      constructor: () ->
+        # Arrays for holding data
+        @species = ko.observableArray []
+        @animals = ko.observableArray []
+
+        # Current filter variables
+        @currentSpecies = ko.observable ''
+
+        # Apply filters
+        @setCurrentSpecies = (species) =>
+          if species == @currentSpecies()
+            @currentSpecies('')
+          else
+            @currentSpecies(species)
+          resizeAllCarousels()
+
+        # Compute the filtered lists
+        @filterAnimalsBySpecies = ko.computed =>
+          species = @currentSpecies()
+          if species == ''
+            return @animals()
+          return ko.utils.arrayFilter @animals(), (animal) ->
+            return animal.speciesId() == species.id()
+
+        # Get data from API
+        $.getJSON '/api/v1/species/?format=json', (data) =>
+          mappedSpecies = $.map data.objects, (item) ->
+            return new Species item
+          @species mappedSpecies
+
+        $.getJSON '/api/v1/animal/?format=json', (data) =>
+          mappedAnimals = $.map data.objects, (item) ->
+            return new Animal item
+          @animals mappedAnimals
+          resizeAllCarousels(false)
+
+    ko.applyBindings new AnimalListViewModel()
+
+    # Display
+    # -------
+    
     MAX_SCROLLER_ROWS = 3
     window.scrollers = {}
 
@@ -109,47 +136,23 @@
           console.log 'Refreshing carousel'
           scrollers[$(this).parent().prop('id')].refresh()
 
-    scrollers.categorySelector = new iScroll 'categorySelector', {
-        vScroll: false
-        momentum: true
-        bounce: true
-        hScrollbar: false
-      }
-    scrollers.subcategorySelector = new iScroll 'subcategorySelector', {
-        vScroll: false
-        momentum: true
-        bounce: true
-        hScrollbar: false
-      }
+    scrollers.speciesSelector = new iScroll 'speciesSelector', {
+      vScroll: false
+      momentum: true
+      bounce: true
+      hScrollbar: false
+    }
     scrollers.animalSelector = new iScroll 'animalSelector', {
-        vScroll: false
-        momentum: true
-        bounce: true
-        hScrollbar: false
-      }
+      vScroll: false
+      momentum: true
+      bounce: true
+      hScrollbar: false
+    }
+
     $(window).resize ->
       clearTimeout window.resizeTimeout
       window.resizeTimeout = setTimeout resizeAllCarousels, 500
-    # Knockout
-    class Animal
-      constructor: (data) ->
-        @active = ko.observable false # For selecting
-        @name = ko.observable data.name
-        @speciesScientificName = ko.observable data.species.scientific_name
-        @speciesCommonName = ko.observable data.species.common_name
-        @speciesId = ko.observable data.species.id
-      toggleActive: () ->
-        @active !@active()
-        return
-    class AnimalListViewModel
-      constructor: () ->
-        @animals = ko.observableArray []
-        $.getJSON '/api/v1/animal/?format=json', (data) =>
-          mappedAnimals = $.map data.objects, (item) ->
-            return new Animal item
-          @animals mappedAnimals
-          resizeAllCarousels(false)
-    ko.applyBindings new AnimalListViewModel()
+
   {% endinlinecoffeescript %}
 </script>
 {% endblock scripts %}
