@@ -15,26 +15,31 @@
   <div class="carousel" id="categorySelector">
     <div class="carousel-scroller">
       <ul data-bind="foreach: categories">
-        <li>
+        <li data-bind="click: $parent.filterCategory,
+            css: { selected: $parent.categoryFilter() == $data }">
           <div data-bind="text: name"></div>
+          <div data-bind="text: id"></div>
         </li>
       </ul>
     </div>
   </div>
   <div class="carousel" id="subcategorySelector">
     <div class="carousel-scroller">
-      <ul data-bind="foreach: subcategories">
-        <li>
+      <ul data-bind="foreach: subcategoriesFilterCategory">
+        <li data-bind="click: $parent.filterSubcategory,
+            css: { selected: $parent.subcategoryFilter() == $data }">
           <div data-bind="text: name"></div>
+          <div data-bind="text: id"></div>
         </li>
       </ul>
     </div>
   </div>
   <div class="carousel" id="enrichmentSelector">
     <div class="carousel-scroller carousel-rows">
-      <ul data-bind="foreach: enrichments">
+      <ul data-bind="foreach: enrichmentsFilterSubcategory">
         <li>
           <div data-bind="text: name"></div>
+          <div data-bind="text: subcategoryId"></div>
         </li>
       </ul>
   </div>
@@ -58,6 +63,7 @@
         @categoryId = ko.observable data.subcategory.category.id
         @subcategoryName = ko.observable data.subcategory.name
         @subcategoryId = ko.observable data.subcategory.id
+        @disabled = false
     class Category
       constructor: (data) ->
         @name = ko.observable data.name
@@ -66,11 +72,58 @@
       constructor: (data) ->
         @name = ko.observable data.name
         @id = ko.observable data.id
+        @categoryId = ko.observable data.category.id
     class EnrichmentViewModel
       constructor: () ->
         @categories = ko.observableArray []
         @subcategories = ko.observableArray []
         @enrichments = ko.observableArray []
+
+
+        # Operations
+        @categoryFilter = ko.observable ''
+        @subcategoryFilter = ko.observable ''
+
+        @filterCategory = (category) =>
+          if category == @categoryFilter()
+            @categoryFilter('')
+          else
+            @categoryFilter(category)
+
+        @filterSubcategory = (subcategory) =>
+          if subcategory == @subcategoryFilter()
+            @subcategoryFilter('')
+          else
+            @subcategoryFilter(subcategory)
+          ## For disable instead of remove, need css rule, not working
+          #ko.utils.arrayForEach @enrichments(), (enrichment) ->
+          #  if enrichment.subcategoryId() != subcategory.id()
+          #    enrichment.disabled = true
+          #  else
+          #    enrichment.disabled = false
+
+        @subcategoriesFilterCategory = ko.computed =>
+          category = @categoryFilter()
+          if category == ''
+            return []
+          return ko.utils.arrayFilter @subcategories(), (subcategory) ->
+            return subcategory.categoryId() == category.id()
+
+        @enrichmentsFilterCategory = ko.computed =>
+          category = @categoryFilter()
+          if category == ''
+            return @enrichments()
+          return ko.utils.arrayFilter @enrichments(), (enrichment) ->
+            return enrichment.categoryId() == category.id()
+        @enrichmentsFilterSubcategory = ko.computed =>
+          subcategory = @subcategoryFilter()
+          if subcategory == ''
+            return @enrichmentsFilterCategory()
+          return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
+            return enrichment.subcategoryId() == subcategory.id()
+
+
+        # Initialize
         # API limits num results, use &limit=0 (?)
         $.getJSON '/api/v1/category/?format=json', (data) =>
           mappedCategories = $.map data.objects, (item) ->
