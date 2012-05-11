@@ -4,20 +4,26 @@
 
 {% extends "base.html" %}
 
+{# Hide the navbar on login page #}
+{% block navbar %}
+{% endblock %}
+
 {% block body %}
-<div style="text-align: center;">
-  <h2>SD Zoo PAWS Login</h2>
-  <form action="." method="POST">
-    <fieldset>
-      {% csrf_token %}
-      <div class="clearfix">
-        <input id="id_username" type="text" name="username" maxlength="30" placeholder="User ID">
-      </div>
-      <div class="clearfix">
-        <input type="password" name="password" id="id_password" placeholder="Pin #">
-      </div>
-      <button class="btn btn-primary" type="submit">Sign in</button>
-    </fieldset>
-  </form>
+<div class="container" id="login">
+  <div class="row">
+    <h2>SD Zoo PAWS Login</h2>
+    <form action="." method="POST">
+      <fieldset>
+        {% csrf_token %}
+        <div class="clearfix">
+          <input id="id_username" type="text" name="username" maxlength="30" placeholder="User ID">
+        </div>
+        <div class="clearfix">
+          <input type="password" name="password" id="id_password" placeholder="Pin #">
+        </div>
+        <button class="btn btn-primary btn-large" type="submit">Sign in</button>
+      </fieldset>
+    </form>
+  </div>
 </div>
 {% endblock body %}
