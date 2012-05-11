@@ -14,68 +14,32 @@
 <div id="enrichment-container">
   <div class="carousel" id="categorySelector">
     <div class="carousel-scroller">
-      <ul>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
-        <li>Category</li>
+      <ul data-bind="foreach: categories">
+        <li data-bind="click: $parent.filterCategory,
+            css: { selected: $parent.categoryFilter() == $data }">
+          <div data-bind="text: name"></div>
+          <div data-bind="text: id"></div>
+        </li>
       </ul>
     </div>
   </div>
   <div class="carousel" id="subcategorySelector">
     <div class="carousel-scroller">
-      <ul>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
-        <li>Sub Category</li>
+      <ul data-bind="foreach: subcategoriesFilterCategory">
+        <li data-bind="click: $parent.filterSubcategory,
+            css: { selected: $parent.subcategoryFilter() == $data }">
+          <div data-bind="text: name"></div>
+          <div data-bind="text: id"></div>
+        </li>
       </ul>
     </div>
   </div>
   <div class="carousel list-item" id="enrichmentSelector">
     <div class="carousel-scroller carousel-rows">
-      <ul data-bind="foreach: enrichments">
+      <ul data-bind="foreach: enrichmentsFilterSubcategory">
         <li>
           <div data-bind="text: name"></div>
+          <div data-bind="text: subcategoryId"></div>
         </li>
       </ul>
   </div>
@@ -91,6 +55,92 @@
 <script type="text/javascript">
   {% inlinecoffeescript %}
   $(document).ready ->
+    # Knockout
+    class Enrichment
+      constructor: (data) ->
+        @name = ko.observable data.name # non-observable is fine
+        @categoryName = ko.observable data.subcategory.category.name
+        @categoryId = ko.observable data.subcategory.category.id
+        @subcategoryName = ko.observable data.subcategory.name
+        @subcategoryId = ko.observable data.subcategory.id
+        @disabled = false
+    class Category
+      constructor: (data) ->
+        @name = ko.observable data.name
+        @id = ko.observable data.id
+    class Subcategory
+      constructor: (data) ->
+        @name = ko.observable data.name
+        @id = ko.observable data.id
+        @categoryId = ko.observable data.category.id
+    class EnrichmentViewModel
+      constructor: () ->
+        @categories = ko.observableArray []
+        @subcategories = ko.observableArray []
+        @enrichments = ko.observableArray []
+
+
+        # Operations
+        @categoryFilter = ko.observable ''
+        @subcategoryFilter = ko.observable ''
+
+        @filterCategory = (category) =>
+          if category == @categoryFilter()
+            @categoryFilter('')
+          else
+            @categoryFilter(category)
+
+        @filterSubcategory = (subcategory) =>
+          if subcategory == @subcategoryFilter()
+            @subcategoryFilter('')
+          else
+            @subcategoryFilter(subcategory)
+          ## For disable instead of remove, need css rule, not working
+          #ko.utils.arrayForEach @enrichments(), (enrichment) ->
+          #  if enrichment.subcategoryId() != subcategory.id()
+          #    enrichment.disabled = true
+          #  else
+          #    enrichment.disabled = false
+
+        @subcategoriesFilterCategory = ko.computed =>
+          category = @categoryFilter()
+          if category == ''
+            return []
+          return ko.utils.arrayFilter @subcategories(), (subcategory) ->
+            return subcategory.categoryId() == category.id()
+
+        @enrichmentsFilterCategory = ko.computed =>
+          category = @categoryFilter()
+          if category == ''
+            return @enrichments()
+          return ko.utils.arrayFilter @enrichments(), (enrichment) ->
+            return enrichment.categoryId() == category.id()
+        @enrichmentsFilterSubcategory = ko.computed =>
+          subcategory = @subcategoryFilter()
+          if subcategory == ''
+            return @enrichmentsFilterCategory()
+          return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
+            return enrichment.subcategoryId() == subcategory.id()
+
+
+        # Initialize
+        # API limits num results, use &limit=0 (?)
+        $.getJSON '/api/v1/category/?format=json', (data) =>
+          mappedCategories = $.map data.objects, (item) ->
+            return new Category item
+          @categories mappedCategories
+        $.getJSON '/api/v1/subcategory/?format=json', (data) =>
+          mappedSubcategories = $.map data.objects, (item) ->
+            return new Subcategory item
+          @subcategories mappedSubcategories
+        $.getJSON '/api/v1/enrichment/?format=json', (data) =>
+          mappedEnrichments = $.map data.objects, (item) ->
+            return new Enrichment item
+          @enrichments mappedEnrichments
+
+    ko.applyBindings new EnrichmentViewModel(), document.getElementById 'enrichment-container'
+
+    # Display
     MAX_SCROLLER_ROWS = 7
     window.scrollers = {}
 
@@ -114,7 +164,7 @@
           console.log 'Refreshing carousel'
           scrollers[$(this).parent().prop('id')].refresh()
 
-    
+    resizeAllCarousels(false)
 
     scrollers.categorySelector = new iScroll 'categorySelector', {
         vScroll: false
@@ -137,23 +187,9 @@
     $(window).resize ->
       clearTimeout window.resizeTimeout
       window.resizeTimeout = setTimeout resizeAllCarousels, 500
-    # Knockout
-    class Enrichment
-      constructor: (data) ->
-        @name = ko.observable data.name
-        @categoryName = ko.observable data.subcategory.category.name
-        @categoryId = ko.observable data.subcategory.category.id
-        @subcategoryName = ko.observable data.subcategory.name
-        @subcategoryId = ko.observable data.subcategory.id
-    class EnrichmentListViewModel
-      constructor: () ->
-        @enrichments = ko.observableArray []
-        $.getJSON '/api/v1/enrichment/?format=json', (data) =>
-          mappedEnrichments = $.map data.objects, (item) ->
-            return new Enrichment item
-          @enrichments mappedEnrichments
-          resizeAllCarousels(false)
-    ko.applyBindings new EnrichmentListViewModel()
+
+    
+
   {% endinlinecoffeescript %}
 </script>
 {% endblock scripts %}
