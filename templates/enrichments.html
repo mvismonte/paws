@@ -139,7 +139,7 @@
           mappedSubcategories = $.map data.objects, (item) ->
             return new Subcategory item
           @subcategories mappedSubcategories
-        $.getJSON '/api/v1/enrichment/?format=json', (data) =>
+        $.getJSON '/api/v1/enrichment/?format=json&limit=0', (data) =>
           mappedEnrichments = $.map data.objects, (item) ->
             return new Enrichment item
           @enrichments mappedEnrichments
