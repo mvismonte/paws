@@ -148,7 +148,12 @@ INSTALLED_APPS = [
   'tastypie',  # For RESTful API.
   'coffeescript', # For coffeescript
   'compressor', # for Compressor
+  'haystack', # for HayStack-SearchIndex
 ]
+
+HAYSTACK_SITECONF = 'paws.search_sites'
+HAYSTACK_SEARCH_ENGINE = 'whoosh'
+HAYSTACK_WHOOSH_PATH = os.path.join(PROJECT_DIR, 'whoosh/paws_index')
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
