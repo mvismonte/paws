@@ -84,6 +84,7 @@ COMPRESS_PRECOMPILERS = (
   ('text/less', 'lessc {infile} {outfile}'),
   ('text/coffeescript', 'coffee --compile --stdio'),
 )
+#COMPRESS_ENABLED = True
 
 # URL prefix for admin static files -- CSS, JavaScript and images.
 # Make sure to use a trailing slash.

@@ -71,10 +71,14 @@
   {% endblock %}
 
   {% block scripts %}
+  {% load compress %}
     <script type="text/javascript" src="{{ STATIC_URL }}script/jquery-1.7.2.min.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}script/jquery-ui-1.8.16.custom.min.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}script/bootstrap.min.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}script/scripts.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/iscroll.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/knockout-2.0.0.js"></script>
+  {% compress js %}
+    <script type="text/coffeescript" charset="utf-8" src="{{ STATIC_URL }}script/animals.coffee"></script>
+  {% endcompress %}
   {% endblock %}
   </body>
 
