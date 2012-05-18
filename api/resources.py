@@ -60,8 +60,8 @@ class AnimalObservationResource(ModelResource):
     return super(SpeciesResource, self).obj_update(bundle, request, **kwargs)
 
   #delete animalObervation from the database
-  def obj_delete(self, bundle, request=None, **kwargs):
-    return super(AnimalObservationResource, self).obj_delete(bundle, request, **kwargs)
+  def obj_delete(self, request=None, **kwargs):
+    return super(AnimalObservationResource, self).obj_delete( request, **kwargs)
 
   # Redefine get_object_list to filter for observation_id and animal_id.
   def get_object_list(self, request):
@@ -93,7 +93,7 @@ class AnimalResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
+    #authentication= customAuthentication()
     authorization=Authorization()
     queryset = models.Animal.objects.all()
     resource_name = 'animal'
@@ -114,8 +114,8 @@ class AnimalResource(ModelResource):
     return super(AnimalResource, self).obj_update(bundle, request, **kwargs)
 
   #delete animal from the database
-  def obj_delete(self, bundle, request=None, **kwargs):
-    return super(AnimalResource, self).obj_delete(bundle, request, **kwargs)
+  def obj_delete(self, request=None, **kwargs):
+    return super(AnimalResource, self).obj_delete( request, **kwargs)
 
   def override_urls(self):
     return [
@@ -196,8 +196,8 @@ class CategoryResource(ModelResource):
     return super(CategoryResource, self).obj_update(bundle, request, **kwargs)
 
   #delete category from the database
-  def obj_delete(self, bundle, request=None, **kwargs):
-    return super(CategoryResource, self).obj_delete(bundle, request, **kwargs)
+  def obj_delete(self, request=None, **kwargs):
+    return super(CategoryResource, self).obj_delete( request, **kwargs)
 
 # Enrichment Note Resource.
 class EnrichmentNoteResource(ModelResource):
@@ -229,8 +229,8 @@ class EnrichmentNoteResource(ModelResource):
     return super(EnrichmentNoteResource, self).obj_update(bundle, request, **kwargs)
 
   #delete enrichmentNote from the database
-  def obj_delete(self, bundle, request=None, **kwargs):
-    return super(EnrichmentNoteResource, self).obj_delete(bundle, request, **kwargs)
+  def obj_delete(self, request=None, **kwargs):
+    return super(EnrichmentNoteResource, self).obj_delete( request, **kwargs)
 
   # Redefine get_object_list to filter for enrichment_id and species_id.
   def get_object_list(self, request):
@@ -283,8 +283,8 @@ class EnrichmentResource(ModelResource):
     return super(EnrichmentResource, self).obj_update(bundle, request, **kwargs)
 
   #delete enrichment from the database
-  def obj_delete(self, bundle, request=None, **kwargs):
-    return super(EnrichmentResource, self).obj_delete(bundle, request, **kwargs)
+  def obj_delete(self, request=None, **kwargs):
+    return super(EnrichmentResource, self).obj_delete( request, **kwargs)
 
   def override_urls(self):
     return [
@@ -384,8 +384,8 @@ class ObservationResource(ModelResource):
     return super(ObservationResource, self).obj_update(bundle, request, **kwargs)
 
   #delete observation from the database
-  def obj_delete(self, bundle, request=None, **kwargs):
-    return super(ObservationResource, self).obj_delete(bundle, request, **kwargs)
+  def obj_delete(self, request=None, **kwargs):
+    return super(ObservationResource, self).obj_delete( request, **kwargs)
 
   # Redefine get_object_list to filter for enrichment_id and staff_id.
   def get_object_list(self, request):
@@ -413,7 +413,7 @@ class ObservationResource(ModelResource):
 class SpeciesResource(ModelResource):
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
+    #authentication= customAuthentication()
     authorization=Authorization()
     queryset = models.Species.objects.all()
     resource_name = 'species'
@@ -433,8 +433,8 @@ class SpeciesResource(ModelResource):
     return super(SpeciesResource, self).obj_update(bundle, request, **kwargs)
 
   #delete species from the database
-  def obj_delete(self, bundle, request=None, **kwargs):
-    return super(SpeciesResource, self).obj_delete(bundle, request, **kwargs)
+  def obj_delete(self, request=None, **kwargs):
+    return super(SpeciesResource, self).obj_delete(request, **kwargs)
 
 # Staff Resource.
 class StaffResource(ModelResource):
@@ -462,8 +462,8 @@ class StaffResource(ModelResource):
     return super(StaffResource, self).obj_update(bundle, request, **kwargs)
 
   #delete staff from the database
-  def obj_delete(self, bundle, request=None, **kwargs):
-    return super(StaffResource, self).obj_delete(bundle, request, **kwargs)
+  def obj_delete(self, request=None, **kwargs):
+    return super(StaffResource, self).obj_delete( request, **kwargs)
 
 # Subcategory Resource.
 class SubcategoryResource(ModelResource):
@@ -493,8 +493,8 @@ class SubcategoryResource(ModelResource):
     return super(SubcategoryResource, self).obj_update(bundle, request, **kwargs)
 
   #delete subcategory from the database
-  def obj_delete(self, bundle, request=None, **kwargs):
-    return super(SubcategoryResource, self).obj_delete(bundle, request, **kwargs)
+  def obj_delete(self, request=None, **kwargs):
+    return super(SubcategoryResource, self).obj_delete( request, **kwargs)
 
   # Redefine get_object_list to filter for category_id.
   def get_object_list(self, request):
@@ -544,5 +544,5 @@ class UserResource(ModelResource):
     return bundle
 
   #deleting user from the database
-  def obj_delete(self, bundle, request=None, **kwargs):
-    return super(UserResource, self).obj_delete(bundle, request, **kwargs)
+  def obj_delete(self, request=None, **kwargs):
+    return super(UserResource, self).obj_delete( request, **kwargs)
