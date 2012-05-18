@@ -93,7 +93,7 @@ class AnimalResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    #authentication= customAuthentication()
+    authentication= customAuthentication()
     authorization=Authorization()
     queryset = models.Animal.objects.all()
     resource_name = 'animal'
@@ -413,7 +413,7 @@ class ObservationResource(ModelResource):
 class SpeciesResource(ModelResource):
   class Meta:
     #authenticate the user
-    #authentication= customAuthentication()
+    authentication= customAuthentication()
     authorization=Authorization()
     queryset = models.Species.objects.all()
     resource_name = 'species'
