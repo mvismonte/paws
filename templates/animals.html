@@ -1,18 +1,20 @@
 {# animals.html #}
-
-{% extends "base.html" %}
-
-{% block body %}
-<div class="container" id="animalListContainer">
-  <div class="row list-actions">
-    <div class="span4 offset6">
-      <button class="btn">Edit Selected</button>
+  <div class="container" id="animalListContainer">
+    <div class="row">
+      <div class="span12">
+        <div class="page-header">
+          <div class="list-actions">
+            <strong>View by:</strong>
+            <a href="#" class="active">Exhibit</a> | 
+            <a href="#">Species</a>
+          </div>
+          <h1>Your Animals <small>(<a href="#">view all</a>)</small></h1>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div>
-
-    <div class="carousel list-row" id="speciesSelector">
+{% comment %}
+    <div class="carousel list-row" id="speciesSelector" style="display:none">
       <div class="carousel-scroller">
         <ul data-bind="foreach: species">
           <li data-bind="click: $parent.setCurrentSpecies,
@@ -21,9 +23,12 @@
           </li>
         </ul>
       </div>
-    </div>
 
-    <div class="carousel list-row list-items list-items-large" id="animalSelector">
+      <hr>
+    </div>
+{% endcomment %}
+
+    <div class="row list-items" id="animalSelector">
       <div class="carousel-scroller carousel-rows">
         <ul data-bind="foreach: filterAnimalsBySpecies">
 
@@ -39,5 +44,3 @@
     </div>
 
   </div>
-</div>
-{% endblock %}

@@ -85,6 +85,50 @@ class AnimalObservationResource(ModelResource):
 
     return q_set
 
+  #change the url format
+  def override_urls(self):
+    return [
+      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/calculation%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_calculation'), name="api_get_calculation"),
+    ]
+
+  def determine_format(self, request):
+    if (hasattr(request,'format') and request.format in self._meta.serializer.formats):
+      return self._meta.serializer.get_mime_for_format(request.format)
+    return super(AnimalObservationResource, self).determine_format(request)
+
+  def wrap_view(self, view):
+    def wrapper(request, *args, **kwargs):
+      request.format = kwargs.pop('format', None)
+      wrapped_view = super(AnimalObservationResource, self).wrap_view(view)
+      return wrapped_view(request, *args, **kwargs)
+    return wrapper
+
+  #Calculating the interaction time percentage during the observation time.
+  def get_calculation(self, request, bundle):
+    animal_observation_id = request.GET.get('ao_id', None)
+    
+
+    animal_observation= super(AnimalObservationResource, self).get_object_list(request)
+    #self.create_response(request, animal_observation)
+    animal_observation= animal_observation.filter(id=animal_observation_id)
+    percentage=0.0
+    total_interaction=0.0
+    total_observation=0.0
+    # return 0 if the animal use the enrichment indirectly
+    for result in animal_observation:
+      if result.indirect_use :
+        total_interaction=0.0
+      else:
+        total_observation = 1.0
+        total_interaction= result.interaction_time
+        #total_observation=(result.observation.date_finished - result.observation.date_created)
+    
+    #if total_observation > 0.0:
+    #  return total_interaction/total_observation
+    #return HttpResponse("Test %s" % total_interaction)
+    bundle.data["cutom_field"] = total_interaction
+    return bundle
+    #return self.create_response(request, bundle)
 # Animal Resource.
 class AnimalResource(ModelResource):
   # Define foreign keys.
@@ -330,17 +374,6 @@ class EnrichmentResource(ModelResource):
     self.log_throttled_access(request)
     return self.create_response(request, object_list)
 
-  # Redefine get_object_list to filter for species_id.
-  def get_object_list(self, request):
-    species_id = request.GET.get('species_id', None)
-    q_set = super(AnimalResource, self).get_object_list(request)
-    try:
-      species = models.Species.objects.get(id=species_id)
-      q_set = q_set.filter(species=species)
-    except ObjectDoesNotExist:
-      pass
-    return q_set
-
   # Redefine get_object_list to filter for subcategory_id.
   def get_object_list(self, request):
     subcategory_id = request.GET.get('subcategory_id', None)
@@ -409,6 +442,33 @@ class ObservationResource(ModelResource):
 
     return q_set
 
+# Exhibit Resource.
+class ExhibitResource(ModelResource):
+  class Meta:
+    #authenticate the user
+    authentication= customAuthentication()
+    authorization=Authorization()
+    queryset = models.Exhibit.objects.all()
+    resource_name = 'exhibit'
+    #allowed actions towards database
+    #get = getting exhibit's information from the database
+    #post = adding new exhibit into the database
+    #put = updating exhibit' information in the database
+    #delete = delete exhibit from the database
+    list_allowed_methods= ['get','post','put','delete']
+
+  #creating new species into database
+  def obj_create(self, bundle, request=None, **kwargs):
+    return super(ExhibitResource, self).obj_create(bundle, request, **kwargs)
+    
+  #update exhibit's information in the database
+  def obj_update(self, bundle, request=None, **kwargs):
+    return super(ExhibitResource, self).obj_update(bundle, request, **kwargs)
+
+  #delete exhibit from the database
+  def obj_delete(self, request=None, **kwargs):
+    return super(ExhibitResource, self).obj_delete(request, **kwargs)
+
 # Species Resource.
 class SpeciesResource(ModelResource):
   class Meta:
@@ -436,10 +496,12 @@ class SpeciesResource(ModelResource):
   def obj_delete(self, request=None, **kwargs):
     return super(SpeciesResource, self).obj_delete(request, **kwargs)
 
+
 # Staff Resource.
 class StaffResource(ModelResource):
   user = fields.ToOneField(
       'paws.api.resources.UserResource', 'user', full=True)
+  #animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal', full=True)  
   class Meta:
     #authenticate the user
     authentication= customAuthentication()
@@ -508,30 +570,6 @@ class StaffResource(ModelResource):
     }
     self.log_throttled_access(request)
     return self.create_response(request, object_list)
-
-  # Redefine get_object_list to filter for species_id.
-  def get_object_list(self, request):
-    species_id = request.GET.get('species_id', None)
-    q_set = super(AnimalResource, self).get_object_list(request)
-    try:
-      species = models.Species.objects.get(id=species_id)
-      q_set = q_set.filter(species=species)
-    except ObjectDoesNotExist:
-      pass
-    return q_set
-  # Redefine get_object_list to filter for subcategory_id.
-  def get_object_list(self, request):
-    subcategory_id = request.GET.get('subcategory_id', None)
-    q_set = super(EnrichmentResource, self).get_object_list(request)
-
-    # Try filtering by subcategory if it exists.
-    try:
-      subcategory = models.Subcategory.objects.get(id=subcategory_id)
-      q_set = q_set.filter(subcategory=subcategory)
-    except ObjectDoesNotExist:
-      pass
-    return q_set
-
 
 # Subcategory Resource.
 class SubcategoryResource(ModelResource):
