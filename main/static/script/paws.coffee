@@ -87,6 +87,7 @@ $(document).ready ->
       @empty = () =>
         @species null
         @animals null
+        @currentSpecies ''
 
   class EnrichmentListViewModel
     constructor: () ->
@@ -164,6 +165,8 @@ $(document).ready ->
         @categories null
         @subcategories null
         @enrichments null
+        @categoryFilter ''
+        @subcategoryFilter ''
 
   # The big momma
   PawsViewModel = 
@@ -179,14 +182,17 @@ $(document).ready ->
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.AnimalListVM.empty()
       $('#home').show()
+      resizeAllCarousels()
     context.get '/animals', () =>
       $('#home').hide()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.AnimalListVM.load()
+      resizeAllCarousels()
     context.get '/enrichments', () =>
       $('#home').hide()
       PawsViewModel.AnimalListVM.empty()
       PawsViewModel.EnrichmentListVM.load()
+      resizeAllCarousels()
   .run()
 
 
@@ -215,7 +221,7 @@ $(document).ready ->
     return false
 
 
-  resizeAllCarousels = (refresh=true)->
+  resizeAllCarousels = (refresh=true) ->
     $('.carousel-scroller').each ->
       if $(this).hasClass 'carousel-rows'
         numRows = Math.min Math.floor(($(window).height()-$(this).parent().offset().top)/$(this).find('li:first').outerHeight(true)), MAX_SCROLLER_ROWS
@@ -226,6 +232,24 @@ $(document).ready ->
         console.log 'Refreshing carousel'
         scrollers[$(this).parent().prop('id')].refresh()
 
+  scrollers.categorySelector = new iScroll 'categorySelector', {
+      vScroll: false
+      momentum: true
+      bounce: true
+      hScrollbar: false
+    }
+  scrollers.subcategorySelector = new iScroll 'subcategorySelector', {
+      vScroll: false
+      momentum: true
+      bounce: true
+      hScrollbar: false
+    }
+  scrollers.enrichmentSelector = new iScroll 'enrichmentSelector', {
+      vScroll: false
+      momentum: true
+      bounce: true
+      hScrollbar: false
+    }
   scrollers.speciesSelector = new iScroll 'speciesSelector', {
     vScroll: false
     momentum: true
