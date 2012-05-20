@@ -33,6 +33,14 @@ def animals(request):
   html = t.render(RequestContext(request, context))
   return HttpResponse(html)
 
+# Observation view.
+@login_required
+def observe(request):
+  t = get_template('paws.html')
+  context = { 'page': 'observation' }
+  html = t.render(RequestContext(request, context))
+  return HttpResponse(html)
+
 # Logout View.
 def logout(request):
   # Logout of the application and redirect.

@@ -254,11 +254,12 @@ $(document).ready ->
       PawsViewModel.EnrichmentListVM.load()
       $('#enrichmentListContainer').show()
       resizeAllCarousels()
-    context.get '/#observe', () =>
+    context.get '/observe', () =>
       $('#home').hide()
       PawsViewModel.AnimalListVM.empty()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.ObservationListVM.load()
+      $('#observationsContainer').show()
       resizeAllCarousels()
   .run()
 
