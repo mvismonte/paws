@@ -20,6 +20,7 @@ api.register(resources.StaffResource())
 api.register(resources.SubcategoryResource())
 api.register(resources.UserResource())
 api.register(resources.ExhibitResource())
+api.register(resources.HousingGroupResource())
 
 # Discover admin.
 admin.autodiscover()
