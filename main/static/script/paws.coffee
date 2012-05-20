@@ -1,17 +1,37 @@
 $(document).ready ->
 
-  # Knockout
-  # --------
 
+  # Knockout
+  # ###############
+
+
+  # Models
+  # ----------------
   class Animal
     constructor: (data) ->
-      @active = ko.observable false
       @name = ko.observable data.name
-      @speciesScientificName = ko.observable data.species.scientific_name
       @speciesCommonName = ko.observable data.species.common_name
       @speciesId = ko.observable data.species.id
+      @speciesScientificName = ko.observable data.species.scientific_name
+
+      @active = ko.observable false
     toggleActive: () ->
       @active !@active()
+
+  class Category
+    constructor: (data) ->
+      @name = ko.observable data.name
+      @id = ko.observable data.id
+
+  class Enrichment
+    constructor: (data) ->
+      @name = ko.observable data.name # non-observable is fine
+      @categoryId = ko.observable data.subcategory.category.id
+      @categoryName = ko.observable data.subcategory.category.name
+      @subcategoryId = ko.observable data.subcategory.id
+      @subcategoryName = ko.observable data.subcategory.name
+
+      @disabled = false
 
   class Species
     constructor: (data) ->
@@ -19,6 +39,14 @@ $(document).ready ->
       @scientificName = ko.observable data.scientific_name
       @id = ko.observable data.id
 
+  class Subcategory
+    constructor: (data) ->
+      @name = ko.observable data.name
+      @id = ko.observable data.id
+      @categoryId = ko.observable data.category.id
+
+  # ViewModels
+  # ----------------
   class AnimalListViewModel
     constructor: () ->
       # Arrays for holding data
@@ -44,22 +72,38 @@ $(document).ready ->
         return ko.utils.arrayFilter @animals(), (animal) ->
           return animal.speciesId() == species.id()
 
-      # Get data from API
-      $.getJSON '/api/v1/species/?format=json', (data) =>
-        mappedSpecies = $.map data.objects, (item) ->
-          return new Species item
-        @species mappedSpecies
+      @load = () =>
+        # Get data from API
+        $.getJSON '/api/v1/species/?format=json', (data) =>
+          mappedSpecies = $.map data.objects, (item) ->
+            return new Species item
+          @species mappedSpecies
 
-      $.getJSON '/api/v1/animal/?format=json', (data) =>
-        mappedAnimals = $.map data.objects, (item) ->
-          return new Animal item
-        @animals mappedAnimals
-        resizeAllCarousels(false)
+        $.getJSON '/api/v1/animal/?format=json', (data) =>
+          mappedAnimals = $.map data.objects, (item) ->
+            return new Animal item
+          @animals mappedAnimals
+          resizeAllCarousels(false)
 
-  ko.applyBindings new AnimalListViewModel()
+  # The big momma
+  PawsViewModel = 
+    AnimalListVM: new AnimalListViewModel()
+  ko.applyBindings PawsViewModel.AnimalListVM
 
-  # Display
-  # -------
+  # Sammy
+  # ################
+  Sammy (context) =>
+    context.get '/', () =>
+      $('#home').show()
+      console.log PawsViewModel
+    context.get '/animals', () =>
+      $('#home').hide()
+      PawsViewModel.AnimalListVM.load()  
+  .run()
+
+
+  # UI
+  # ################
   
   MAX_SCROLLER_ROWS = 3
   window.scrollers = {}
