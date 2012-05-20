@@ -199,19 +199,22 @@ $(document).ready ->
   # ################
   Sammy (context) =>
     context.get '/', () =>
+      $('#main > div').hide()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.AnimalListVM.empty()
       $('#home').show()
       resizeAllCarousels()
     context.get '/animals', () =>
-      $('#home').hide()
+      $('#main > div').hide()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.AnimalListVM.load()
+      $('#animalListContainer').show()
       resizeAllCarousels()
     context.get '/enrichments', () =>
-      $('#home').hide()
+      $('#main > div').hide()
       PawsViewModel.AnimalListVM.empty()
       PawsViewModel.EnrichmentListVM.load()
+      $('#enrichmentListContainer').show()
       resizeAllCarousels()
   .run()
 
