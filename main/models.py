@@ -7,6 +7,15 @@ from datetime import datetime
 from django.contrib.auth.models import User
 from django.db import models
 
+# Animal Model
+class Animal(models.Model):
+  count = models.PositiveIntegerField(default=1)
+  housing_group = models.ForeignKey('HousingGroup')
+  name = models.CharField(max_length=100, null=False, blank=False)
+  species = models.ForeignKey('Species')
+  def __unicode__(self):
+    return self.name
+
 # AnimalObservation Model
 class AnimalObservation(models.Model):
   BEHAVIOR_CHOICES = (
@@ -26,18 +35,18 @@ class AnimalObservation(models.Model):
   def __unicode__(self):
     return "%s for %s" % (self.observation.enrichment.name, self.animal.name)
 
-# Animal Model
-class Animal(models.Model):
-  species = models.ForeignKey('Species')
-  name = models.CharField(max_length=100, null=False, blank=False)
-  def __unicode__(self):
-    return self.name
-
 # Category Model
 class Category(models.Model):
   name = models.CharField(max_length=100, null=False, blank=False)
   def __unicode__(self):
     return self.name 
+
+# Enrichment Model
+class Enrichment(models.Model):
+  subcategory = models.ForeignKey('Subcategory')
+  name = models.CharField(max_length=100, null=False, blank=False)
+  def __unicode__(self):
+    return self.name
 
 # EnrichmentNote Model
 class EnrichmentNote(models.Model):
@@ -48,10 +57,17 @@ class EnrichmentNote(models.Model):
   def __unicode__(self):
     return "%s for %s" % (self.enrichment.name, self.species.common_name)
 
-# Enrichment Model
-class Enrichment(models.Model):
-  subcategory = models.ForeignKey('Subcategory')
-  name = models.CharField(max_length=100, null=False, blank=False)
+# Exhibit Model
+class Exhibit(models.Model):
+  code = models.CharField(max_length=100)
+  def __unicode__(self):
+    return self.code
+
+# HousingGroup Model
+class HousingGroup(models.Model):
+  name = models.CharField(max_length=100, null=False, blank=True)
+  staff = models.ManyToManyField('Staff')
+  exhibit = models.ForeignKey('Exhibit')
   def __unicode__(self):
     return self.name
 
@@ -64,6 +80,13 @@ class Observation(models.Model):
   def __unicode__(self):
     return "%s by %s on %s" % (self.enrichment.name,
         self.staff.user.username, unicode(self.date_created))
+
+# Species Model
+class Species(models.Model):
+  common_name = models.CharField(max_length=100, null=False, blank=False)
+  scientific_name = models.CharField(max_length=200, null=False, blank=False)
+  def __unicode__(self):
+    return "%s (%s)" % (self.common_name, self.scientific_name)
 
 # Staff Model
 class Staff(models.Model):
@@ -78,10 +101,3 @@ class Subcategory(models.Model):
   name = models.CharField(max_length=100, null=False, blank=False)
   def __unicode__(self):
     return self.name 
-
-# Species Model
-class Species(models.Model):
-  common_name = models.CharField(max_length=100, null=False, blank=False)
-  scientific_name = models.CharField(max_length=200, null=False, blank=False)
-  def __unicode__(self):
-    return "%s (%s)" % (self.common_name, self.scientific_name)
