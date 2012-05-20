@@ -40,6 +40,10 @@ urlpatterns = patterns('',
   url(r'^animals$', 'paws.main.views.animals'),
   url(r'^enrichments$', 'paws.main.views.enrichments'),
 
+
   # Debugging templates.
   url(r'^templates/(?P<templ>[^/]+)$', 'paws.main.views.template_debug'),
+
+  # Haystack
+  url(r'^search/', include('haystack.urls')),
 )
