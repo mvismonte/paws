@@ -5,44 +5,7 @@
 {% block body %}
 <div id="main">
   {% include "index-grid.html" %}
-  {# include "animals.html" #}
-  <div class="container" id="animalListContainer">
-    <div class="row list-actions">
-      <div class="span4 offset6">
-        <button class="btn">Edit Selected</button>
-      </div>
-    </div>
-
-    <div>
-
-      <div class="carousel list-row" id="speciesSelector">
-        <div class="carousel-scroller">
-          <ul data-bind="foreach: species">
-            <li data-bind="click: $parent.setCurrentSpecies,
-                css: { 'list-active': $parent.currentSpecies() == $data }">
-              <div data-bind="text: commonName"></div>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="carousel list-row list-items list-items-large" id="animalSelector">
-        <div class="carousel-scroller carousel-rows">
-          <ul data-bind="foreach: filterAnimalsBySpecies">
-
-            <li data-bind="click: $data.toggleActive,
-                           css: { 'list-active': $data.active() == true }">
-              <div data-bind="text: name" class="list-title"></div>
-              <div data-bind="text: speciesCommonName" class="list-text"></div>
-              <div data-bind="text: speciesScientificName" class="list-subtext"></div>
-            </li>
-
-          </ul>
-        </div>
-      </div>
-
-    </div>
-  </div>
+  {% include "animals.html" %}
   {% block enrichment %}
 <div id="enrichmentListContainer">
   <div class="carousel" id="categorySelector">
