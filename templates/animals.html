@@ -28,6 +28,32 @@
     </div>
 {% endcomment %}
 
+    <div class="row list-items" id="animalSelector" data-bind="foreach: exhibits">
+
+      <div class="span12">
+        <h2 data-bind="text: fullName"></h2>
+      </div>
+
+      <!-- ko foreach: housingGroups -->
+      <div class="span12">
+        <h3 data-bind="text: name"></h3>
+      </div>
+
+      <!-- ko foreach: animals -->
+      <div class="span3">
+        <div class="list-entry">
+          <strong data-bind="text: name"></strong>
+          <small data-bind="text: species.common_name"></small>
+        </div>
+      </div>
+      <!-- /ko -->
+
+      <!-- /ko -->
+
+    </div>
+
+
+{% comment %}
     <div class="row list-items" id="animalSelector">
       <div class="carousel-scroller carousel-rows">
         <ul data-bind="foreach: filterAnimalsBySpecies">
@@ -42,5 +68,6 @@
         </ul>
       </div>
     </div>
+{% endcomment %}
 
   </div>

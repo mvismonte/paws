@@ -109,8 +109,6 @@ class AnimalResource(ModelResource):
   # Define foreign keys.
   species = fields.ForeignKey(
       'paws.api.resources.SpeciesResource', 'species', full=True)
-  housing_group= fields.ForeignKey(
-      'paws.api.resources.HousingGroupResource','housing_group', full=True)
 
   class Meta:
     #authenticate the user
@@ -431,6 +429,7 @@ class ObservationResource(ModelResource):
 
 # Exhibit Resource.
 class ExhibitResource(ModelResource):
+  housing_groups = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
   class Meta:
     #authenticate the user
     authentication= customAuthentication()
@@ -485,10 +484,10 @@ class SpeciesResource(ModelResource):
 
 #housingGroup Resource
 class HousingGroupResource(ModelResource):
-  exhibit = fields.ForeignKey(
-      'paws.api.resources.ExhibitResource', 'exhibit', full=True)
+  #exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
   staff = fields.ToManyField(
       'paws.api.resources.StaffResource', 'staff', related_name = 'housingGroup')
+  animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal_set', full=True)
   class Meta:
     #authenticate the user
     authentication= customAuthentication()

@@ -18,6 +18,13 @@ $(document).ready ->
     toggleActive: () ->
       @active !@active()
 
+  class Exhibit
+    constructor: (data) ->
+      @code = ko.observable data.code
+      @housingGroups = ko.observableArray data.housing_groups
+      @fullName = ko.computed =>
+        return 'Exhibit ' + @code()
+
   class Category
     constructor: (data) ->
       @name = ko.observable data.name
@@ -39,6 +46,12 @@ $(document).ready ->
       @animalObservations = ko.observableArray data.animal_observations
       @behavior = ko.observable data.behavior
 
+  class Staff
+    constructor: (data) ->
+      @name = ko.observable data.name
+      @id = ko.observable data.id
+      @animals = ko.observableArray []
+
   class Species
     constructor: (data) ->
       @commonName = ko.observable data.common_name
@@ -58,6 +71,7 @@ $(document).ready ->
       # Arrays for holding data
       @species = ko.observableArray []
       @animals = ko.observableArray []
+      @exhibits = ko.observableArray []
 
       # Current filter variables
       @currentSpecies = ko.observable ''
@@ -90,6 +104,12 @@ $(document).ready ->
             return new Animal item
           @animals mappedAnimals
           resizeAllCarousels(false)
+
+        $.getJSON '/api/v1/exhibit/?format=json', (data) =>
+          mappedExhibits = $.map data.objects, (item) ->
+            return new Exhibit item
+          @exhibits mappedExhibits
+
       @empty = () =>
         @species null
         @animals null
@@ -217,19 +237,22 @@ $(document).ready ->
   # ################
   Sammy (context) =>
     context.get '/', () =>
+      $('#main > div').hide()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.AnimalListVM.empty()
       $('#home').show()
       resizeAllCarousels()
     context.get '/animals', () =>
-      $('#home').hide()
+      $('#main > div').hide()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.AnimalListVM.load()
+      $('#animalListContainer').show()
       resizeAllCarousels()
     context.get '/enrichments', () =>
-      $('#home').hide()
+      $('#main > div').hide()
       PawsViewModel.AnimalListVM.empty()
       PawsViewModel.EnrichmentListVM.load()
+      $('#enrichmentListContainer').show()
       resizeAllCarousels()
     context.get '/#observe', () =>
       $('#home').hide()
