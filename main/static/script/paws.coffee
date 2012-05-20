@@ -14,12 +14,16 @@ $(document).ready ->
       @speciesId = ko.observable data.species.id
       @speciesScientificName = ko.observable data.species.scientific_name
 
-      @staffName = ko.observable data.staff.name
-      @staff = ko.observable data.staff.id
-
       @active = ko.observable false
     toggleActive: () ->
       @active !@active()
+
+  class Exhibit
+    constructor: (data) ->
+      @code = ko.observable data.code
+      @housingGroups = ko.observableArray data.housing_groups
+      @fullName = ko.computed =>
+        return 'Exhibit ' + @code()
 
   class Category
     constructor: (data) ->
@@ -61,6 +65,7 @@ $(document).ready ->
       # Arrays for holding data
       @species = ko.observableArray []
       @animals = ko.observableArray []
+      @exhibits = ko.observableArray []
 
       # Current filter variables
       @currentSpecies = ko.observable ''
@@ -93,6 +98,12 @@ $(document).ready ->
             return new Animal item
           @animals mappedAnimals
           resizeAllCarousels(false)
+
+        $.getJSON '/api/v1/exhibit/?format=json', (data) =>
+          mappedExhibits = $.map data.objects, (item) ->
+            return new Exhibit item
+          @exhibits mappedExhibits
+
       @empty = () =>
         @species null
         @animals null
@@ -176,31 +187,6 @@ $(document).ready ->
         @enrichments null
         @categoryFilter ''
         @subcategoryFilter ''
-
-  class StaffViewModel
-    constructor:
-      # List of staff
-      @staff = ko.observableArray []
-
-      # Returns list of animals by staff id
-      @loadAnimals = (staff_id) =>
-        animalList = ko.observableArray []
-        $.getJSON '/api/v1/animal/?format=json&staff_id=' + staff_id, (data) =>
-          mappedAnimals = $.map data.objects, (item) ->
-            return new Animal item
-          animalList mappedAnimals
-        return animalList
-
-      # Get list of staff and their animals
-      @loadStaff = () =>
-        $.getJSON '/api/v1/staff/?format=json', (data) =>
-          mappedStaff = $.map data.objects, (item) ->
-            staff = new Staff item
-            staff.animals = @loadAnimals(staff.id)
-            return staff
-          @staff mappedStaff
-        resizeAllCarousels()
-
 
   # The big momma
   PawsViewModel = 
