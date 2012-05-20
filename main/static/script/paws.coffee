@@ -85,20 +85,105 @@ $(document).ready ->
           @animals mappedAnimals
           resizeAllCarousels(false)
 
+  class EnrichmentListViewModel
+    constructor: () ->
+      @categories = ko.observableArray []
+      @subcategories = ko.observableArray []
+      @enrichments = ko.observableArray []
+
+      # Operations
+      # Current Filters
+      @categoryFilter = ko.observable ''
+      @subcategoryFilter = ko.observable ''
+
+      # Apply filters
+      @filterCategory = (category) =>
+        if category == @categoryFilter()
+          @subcategoryFilter('')
+          @categoryFilter('')
+        else
+          @subcategoryFilter('')
+          @categoryFilter(category)
+        resizeAllCarousels()
+
+      @filterSubcategory = (subcategory) =>
+        if subcategory == @subcategoryFilter()
+          @subcategoryFilter('')
+        else
+          @subcategoryFilter(subcategory)
+        resizeAllCarousels()
+        ## For disable instead of remove, need css rule, not working
+        #ko.utils.arrayForEach @enrichments(), (enrichment) ->
+        #  if enrichment.subcategoryId() != subcategory.id()
+        #    enrichment.disabled = true
+        #  else
+        #    enrichment.disabled = false
+
+      # Filtered lists
+      @subcategoriesFilterCategory = ko.computed =>
+        category = @categoryFilter()
+        if category == ''
+          return []
+        return ko.utils.arrayFilter @subcategories(), (subcategory) ->
+          return subcategory.categoryId() == category.id()
+
+      @enrichmentsFilterCategory = ko.computed =>
+        category = @categoryFilter()
+        if category == ''
+          return @enrichments()
+        return ko.utils.arrayFilter @enrichments(), (enrichment) ->
+          return enrichment.categoryId() == category.id()
+      @enrichmentsFilterSubcategory = ko.computed =>
+        subcategory = @subcategoryFilter()
+        if subcategory == ''
+          return @enrichmentsFilterCategory()
+        return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
+          return enrichment.subcategoryId() == subcategory.id()
+
+
+      @load = () =>
+        # Initialize
+        # API limits num results, use &limit=0 (?)
+        $.getJSON '/api/v1/category/?format=json', (data) =>
+          mappedCategories = $.map data.objects, (item) ->
+            return new Category item
+          @categories mappedCategories
+        $.getJSON '/api/v1/subcategory/?format=json', (data) =>
+          mappedSubcategories = $.map data.objects, (item) ->
+            return new Subcategory item
+          @subcategories mappedSubcategories
+        $.getJSON '/api/v1/enrichment/?format=json&limit=0', (data) =>
+          mappedEnrichments = $.map data.objects, (item) ->
+            return new Enrichment item
+          @enrichments mappedEnrichments
+          resizeAllCarousels()
+
   # The big momma
   PawsViewModel = 
     AnimalListVM: new AnimalListViewModel()
-  ko.applyBindings PawsViewModel.AnimalListVM
+    EnrichmentListVM: new EnrichmentListViewModel()
+  ko.applyBindings PawsViewModel.AnimalListVM, document.getElementById 'animalListContainer'
+  ko.applyBindings PawsViewModel.EnrichmentListVM, document.getElementById 'enrichmentListContainer'
 
   # Sammy
   # ################
   Sammy (context) =>
     context.get '/', () =>
       $('#home').show()
-      console.log PawsViewModel
+      PawsViewModel.EnrichmentListVM.categories null
+      PawsViewModel.EnrichmentListVM.subcategories null
+      PawsViewModel.EnrichmentListVM.enrichments null
     context.get '/animals', () =>
       $('#home').hide()
-      PawsViewModel.AnimalListVM.load()  
+      PawsViewModel.AnimalListVM.load() 
+      PawsViewModel.EnrichmentListVM.categories null
+      PawsViewModel.EnrichmentListVM.subcategories null
+      PawsViewModel.EnrichmentListVM.enrichments null
+    context.get '/enrichments', () =>
+      $('#home').hide()
+      PawsViewModel.EnrichmentListVM.load()
+      PawsViewModel.AnimalListVM.species null
+      PawsViewModel.AnimalListVM.animals null
   .run()
 
 
