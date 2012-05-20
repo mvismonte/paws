@@ -84,6 +84,9 @@ $(document).ready ->
             return new Animal item
           @animals mappedAnimals
           resizeAllCarousels(false)
+      @empty = () =>
+        @species null
+        @animals null
 
   class EnrichmentListViewModel
     constructor: () ->
@@ -157,6 +160,10 @@ $(document).ready ->
             return new Enrichment item
           @enrichments mappedEnrichments
           resizeAllCarousels()
+      @empty = () =>
+        @categories null
+        @subcategories null
+        @enrichments null
 
   # The big momma
   PawsViewModel = 
@@ -169,21 +176,17 @@ $(document).ready ->
   # ################
   Sammy (context) =>
     context.get '/', () =>
+      PawsViewModel.EnrichmentListVM.empty()
+      PawsViewModel.AnimalListVM.empty()
       $('#home').show()
-      PawsViewModel.EnrichmentListVM.categories null
-      PawsViewModel.EnrichmentListVM.subcategories null
-      PawsViewModel.EnrichmentListVM.enrichments null
     context.get '/animals', () =>
       $('#home').hide()
-      PawsViewModel.AnimalListVM.load() 
-      PawsViewModel.EnrichmentListVM.categories null
-      PawsViewModel.EnrichmentListVM.subcategories null
-      PawsViewModel.EnrichmentListVM.enrichments null
+      PawsViewModel.EnrichmentListVM.empty()
+      PawsViewModel.AnimalListVM.load()
     context.get '/enrichments', () =>
       $('#home').hide()
+      PawsViewModel.AnimalListVM.empty()
       PawsViewModel.EnrichmentListVM.load()
-      PawsViewModel.AnimalListVM.species null
-      PawsViewModel.AnimalListVM.animals null
   .run()
 
 
