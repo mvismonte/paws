@@ -12,5 +12,11 @@ class EnrichmentIndex(SearchIndex):
 	subcategory = CharField(model_attr = 'subcategory')
 	name = CharField(model_attr = 'name')
 
+class StaffIndex(SearchIndex):
+	text = CharField(document = True, use_template = True)
+	animals = CharField(model_attr = 'animals')
+	user = CharField(model_attr = 'user')
+
 site.register(models.Animal, AnimalIndex)
 site.register(models.Enrichment, EnrichmentIndex)
+site.register(models.Staff, StaffIndex)
