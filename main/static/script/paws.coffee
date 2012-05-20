@@ -14,6 +14,9 @@ $(document).ready ->
       @speciesId = ko.observable data.species.id
       @speciesScientificName = ko.observable data.species.scientific_name
 
+      @staffName = ko.observable data.staff.name
+      @staff = ko.observable data.staff.id
+
       @active = ko.observable false
     toggleActive: () ->
       @active !@active()
@@ -32,6 +35,12 @@ $(document).ready ->
       @subcategoryName = ko.observable data.subcategory.name
 
       @disabled = false
+
+  class Staff
+    constructor: (data) ->
+      @name = ko.observable data.name
+      @id = ko.observable data.id
+      @animals = ko.observableArray []
 
   class Species
     constructor: (data) ->
@@ -167,6 +176,31 @@ $(document).ready ->
         @enrichments null
         @categoryFilter ''
         @subcategoryFilter ''
+
+  class StaffViewModel
+    constructor:
+      # List of staff
+      @staff = ko.observableArray []
+
+      # Returns list of animals by staff id
+      @loadAnimals = (staff_id) =>
+        animalList = ko.observableArray []
+        $.getJSON '/api/v1/animal/?format=json&staff_id=' + staff_id, (data) =>
+          mappedAnimals = $.map data.objects, (item) ->
+            return new Animal item
+          animalList mappedAnimals
+        return animalList
+
+      # Get list of staff and their animals
+      @loadStaff = () =>
+        $.getJSON '/api/v1/staff/?format=json', (data) =>
+          mappedStaff = $.map data.objects, (item) ->
+            staff = new Staff item
+            staff.animals = @loadAnimals(staff.id)
+            return staff
+          @staff mappedStaff
+        resizeAllCarousels()
+
 
   # The big momma
   PawsViewModel = 
