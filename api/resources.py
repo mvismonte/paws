@@ -103,32 +103,7 @@ class AnimalObservationResource(ModelResource):
       return wrapped_view(request, *args, **kwargs)
     return wrapper
 
-  #Calculating the interaction time percentage during the observation time.
-  def get_calculation(self, request, bundle):
-    animal_observation_id = request.GET.get('ao_id', None)
-    
-
-    animal_observation= super(AnimalObservationResource, self).get_object_list(request)
-    #self.create_response(request, animal_observation)
-    animal_observation= animal_observation.filter(id=animal_observation_id)
-    percentage=0.0
-    total_interaction=0.0
-    total_observation=0.0
-    # return 0 if the animal use the enrichment indirectly
-    for result in animal_observation:
-      if result.indirect_use :
-        total_interaction=0.0
-      else:
-        total_observation = 1.0
-        total_interaction= result.interaction_time
-        #total_observation=(result.observation.date_finished - result.observation.date_created)
-    
-    #if total_observation > 0.0:
-    #  return total_interaction/total_observation
-    #return HttpResponse("Test %s" % total_interaction)
-    bundle.data["cutom_field"] = total_interaction
-    return bundle
-    #return self.create_response(request, bundle)
+ 
 # Animal Resource.
 class AnimalResource(ModelResource):
   # Define foreign keys.
@@ -207,22 +182,21 @@ class AnimalResource(ModelResource):
     self.log_throttled_access(request)
     return self.create_response(request, object_list)
 
-  # Redefine get_object_list to filter for species_id.
+  # Redefine get_object_list to filter for species_id and/or housingGroup_id
   def get_object_list(self, request):
-    q_set = super(AnimalResource, self).get_object_list(request)
-    # Get by species
     species_id = request.GET.get('species_id', None)
+    housingGroup_id=request.GET.get('housing_id', None)
+    q_set = super(AnimalResource, self).get_object_list(request)
+     # Try filtering by species if it exists.
     try:
       species = models.Species.objects.get(id=species_id)
       q_set = q_set.filter(species=species)
     except ObjectDoesNotExist:
       pass
-    # Get by staff
-    staff_id = request.GET.get('staff_id', None)
+     # Try filtering by housingGroup if it exists.
     try:
-      staff = models.Staff.objects.get(id=staff_id)
-      housing_group = models.HousingGroup.objects.filter(staff=staff)
-      q_set = q_set.filter(housing_group__in=housing_group)
+      housinggroup=models.HousingGroup.objects.get(id=housingGroup_id)
+      q_set=q_set.filter(housing_group=housinggroup)
     except ObjectDoesNotExist:
       pass
     return q_set
@@ -512,7 +486,7 @@ class HousingGroupResource(ModelResource):
   exhibit = fields.ForeignKey(
       'paws.api.resources.ExhibitResource', 'exhibit', full=True)
   staff = fields.ToManyField(
-      'paws.api.resources.StaffResource', 'staff', related_name = 'housingGroup', full=False)
+      'paws.api.resources.StaffResource', 'staff', related_name = 'housingGroup')
   class Meta:
     #authenticate the user
     authentication= customAuthentication()
@@ -538,7 +512,27 @@ class HousingGroupResource(ModelResource):
   def obj_delete(self, request=None, **kwargs):
     return super(HousingGroupResource, self).obj_delete( request, **kwargs)
 
+# Redefine get_object_list to filter for exhibit_id and staff_id.
+  def get_object_list(self, request):
+    staff_id = request.GET.get('staff_id', None)
+    exhibit_id = request.GET.get('exhibit_id', None)
+    q_set = super(HousingGroupResource, self).get_object_list(request)
 
+    # Try filtering by staff_id if it exists.
+    try:
+      staff = models.Staff.objects.get(id=staff_id)
+      q_set = q_set.filter(staff=staff)
+    except ObjectDoesNotExist:
+      pass
+
+    # Try filtering by exhibit if it exists.
+    try:
+      exhibit = models.Exhibit.objects.get(id=exhibit_id)
+      q_set = q_set.filter(exhibit=exhibit)
+    except ObjectDoesNotExist:
+      pass
+
+    return q_set
 # Staff Resource.
 class StaffResource(ModelResource):
   user = fields.ToOneField(
@@ -613,6 +607,19 @@ class StaffResource(ModelResource):
     }
     self.log_throttled_access(request)
     return self.create_response(request, object_list)
+
+# Redefine get_object_list to filter for animal_id.
+  def get_object_list(self, request):
+    animal_id = request.GET.get('animal_id', None)
+    q_set = super(StaffResource, self).get_object_list(request)
+    try:
+      animal = models.Animal.objects.get(id=animal_id)
+      q_set = q_set.filter(animals=animal)
+    except ObjectDoesNotExist:
+      pass
+    return q_set
+
+
 
 # Subcategory Resource.
 class SubcategoryResource(ModelResource):
