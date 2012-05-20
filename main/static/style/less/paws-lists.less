@@ -36,7 +36,7 @@
   text-align: center;
   padding: 10px;
   margin: 0 5px;
-  width: 120px;
+  //width: 120px;
 }
 .carousel .list-active {
   background: @green;
@@ -66,4 +66,34 @@
     font-size: @baseFontSize;
     line-height: @baseLineHeight;
   }
+}
+
+
+.list-entry {
+  @backgroundColor: @white;
+  background: @backgroundColor;
+  border: 1px solid darken(@backgroundColor, 20%);
+  box-shadow: inset 0px -2px 0px darken(@backgroundColor, 10%);
+  padding: 10px;
+  margin-bottom: 10px;
+  strong {
+    display: block;
+    font-size: 20px;
+    line-height: 24px;
+  }
+  small {
+    font-size: 10px;
+    line-height: 10px;
+  }
+}
+.list-active {
+  background: @green;
+  border: 1px solid darken(@green, 20%);
+  box-shadow: inset 0px -2px 0px darken(@green, 10%);
+  color: @almostWhite;
+}
+.list-actions {
+  float: right;
+  max-width: 300px;
+  padding-top: 10px;
 }
