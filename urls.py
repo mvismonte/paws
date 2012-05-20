@@ -19,6 +19,7 @@ api.register(resources.SpeciesResource())
 api.register(resources.StaffResource())
 api.register(resources.SubcategoryResource())
 api.register(resources.UserResource())
+api.register(resources.ExhibitResource())
 
 # Discover admin.
 admin.autodiscover()
