@@ -375,8 +375,10 @@ class EnrichmentResource(ModelResource):
 # Observation Resource.
 class ObservationResource(ModelResource):
   # Define foreign keys.
+  animal_observations = fields.ToManyField(
+      'paws.api.resources.AnimalObservationResource','animalobservation_set', full=True)
   enrichment = fields.ForeignKey(
-      'paws.api.resources.EnrichmentResource','enrichment')
+      'paws.api.resources.EnrichmentResource','enrichment', full=True)
   staff = fields.ForeignKey(
       'paws.api.resources.StaffResource','staff')
 

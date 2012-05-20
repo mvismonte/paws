@@ -33,6 +33,12 @@ $(document).ready ->
 
       @disabled = false
 
+  class Observation
+    constructor: (data) ->
+      @enrichment = ko.observable data.enrichment.name
+      @animalObservations = ko.observableArray data.animal_observations
+      @behavior = ko.observable data.behavior
+
   class Species
     constructor: (data) ->
       @commonName = ko.observable data.common_name
@@ -168,12 +174,44 @@ $(document).ready ->
         @categoryFilter ''
         @subcategoryFilter ''
 
+  class ObservationListViewModel
+    constructor: () ->
+      # Arrays for holding data
+      @observations = ko.observableArray []
+      @behaviorType = [
+        { id: -2, type: 'Avoid'}
+        { id: -1, type: 'Negative'}
+        { id: 0, type: 'N/A'}
+        { id: 1, type: 'Positive'}
+      ]
+
+      @save = () =>
+        $.ajax "/api/v1/observation/", {
+            data: ko.toJSON { objects: self.observations }
+            type: "PUT"
+            contentType: "application/json"
+            success: (result) -> 
+              alert(result)
+        }
+
+      @load = () =>
+        # Get data from API
+        $.getJSON '/api/v1/observation/?format=json', (data) =>
+          mapped = $.map data.objects, (item) ->
+            return new Observation item
+          @observations data.objects
+
+      @empty = () =>
+        @observations null
+
   # The big momma
   PawsViewModel = 
     AnimalListVM: new AnimalListViewModel()
     EnrichmentListVM: new EnrichmentListViewModel()
+    ObservationListVM: new ObservationListViewModel()
   ko.applyBindings PawsViewModel.AnimalListVM, document.getElementById 'animalListContainer'
   ko.applyBindings PawsViewModel.EnrichmentListVM, document.getElementById 'enrichmentListContainer'
+  ko.applyBindings PawsViewModel.ObservationListVM, document.getElementById 'observationsContainer'
 
   # Sammy
   # ################
@@ -192,6 +230,12 @@ $(document).ready ->
       $('#home').hide()
       PawsViewModel.AnimalListVM.empty()
       PawsViewModel.EnrichmentListVM.load()
+      resizeAllCarousels()
+    context.get '/#observe', () =>
+      $('#home').hide()
+      PawsViewModel.AnimalListVM.empty()
+      PawsViewModel.EnrichmentListVM.empty()
+      PawsViewModel.ObservationListVM.load()
       resizeAllCarousels()
   .run()
 
