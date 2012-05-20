@@ -134,6 +134,8 @@ class AnimalResource(ModelResource):
   # Define foreign keys.
   species = fields.ForeignKey(
       'paws.api.resources.SpeciesResource', 'species', full=True)
+  housing_group= fields.ForeignKey(
+      'paws.api.resources.HousingGroupResource','housing_group', full=True)
 
   class Meta:
     #authenticate the user
@@ -496,12 +498,44 @@ class SpeciesResource(ModelResource):
   def obj_delete(self, request=None, **kwargs):
     return super(SpeciesResource, self).obj_delete(request, **kwargs)
 
+#housingGroup Resource
+class HousingGroupResource(ModelResource):
+  exhibit = fields.ForeignKey(
+      'paws.api.resources.ExhibitResource', 'exhibit', full=True)
+  staff = fields.ToManyField(
+      'paws.api.resources.StaffResource', 'staff', related_name = 'housingGroup', full=True)
+  class Meta:
+    #authenticate the user
+    authentication= customAuthentication()
+    authorization=Authorization()
+    queryset = models.HousingGroup.objects.all()
+    resource_name = 'housingGroup'
+    #allowed actions towards database
+    #get = getting HousingGroup's information from the database
+    #post = adding new HousingGroup into the database
+    #put = updating HousingGroup's information in the database
+    #delete = delete HousingGroup from the database
+    list_allowed_methods= ['get','post','put','delete']
+
+  #creating new HousingGroup into database
+  def obj_create(self, bundle, request=None, **kwargs):
+    return super(HousingGroupResource, self).obj_create(bundle, request, **kwargs)
+    
+  #update HousingGroup's information in the database
+  def obj_update(self, bundle, request=None, **kwargs):
+    return super(HousingGroupResource, self).obj_update(bundle, request, **kwargs)
+
+  #delete HousingGroup from the database
+  def obj_delete(self, request=None, **kwargs):
+    return super(HousingGroupResource, self).obj_delete( request, **kwargs)
+
 
 # Staff Resource.
 class StaffResource(ModelResource):
   user = fields.ToOneField(
       'paws.api.resources.UserResource', 'user', full=True)
-  #animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal', full=True)  
+  animals = fields.ToManyField(
+      'paws.api.resources.AnimalResource', 'animals', related_name= 'animal', full=True)  
   class Meta:
     #authenticate the user
     authentication= customAuthentication()
