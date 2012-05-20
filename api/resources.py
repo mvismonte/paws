@@ -503,7 +503,7 @@ class HousingGroupResource(ModelResource):
   exhibit = fields.ForeignKey(
       'paws.api.resources.ExhibitResource', 'exhibit', full=True)
   staff = fields.ToManyField(
-      'paws.api.resources.StaffResource', 'staff', related_name = 'housingGroup', full=True)
+      'paws.api.resources.StaffResource', 'staff', related_name = 'housingGroup', full=False)
   class Meta:
     #authenticate the user
     authentication= customAuthentication()
