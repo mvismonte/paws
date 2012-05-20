@@ -209,11 +209,20 @@ class AnimalResource(ModelResource):
 
   # Redefine get_object_list to filter for species_id.
   def get_object_list(self, request):
-    species_id = request.GET.get('species_id', None)
     q_set = super(AnimalResource, self).get_object_list(request)
+    # Get by species
+    species_id = request.GET.get('species_id', None)
     try:
       species = models.Species.objects.get(id=species_id)
       q_set = q_set.filter(species=species)
+    except ObjectDoesNotExist:
+      pass
+    # Get by staff
+    staff_id = request.GET.get('staff_id', None)
+    try:
+      staff = models.Staff.objects.get(id=staff_id)
+      housing_group = models.HousingGroup.objects.filter(staff=staff)
+      q_set = q_set.filter(housing_group__in=housing_group)
     except ObjectDoesNotExist:
       pass
     return q_set
