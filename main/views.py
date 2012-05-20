@@ -20,7 +20,7 @@ def home(request):
 # Enrichment view.
 @login_required
 def enrichments(request):
-  t = get_template('enrichments.html')
+  t = get_template('paws.html')
   context = { 'page': 'enrichment' }
   html = t.render(RequestContext(request, context))
   return HttpResponse(html)
