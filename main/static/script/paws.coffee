@@ -92,6 +92,19 @@ $(document).ready ->
         return ko.utils.arrayFilter @animals(), (animal) ->
           return animal.speciesId() == species.id()
 
+      # Enrichment application
+      # Current animal selection(s)
+      @selectedAnimals = ko.observableArray []
+
+      # Select animal(s) functions
+      @selectExhibit = (exhibit) =>
+        animals = []
+        $.each exhibit.housingGroups(), (i, hg) =>
+          console.log hg.animals
+          animals = animals.concat hg.animals
+        @selectedAnimals animals
+        console.log @selectedAnimals()
+
       @load = () =>
         # Get data from API
         $.getJSON '/api/v1/species/?format=json', (data) =>

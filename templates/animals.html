@@ -31,7 +31,7 @@
     <div class="row list-items" id="animalSelector" data-bind="foreach: exhibits">
 
       <div class="span12">
-        <h2 data-bind="text: fullName"></h2>
+        <h2><span data-bind="text: fullName"></span> <button data-bind="click: $parent.selectExhibit" class="btn">Select</button></h2>
       </div>
 
       <!-- ko foreach: housingGroups -->
