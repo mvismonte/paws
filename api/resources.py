@@ -21,6 +21,7 @@ from tastypie.utils import trailing_slash
 from tastypie.exceptions import BadRequest
 from haystack.query import SearchQuerySet
 from haystack.query import EmptySearchQuerySet
+import datetime
 
 #Custom Authentication
 class customAuthentication(BasicAuthentication):
@@ -85,23 +86,24 @@ class AnimalObservationResource(ModelResource):
 
     return q_set
 
-  #change the url format
-  def override_urls(self):
-    return [
-      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/calculation%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_calculation'), name="api_get_calculation"),
-    ]
+  # Add useful numerical numbers for animal observation    
+  def dehydrate(self, bundle):
+    #Calculate the total observation time
+    total_observation = 0
+    total_observation = bundle.obj.observation.date_finished -  bundle.obj.observation.date_created
 
-  def determine_format(self, request):
-    if (hasattr(request,'format') and request.format in self._meta.serializer.formats):
-      return self._meta.serializer.get_mime_for_format(request.format)
-    return super(AnimalObservationResource, self).determine_format(request)
-
-  def wrap_view(self, view):
-    def wrapper(request, *args, **kwargs):
-      request.format = kwargs.pop('format', None)
-      wrapped_view = super(AnimalObservationResource, self).wrap_view(view)
-      return wrapped_view(request, *args, **kwargs)
-    return wrapper
+    #Add the calculated total observation time into the API results
+    bundle.data['total_observation'] = total_observation
+    
+    #Add the rate of the interaction vs. total observation time
+    if bundle.obj.indirect_use:
+      #If there is no observation, set the rate equals to 0 
+      bundle.data['rate'] = 0.0
+    else:
+      #The rate = interaction time is divided bt the total observation time
+      #Add the rate into the API results
+      bundle.data['rate'] = bundle.obj.interaction_time/datetime.timedelta.total_seconds(total_observation)
+    return bundle
 
  
 # Animal Resource.
@@ -138,16 +140,19 @@ class AnimalResource(ModelResource):
   def obj_delete(self, request=None, **kwargs):
     return super(AnimalResource, self).obj_delete( request, **kwargs)
 
+  #override the url for a specific url path of searching
   def override_urls(self):
     return [
       url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
     ]
 
+  #determine the format of the returning results in json or xml  
   def determine_format(self, request):
     if (hasattr(request,'format') and request.format in self._meta.serializer.formats):
       return self._meta.serializer.get_mime_for_format(request.format)
     return super(AnimalResource, self).determine_format(request)
 
+  #wraps the method 'get_seach' so that it can be called in a more functional way
   def wrap_view(self, view):
     def wrapper(request, *args, **kwargs):
       request.format = kwargs.pop('format', None)
@@ -155,31 +160,40 @@ class AnimalResource(ModelResource):
       return wrapped_view(request, *args, **kwargs)
     return wrapper
 
+  #main function for searching
   def get_search(self, request, **kwargs):
+    #checking user inputs' method
     self.method_check(request, allowed=['get'])
-    self.is_authenticated(request)  
+    #checking if the user is authenticated
+    self.is_authenticated(request)
+    #checking if the user should be throttled 
     self.throttle_check(request)
 
-    #return HttpResponse("You are here")
-
+    #Provide the results for a search query
     sqs = SearchQuerySet().models(models.Animal).load_all().auto_query(request.GET.get('q', ''))
     paginator = Paginator(sqs, 20)
-
     try:
       page = paginator.page(int(request.GET.get('page', 1)))
     except InvalidPage:
       raise Http404("Sorry, no results on that page.")
 
+    #Create a list of objects that contains the search results
     objects = []
     for result in page.object_list:
+      #create bundle that stores the result object
       bundle = self.build_bundle(obj = result.object, request = request)
+      #reformating the bundle
       bundle = self.full_dehydrate(bundle)
+      #adding the bundle into a list of objects
       objects.append(bundle)
     
+    #Specifiy the format of json output
     object_list = {
       'objects': objects,
     }
+    #Handle the recording of the user's access for throttling purposes.
     self.log_throttled_access(request)
+    #Return the search results in json format
     return self.create_response(request, object_list)
 
   # Redefine get_object_list to filter for species_id and/or housingGroup_id
@@ -315,16 +329,19 @@ class EnrichmentResource(ModelResource):
   def obj_delete(self, request=None, **kwargs):
     return super(EnrichmentResource, self).obj_delete( request, **kwargs)
 
+  #override the url for a specific url path of searching
   def override_urls(self):
     return [
       url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
     ]
 
+  #determine the format of the returning results in json or xml  
   def determine_format(self, request):
     if (hasattr(request,'format') and request.format in self._meta.serializer.formats):
       return self._meta.serializer.get_mime_for_format(request.format)
     return super(EnrichmentResource, self).determine_format(request)
 
+  #wraps the method 'get_seach' so that it can be called in a more functional way
   def wrap_view(self, view):
     def wrapper(request, *args, **kwargs):
       request.format = kwargs.pop('format', None)
@@ -332,31 +349,41 @@ class EnrichmentResource(ModelResource):
       return wrapped_view(request, *args, **kwargs)
     return wrapper
 
+  #main function for searching
   def get_search(self, request, **kwargs):
+    #checking user inputs' method
     self.method_check(request, allowed=['get'])
+    #checking if the user is authenticated
     self.is_authenticated(request)  
+    #checking if the user should be throttled 
     self.throttle_check(request)
 
-    #return HttpResponse("You are here")
-
+    #Provide the results for a search query
     sqs = SearchQuerySet().models(models.Enrichment).load_all().auto_query(request.GET.get('q', ''))
     paginator = Paginator(sqs, 20)
-
     try:
       page = paginator.page(int(request.GET.get('page', 1)))
     except InvalidPage:
       raise Http404("Sorry, no results on that page.")
 
+    #Create a list of objects that contains the search results
     objects = []
     for result in page.object_list:
+      #create bundle that stores the result object
       bundle = self.build_bundle(obj = result.object, request = request)
+      #reformating the bundle
       bundle = self.full_dehydrate(bundle)
+      #adding the bundle into a list of objects
       objects.append(bundle)
     
+    #Specifiy the format of json output
     object_list = {
       'objects': objects,
     }
+
+    #Handle the recording of the user's access for throttling purposes.
     self.log_throttled_access(request)
+    #Return the search results in json format
     return self.create_response(request, object_list)
 
   # Redefine get_object_list to filter for subcategory_id.
@@ -564,16 +591,19 @@ class StaffResource(ModelResource):
   def obj_delete(self, request=None, **kwargs):
     return super(StaffResource, self).obj_delete( request, **kwargs)
 
+  #override the url for a specific url path of searching
   def override_urls(self):
     return [
       url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
     ]
 
+  #determine the format of the returning results in json or xml  
   def determine_format(self, request):
     if (hasattr(request,'format') and request.format in self._meta.serializer.formats):
       return self._meta.serializer.get_mime_for_format(request.format)
     return super(StaffResource, self).determine_format(request)
-
+  
+  #wraps the method 'get_seach' so that it can be called in a more functional way
   def wrap_view(self, view):
     def wrapper(request, *args, **kwargs):
       request.format = kwargs.pop('format', None)
@@ -581,31 +611,41 @@ class StaffResource(ModelResource):
       return wrapped_view(request, *args, **kwargs)
     return wrapper
 
+  #main function for searching
   def get_search(self, request, **kwargs):
+    #checking user inputs' method
     self.method_check(request, allowed=['get'])
+    #checking if the user is authenticated
     self.is_authenticated(request)  
+    #checking if the user should be throttled 
     self.throttle_check(request)
 
-    #return HttpResponse("You are here")
-
+    #Provide the results for a search query
     sqs = SearchQuerySet().models(models.Staff).load_all().auto_query(request.GET.get('q', ''))
     paginator = Paginator(sqs, 20)
-
     try:
       page = paginator.page(int(request.GET.get('page', 1)))
     except InvalidPage:
       raise Http404("Sorry, no results on that page.")
 
+    #Create a list of objects that contains the search results
     objects = []
     for result in page.object_list:
+      #create bundle that stores the result object
       bundle = self.build_bundle(obj = result.object, request = request)
+      #reformating the bundle
       bundle = self.full_dehydrate(bundle)
+      #adding the bundle into a list of objects
       objects.append(bundle)
     
+    #Specifiy the format of json output
     object_list = {
       'objects': objects,
     }
+
+    #Handle the recording of the user's access for throttling purposes.
     self.log_throttled_access(request)
+    #Return the search results in json format
     return self.create_response(request, object_list)
 
 # Redefine get_object_list to filter for animal_id.
