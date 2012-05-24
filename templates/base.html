@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8">
     <title>{% block title %}San Diego Zoo - PAWS{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
     <!--[if lt IE 9]>
@@ -45,13 +45,13 @@
             <div class="nav-collapse">
               <ul class="nav">
               {% if user.is_superuser %}
-                <li><a href="#observe">Observe <small>Add, edit, delete</small></a>
+                <li><a href="/observe">Observe <small>Add, edit, delete</small></a>
                 <li><a href="/enrichments">Enrichment <small>Add, edit, delete</small></a>
                 <li><a href="/animals">Animals <small>Add, edit, delete</small></a>
                 <li><a href="#zookeeper">Zookeepers <small>Add, edit, delete</small></a>
                 <li><a href="/admin">Admin<small>Django Administration</small></a>
               {% else %}
-                <li><a href="#observe">Observe <small>Record animal behavior</small></a>
+                <li><a href="/observe">Observe <small>Record animal behavior</small></a>
                 <li><a href="/enrichments">Enrichment <small>View Enrichments</small></a>
                 <li><a href="/animals">Animals <small>View Animals</small></a>
                 <li><a href="#zookeeper">Zookeepers <small>View Staff</small></a>
@@ -86,8 +86,9 @@
     <script type="text/javascript" src="{{ STATIC_URL }}script/iscroll.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}script/knockout-2.0.0.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}script/jquery_django_csrf.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script/sammy.js"></script>
   {% compress js %}
-    <script type="text/coffeescript" charset="utf-8" src="{{ STATIC_URL }}script/animals.coffee"></script>
+    <script type="text/coffeescript" charset="utf-8" src="{{ STATIC_URL }}script/paws.coffee"></script>
   {% endcompress %}
   {% endblock %}
   </body>
