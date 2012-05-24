@@ -1,3 +1,9 @@
+###
+# Copyright 2012 PAWS. All rights reserved.
+# Date: 5/5/2012
+# Animals coffeescript
+# TODO(): Add description
+###
 $(document).ready ->
 
   # Knockout
