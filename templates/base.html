@@ -44,17 +44,26 @@
 
             <div class="nav-collapse">
               <ul class="nav">
+              {% if user.is_superuser %}
+                <li><a href="#observe">Observe <small>Add, edit, delete</small></a>
+                <li><a href="/enrichments">Enrichment <small>Add, edit, delete</small></a>
+                <li><a href="/animals">Animals <small>Add, edit, delete</small></a>
+                <li><a href="#zookeeper">Zookeepers <small>Add, edit, delete</small></a>
+                <li><a href="/admin">Admin<small>Django Administration</small></a>
+              {% else %}
                 <li><a href="#observe">Observe <small>Record animal behavior</small></a>
-                <li><a href="/enrichments">Enrichment <small>Manage, edit, add</small></a>
-                <li><a href="/animals">Animals <small>Manage, edit, add</small></a>
-                <li><a href="#zookeeper">Zookeepers <small>Manage, edit, add</small></a>
+                <li><a href="/enrichments">Enrichment <small>View Enrichments</small></a>
+                <li><a href="/animals">Animals <small>View Animals</small></a>
+                <li><a href="#zookeeper">Zookeepers <small>View Staff</small></a>
+              {% endif %}
               </ul>
               {% block nav_actions %}
               <ul class="nav actions">
                 {% if user.is_authenticated %}
                 <li>
                   <span class="navbar-text">
-                    Welcome, {{ user.first_name }}! <a href="/auth/logout/">Log Out</a></span>
+                    Welcome, {{ user.first_name }}! <a href="/auth/logout/">Log Out</a>
+                  </span>
                 </li>
                 {% endif %}
               </ul>

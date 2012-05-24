@@ -10,6 +10,7 @@ build/*
 tmp/*
 static/*
 main/static/CACHE/*
+whoosh/*
 
 .*
 !.gitignore
