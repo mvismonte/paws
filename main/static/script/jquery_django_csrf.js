@@ -3,6 +3,7 @@
 // Django AJAX CSRF register.
 
 // This file is used to send the CSRF token with any un-safe methods
+// https://docs.djangoproject.com/en/1.3/ref/contrib/csrf/#ajax
 (function($) {
   jQuery(document).ajaxSend(function(event, xhr, settings) {
     function getCookie(name) {
