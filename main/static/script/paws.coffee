@@ -38,6 +38,12 @@ $(document).ready ->
       @subcategoryName = ko.observable data.subcategory.name
       @disabled = false
 
+  class Observation
+    constructor: (data) ->
+      @enrichment = ko.observable data.enrichment.name
+      @animalObservations = ko.observableArray data.animal_observations
+      @behavior = ko.observable data.behavior
+
   class Staff
     constructor: (data) ->
       @name = ko.observable data.name
@@ -83,6 +89,19 @@ $(document).ready ->
           return @animals()
         return ko.utils.arrayFilter @animals(), (animal) ->
           return animal.speciesId() == species.id()
+
+      # Enrichment application
+      # Current animal selection(s)
+      @selectedAnimals = ko.observableArray []
+
+      # Select animal(s) functions
+      @selectExhibit = (exhibit) =>
+        animals = []
+        $.each exhibit.housingGroups(), (i, hg) =>
+          console.log hg.animals
+          animals = animals.concat hg.animals
+        @selectedAnimals animals
+        console.log @selectedAnimals()
 
       @load = () =>
         # Get data from API
@@ -184,13 +203,69 @@ $(document).ready ->
         @enrichments null
         @categoryFilter ''
         @subcategoryFilter ''
+        
+  class StaffViewModel
+    constructor: () ->
+      # Array for staff data
+      @staff = ko.observableArray []
+      
+      # Loading animals for a staff id
+      @loadAniamls = (staff_id) =>
+        animals = ko.observableArray []
+        $.getJSON '/api/v1/animals/?format=json&staff_id=' + staff_id, (data) =>
+          mappedAnimals = $.map data.objects, (item) ->
+            return new Animal item
+          animals = mappedAnimals
+        return animals
+        
+      # Loading the all the staff with thair associated animals
+      @loadStaff = () =>
+        $.getJSON '/api/v1/staff/?formal=json', (data) =>
+          mappedStaff = $.map data.objects, (item) ->
+            staff = new Staff item
+            staff.animals = @loadAnimals staff.id
+            return staff
+          @staff = mappedStaff
+          resizeAllCarousels()  
+  
+  class ObservationListViewModel
+    constructor: () ->
+      # Arrays for holding data
+      @observations = ko.observableArray []
+      @behaviorType = [
+        { id: -2, type: 'Avoid'}
+        { id: -1, type: 'Negative'}
+        { id: 0, type: 'N/A'}
+        { id: 1, type: 'Positive'}
+      ]
+
+      @save = () =>
+        $.ajax "/api/v1/observation/", {
+            data: ko.toJSON { objects: self.observations }
+            type: "PUT"
+            contentType: "application/json"
+            success: (result) -> 
+              alert(result)
+        }
+
+      @load = () =>
+        # Get data from API
+        $.getJSON '/api/v1/observation/?format=json', (data) =>
+          mapped = $.map data.objects, (item) ->
+            return new Observation item
+          @observations data.objects
+
+      @empty = () =>
+        @observations null
 
   # The big momma
   PawsViewModel = 
     AnimalListVM: new AnimalListViewModel()
     EnrichmentListVM: new EnrichmentListViewModel()
+    ObservationListVM: new ObservationListViewModel()
   ko.applyBindings PawsViewModel.AnimalListVM, document.getElementById 'animalListContainer'
   ko.applyBindings PawsViewModel.EnrichmentListVM, document.getElementById 'enrichmentListContainer'
+  ko.applyBindings PawsViewModel.ObservationListVM, document.getElementById 'observationsContainer'
 
   # Sammy
   # ################
@@ -212,6 +287,13 @@ $(document).ready ->
       PawsViewModel.AnimalListVM.empty()
       PawsViewModel.EnrichmentListVM.load()
       $('#enrichmentListContainer').show()
+      resizeAllCarousels()
+    context.get '/observe', () =>
+      $('#home').hide()
+      PawsViewModel.AnimalListVM.empty()
+      PawsViewModel.EnrichmentListVM.empty()
+      PawsViewModel.ObservationListVM.load()
+      $('#observationsContainer').show()
       resizeAllCarousels()
   .run()
 

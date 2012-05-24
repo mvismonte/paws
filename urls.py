@@ -41,6 +41,7 @@ urlpatterns = patterns('',
   url(r'^$', 'paws.main.views.home'),
   url(r'^animals$', 'paws.main.views.animals'),
   url(r'^enrichments$', 'paws.main.views.enrichments'),
+  url(r'^observe$', 'paws.main.views.observe'),
 
 
   # Debugging templates.
