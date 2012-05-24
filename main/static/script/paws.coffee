@@ -13,7 +13,6 @@ $(document).ready ->
       @speciesCommonName = ko.observable data.species.common_name
       @speciesId = ko.observable data.species.id
       @speciesScientificName = ko.observable data.species.scientific_name
-
       @active = ko.observable false
     toggleActive: () ->
       @active !@active()
@@ -37,7 +36,6 @@ $(document).ready ->
       @categoryName = ko.observable data.subcategory.category.name
       @subcategoryId = ko.observable data.subcategory.id
       @subcategoryName = ko.observable data.subcategory.name
-
       @disabled = false
 
   class Staff
@@ -163,7 +161,6 @@ $(document).ready ->
           return @enrichmentsFilterCategory()
         return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
           return enrichment.subcategoryId() == subcategory.id()
-
 
       @load = () =>
         # Initialize
