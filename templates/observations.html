@@ -1,0 +1,45 @@
+{# observations.html #}
+
+<div class="container" id="observationsContainer">
+  <dl data-bind="foreach: observations">
+    <dt>
+      <h2><span data-bind="text: enrichment.name"></span> <small data-bind="text: date_created"></small></h2>
+    </dt>
+    <dd>
+      <button class="btn pull-right">End Observation</button>
+      <dl data-bind="foreach: animal_observations" class="well">
+        <dt>
+          <h3>
+            <span data-bind="text: animal.name"></span>
+            <small>
+              <span data-bind="text: animal.species.common_name"></span> - 
+              <em data-bind="text: animal.species.scientific_name"></em>
+            </small>
+          </h3>
+        </dt>
+        <dd class="row">
+          <label class="span2">
+            Behavior
+            <select data-bind="options: $root.behaviorType, value: behavior, optionsText: 'type', optionsValue: 'id'" class="span2"></select>
+          </label>
+          <label class="span1">
+            Indirect Use
+            <input type="checkbox" data-bind="checked: indirect_use" class="pull-right"></input>
+          </label>
+          <label class="span1">
+            Time
+            <input data-bind="value: interaction_time" class="span1"></input>
+          </label>
+          <label class="span7">
+            Description
+            <input data-bind="value: description" class="span7"></textarea>
+          </label>
+        </dd>
+      </dl>
+    </dd>
+  </dl>
+
+
+  {#<button data-bind="click: complete">Finish</button>#}
+  {#<button data-bind="click: save">Save for later</button>#}
+</div>

@@ -12,7 +12,7 @@ from django.template.loader import get_template
 # Home View.
 @login_required
 def home(request):
-  t = get_template('index.html')
+  t = get_template('paws.html')
   context = { 'page': 'home' }
   html = t.render(RequestContext(request, context))
   return HttpResponse(html)
@@ -20,7 +20,7 @@ def home(request):
 # Enrichment view.
 @login_required
 def enrichments(request):
-  t = get_template('enrichments.html')
+  t = get_template('paws.html')
   context = { 'page': 'enrichment' }
   html = t.render(RequestContext(request, context))
   return HttpResponse(html)
@@ -28,8 +28,16 @@ def enrichments(request):
 # Animal view.
 @login_required
 def animals(request):
-  t = get_template('animals.html')
+  t = get_template('paws.html')
   context = { 'page': 'animal' }
+  html = t.render(RequestContext(request, context))
+  return HttpResponse(html)
+
+# Observation view.
+@login_required
+def observe(request):
+  t = get_template('paws.html')
+  context = { 'page': 'observation' }
   html = t.render(RequestContext(request, context))
   return HttpResponse(html)
 

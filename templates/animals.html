@@ -1,43 +1,73 @@
 {# animals.html #}
-
-{% extends "base.html" %}
-
-{% block body %}
-<div class="container" id="animal-container">
-  <div class="row list-actions">
-    <div class="span4 offset6">
-      <button class="btn">Edit Selected</button>
+  <div class="container" id="animalListContainer">
+    <div class="row">
+      <div class="span12">
+        <div class="page-header">
+          <div class="list-actions">
+            <strong>View by:</strong>
+            <a href="#" class="active">Exhibit</a> | 
+            <a href="#">Species</a>
+          </div>
+          <h1>Your Animals <small>(<a href="#">view all</a>)</small></h1>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<div>
+{% comment %}
+    <div class="carousel list-row" id="speciesSelector" style="display:none">
+      <div class="carousel-scroller">
+        <ul data-bind="foreach: species">
+          <li data-bind="click: $parent.setCurrentSpecies,
+              css: { 'list-active': $parent.currentSpecies() == $data }">
+            <div data-bind="text: commonName"></div>
+          </li>
+        </ul>
+      </div>
 
-  <div class="carousel list-row" id="speciesSelector">
-    <div class="carousel-scroller">
-      <ul data-bind="foreach: species">
-        <li data-bind="click: $parent.setCurrentSpecies,
-            css: { 'list-active': $parent.currentSpecies() == $data }">
-          <div data-bind="text: commonName"></div>
-        </li>
-      </ul>
+      <hr>
     </div>
-  </div>
+{% endcomment %}
 
-  <div class="carousel list-row list-items list-items-large" id="animalSelector">
-    <div class="carousel-scroller carousel-rows">
-      <ul data-bind="foreach: filterAnimalsBySpecies">
+    <div class="row list-items" id="animalSelector" data-bind="foreach: exhibits">
 
-        <li data-bind="click: $data.toggleActive,
-                       css: { 'list-active': $data.active() == true }">
-          <div data-bind="text: name" class="list-title"></div>
-          <div data-bind="text: speciesCommonName" class="list-text"></div>
-          <div data-bind="text: speciesScientificName" class="list-subtext"></div>
-        </li>
+      <div class="span12">
+        <h2><span data-bind="text: fullName"></span> <button data-bind="click: $parent.selectExhibit" class="btn">Select</button></h2>
+      </div>
 
-      </ul>
+      <!-- ko foreach: housingGroups -->
+      <div class="span12">
+        <h3 data-bind="text: name"></h3>
+      </div>
+
+      <!-- ko foreach: animals -->
+      <div class="span3">
+        <div class="list-entry">
+          <strong data-bind="text: name"></strong>
+          <small data-bind="text: species.common_name"></small>
+        </div>
+      </div>
+      <!-- /ko -->
+
+      <!-- /ko -->
+
     </div>
-  </div>
 
-</div>
-{% endblock %}
+
+{% comment %}
+    <div class="row list-items" id="animalSelector">
+      <div class="carousel-scroller carousel-rows">
+        <ul data-bind="foreach: filterAnimalsBySpecies">
+
+          <li data-bind="click: $data.toggleActive,
+                         css: { 'list-active': $data.active() == true }">
+            <div data-bind="text: name" class="list-title"></div>
+            <div data-bind="text: speciesCommonName" class="list-text"></div>
+            <div data-bind="text: speciesScientificName" class="list-subtext"></div>
+          </li>
+
+        </ul>
+      </div>
+    </div>
+{% endcomment %}
+
+  </div>
