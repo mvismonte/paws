@@ -207,7 +207,7 @@ $(document).ready ->
         @categoryFilter ''
         @subcategoryFilter ''
         
-   class StaffViewModel
+  class StaffViewModel
     constructor: () ->
       # Array for staff data
       @staff = ko.observableArray []
@@ -229,7 +229,7 @@ $(document).ready ->
             staff.animals = @loadAnimals staff.id
             return staff
           @staff = mappedStaff
-  
+          resizeAllCarousels()  
   
   class ObservationListViewModel
     constructor: () ->
