@@ -105,6 +105,25 @@ class AnimalObservationResource(ModelResource):
       bundle.data['rate'] = bundle.obj.interaction_time/datetime.timedelta.total_seconds(total_observation)
     return bundle
 
+  #override the url for a specific url path of searching
+  def override_urls(self):
+    return [
+      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/stats%s$"%(self._meta.resource_name, trailing_slash()), self.wrap_view('get_stats'), name="api_get_stats")  
+    ]
+
+  #determine the format of the returning results in json or xml  
+  def determine_format(self, request):
+    if (hasattr(request,'format') and request.format in self._meta.serializer.formats):
+      return self._meta.serializer.get_mime_for_format(request.format)
+    return super(AnimalObservationResource, self).determine_format(request)
+
+  #wraps the method 'get_seach' so that it can be called in a more functional way
+  def wrap_view(self, view):
+    def wrapper(request, *args, **kwargs):
+      request.format = kwargs.pop('format', None)
+      wrapped_view = super(AnimalObservationResource, self).wrap_view(view)
+      return wrapped_view(request, *args, **kwargs)
+    return wrapper
  
 # Animal Resource.
 class AnimalResource(ModelResource):
