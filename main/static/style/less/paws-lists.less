@@ -46,7 +46,8 @@
 }
 .list-actions {
   text-align: right;
-  width: 30%;
+  float: right;
+  padding-top: 10px;
 }
 .list-items li {
   margin: 5px;
@@ -85,15 +86,11 @@
     font-size: 10px;
     line-height: 10px;
   }
+  .transition(all 0.15s ease-in-out)
 }
 .list-active {
   background: @green;
   border: 1px solid darken(@green, 20%);
   box-shadow: inset 0px -2px 0px darken(@green, 10%);
   color: @almostWhite;
-}
-.list-actions {
-  float: right;
-  max-width: 300px;
-  padding-top: 10px;
 }

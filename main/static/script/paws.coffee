@@ -10,12 +10,29 @@ $(document).ready ->
   class Animal
     constructor: (data) ->
       @name = ko.observable data.name
+      @id = ko.observable parseInt(data.id)
       @speciesCommonName = ko.observable data.species.common_name
       @speciesId = ko.observable data.species.id
       @speciesScientificName = ko.observable data.species.scientific_name
       @active = ko.observable false
     toggleActive: () ->
       @active !@active()
+
+  class AnimalObservation
+    constructor: (data=null) ->
+      @animalId = ko.observable null
+      @observationId = ko.observable null
+      @interactionTime = ko.observable null
+      @behavior = ko.observable null
+      @description = ko.observable null
+      @indirectUse = ko.observable null
+      if data != null
+        @animalId data.animal.id
+        @observationId data.observation.id
+        @interactionTime data.interaction_time
+        @behavior data.behavior
+        @description data.description
+        @indirectUse data.indirectUse
 
   class Exhibit
     constructor: (data) ->
@@ -47,10 +64,14 @@ $(document).ready ->
       @disabled = false
 
   class Observation
-    constructor: (data) ->
-      @enrichment = ko.observable data.enrichment.name
-      @animalObservations = ko.observableArray data.animal_observations
-      @behavior = ko.observable data.behavior
+    constructor: (data=null) ->
+      @enrichment = ko.observable null
+      @animalObservations = ko.observableArray []
+      @behavior = ko.observable null
+      if data != null
+        @enrichment data.enrichment.name
+        @animalObservations data.animal_observations
+        @behavior data.behavior
 
   class Staff
     constructor: (data) ->
@@ -84,14 +105,6 @@ $(document).ready ->
       # Current filter variables
       @currentSpecies = ko.observable ''
 
-      # Apply filters
-      @setCurrentSpecies = (species) =>
-        if species == @currentSpecies()
-          @currentSpecies('')
-        else
-          @currentSpecies(species)
-        resizeAllCarousels()
-
       # Compute the filtered lists
       @filterAnimalsBySpecies = ko.computed =>
         species = @currentSpecies()
@@ -104,41 +117,72 @@ $(document).ready ->
       # Current animal selection(s)
       @selectedAnimals = ko.observableArray []
 
-      # Select animal(s) functions
-      @selectExhibit = (exhibit) =>
-        animals = []
-        $.each exhibit.housingGroups(), (i, hg) =>
-          #console.log hg.animals
-          animals = animals.concat hg.animals
-        @selectedAnimals animals
-        console.log @selectedAnimals()
-        window.sammy.setLocation '/observe'
+      # Observation stuff
+      @observation = ko.observable new Observation()
 
-      # Get specific animal for modal
-      @activeAnimal = ko.observable null
+    # Apply filters
+    setCurrentSpecies: (species) =>
+      if species == @currentSpecies()
+        @currentSpecies('')
+      else
+        @currentSpecies(species)
+      resizeAllCarousels()
 
-      @load = () =>
-        # Get data from API
-        # $.getJSON '/api/v1/species/?format=json', (data) =>
-        #   mappedSpecies = $.map data.objects, (item) ->
-        #     return new Species item
-        #   @species mappedSpecies
+    # Select a single animal
+    selectAnimal: (animal) =>
+      if @selectedAnimals.indexOf(animal.id()) == -1
+        @selectedAnimals.push animal.id()
+      else
+        @selectedAnimals.remove animal.id()
+      #console.log @selectedAnimals()
 
-        # $.getJSON '/api/v1/animal/?format=json', (data) =>
-        #   mappedAnimals = $.map data.objects, (item) ->
-        #     return new Animal item
-        #   @animals mappedAnimals
-        #   resizeAllCarousels(false)
+    # Select animal(s) functions
+    selectExhibit: (exhibit) =>
+      selectAnimals = []
+      deselectAnimals = []
+      $.each exhibit.housingGroups(), (i, hg) =>
+        $.each hg.animals(), (index, animal) =>
+          if @selectedAnimals.indexOf(animal.id()) == -1
+            selectAnimals.push animal.id()
+          else
+            deselectAnimals.push animal.id()
+      if selectAnimals.length > 0
+        $.each selectAnimals, (index, animal) =>
+          @selectedAnimals.push animal
+      else
+        $.each deselectAnimals, (index, animal) =>
+          @selectedAnimals.remove animal
+      #console.log @selectedAnimals()
 
-        $.getJSON '/api/v1/exhibit/?format=json', (data) =>
-          mappedExhibits = $.map data.objects, (item) ->
-            return new Exhibit item
-          @exhibits mappedExhibits
+    newObservation: () =>
+      @observation().animalObservations $.map @selectedAnimals(), (item) ->
+        animalOb = new AnimalObservation()
+        animalOb.animalId item
+        return animalOb
+      console.log @observation().animalObservations()
 
-      @empty = () =>
-        @species null
-        @animals null
-        @currentSpecies ''
+    load: () =>
+      # Get data from API
+      # $.getJSON '/api/v1/species/?format=json', (data) =>
+      #   mappedSpecies = $.map data.objects, (item) ->
+      #     return new Species item
+      #   @species mappedSpecies
+
+      # $.getJSON '/api/v1/animal/?format=json', (data) =>
+      #   mappedAnimals = $.map data.objects, (item) ->
+      #     return new Animal item
+      #   @animals mappedAnimals
+      #   resizeAllCarousels(false)
+
+      $.getJSON '/api/v1/exhibit/?format=json', (data) =>
+        mappedExhibits = $.map data.objects, (item) ->
+          return new Exhibit item
+        @exhibits mappedExhibits
+
+    empty: () =>
+      @species null
+      @animals null
+      @currentSpecies ''
 
   class EnrichmentListViewModel
     constructor: () ->
@@ -150,29 +194,6 @@ $(document).ready ->
       # Current Filters
       @categoryFilter = ko.observable ''
       @subcategoryFilter = ko.observable ''
-
-      # Apply filters
-      @filterCategory = (category) =>
-        if category == @categoryFilter()
-          @subcategoryFilter('')
-          @categoryFilter('')
-        else
-          @subcategoryFilter('')
-          @categoryFilter(category)
-        resizeAllCarousels()
-
-      @filterSubcategory = (subcategory) =>
-        if subcategory == @subcategoryFilter()
-          @subcategoryFilter('')
-        else
-          @subcategoryFilter(subcategory)
-        resizeAllCarousels()
-        ## For disable instead of remove, need css rule, not working
-        #ko.utils.arrayForEach @enrichments(), (enrichment) ->
-        #  if enrichment.subcategoryId() != subcategory.id()
-        #    enrichment.disabled = true
-        #  else
-        #    enrichment.disabled = false
 
       # Filtered lists
       @subcategoriesFilterCategory = ko.computed =>
@@ -195,28 +216,52 @@ $(document).ready ->
         return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
           return enrichment.subcategoryId() == subcategory.id()
 
-      @load = () =>
-        # Initialize
-        # API limits num results, use &limit=0 (?)
-        $.getJSON '/api/v1/category/?format=json', (data) =>
-          mappedCategories = $.map data.objects, (item) ->
-            return new Category item
-          @categories mappedCategories
-        $.getJSON '/api/v1/subcategory/?format=json', (data) =>
-          mappedSubcategories = $.map data.objects, (item) ->
-            return new Subcategory item
-          @subcategories mappedSubcategories
-        $.getJSON '/api/v1/enrichment/?format=json&limit=0', (data) =>
-          mappedEnrichments = $.map data.objects, (item) ->
-            return new Enrichment item
-          @enrichments mappedEnrichments
-          resizeAllCarousels()
-      @empty = () =>
-        @categories null
-        @subcategories null
-        @enrichments null
-        @categoryFilter ''
-        @subcategoryFilter ''
+    # Apply filters
+    filterCategory: (category) =>
+      if category == @categoryFilter()
+        @subcategoryFilter('')
+        @categoryFilter('')
+      else
+        @subcategoryFilter('')
+        @categoryFilter(category)
+      resizeAllCarousels()
+
+    filterSubcategory: (subcategory) =>
+      if subcategory == @subcategoryFilter()
+        @subcategoryFilter('')
+      else
+        @subcategoryFilter(subcategory)
+      resizeAllCarousels()
+      ## For disable instead of remove, need css rule, not working
+      #ko.utils.arrayForEach @enrichments(), (enrichment) ->
+      #  if enrichment.subcategoryId() != subcategory.id()
+      #    enrichment.disabled = true
+      #  else
+      #    enrichment.disabled = false
+
+    load: () =>
+      # Initialize
+      # API limits num results, use &limit=0 (?)
+      $.getJSON '/api/v1/category/?format=json', (data) =>
+        mappedCategories = $.map data.objects, (item) ->
+          return new Category item
+        @categories mappedCategories
+      $.getJSON '/api/v1/subcategory/?format=json', (data) =>
+        mappedSubcategories = $.map data.objects, (item) ->
+          return new Subcategory item
+        @subcategories mappedSubcategories
+      $.getJSON '/api/v1/enrichment/?format=json&limit=0', (data) =>
+        mappedEnrichments = $.map data.objects, (item) ->
+          return new Enrichment item
+        @enrichments mappedEnrichments
+        resizeAllCarousels()
+
+    empty: () =>
+      @categories null
+      @subcategories null
+      @enrichments null
+      @categoryFilter ''
+      @subcategoryFilter ''
   
   class ObservationListViewModel
     constructor: () ->
@@ -229,24 +274,24 @@ $(document).ready ->
         { id: 1, type: 'Positive'}
       ]
 
-      @save = () =>
-        $.ajax "/api/v1/observation/", {
-            data: ko.toJSON { objects: self.observations }
-            type: "PUT"
-            contentType: "application/json"
-            success: (result) -> 
-              alert(result)
-        }
+    save: () =>
+      $.ajax "/api/v1/observation/", {
+          data: ko.toJSON { objects: self.observations }
+          type: "PUT"
+          contentType: "application/json"
+          success: (result) -> 
+            alert(result)
+      }
 
-      @load = () =>
-        # Get data from API
-        $.getJSON '/api/v1/observation/?format=json', (data) =>
-          mapped = $.map data.objects, (item) ->
-            return new Observation item
-          @observations data.objects
+    load: () =>
+      # Get data from API
+      $.getJSON '/api/v1/observation/?format=json', (data) =>
+        mapped = $.map data.objects, (item) ->
+          return new Observation item
+        @observations data.objects
 
-      @empty = () =>
-        @observations null
+    empty: () =>
+      @observations null
 
   class StaffListViewModel
     constructor: () ->
@@ -260,7 +305,6 @@ $(document).ready ->
         mapped = $.map data.objects, (item) ->
           return new Staff item
         @staff mapped
-
 
   # The big momma
   PawsViewModel = 
@@ -276,7 +320,7 @@ $(document).ready ->
   # Sammy
   # ################
   window.sammy = Sammy (context) =>
-    context.get '/', () =>
+    context.get '/', () => # use regex?
       $('#main > div').hide()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.AnimalListVM.empty()
@@ -308,6 +352,8 @@ $(document).ready ->
       PawsViewModel.ObservationListVM.empty()
       PawsViewModel.StaffListVM.load()
       $('#staffContainer').show()
+    context.get '/auth/logout', () =>
+      window.location = '/auth/logout' 
   sammy.run()
 
 
