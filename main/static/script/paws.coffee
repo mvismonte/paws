@@ -72,6 +72,10 @@ $(document).ready ->
         @enrichment data.enrichment.name
         @animalObservations data.animal_observations
         @behavior data.behavior
+    modalTitle: () ->
+      length = @animalObservations().length
+      pluralized = if length > 1 then ' animals' else ' animal'
+      return 'Observing ' + length + pluralized
 
   class Staff
     constructor: (data) ->
