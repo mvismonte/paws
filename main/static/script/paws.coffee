@@ -282,7 +282,7 @@ $(document).ready ->
   # Sammy
   # ################
   window.sammy = Sammy (context) =>
-    context.get '/', () =>
+    context.get '/', () => # use regex?
       $('#main > div').hide()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.AnimalListVM.empty()
