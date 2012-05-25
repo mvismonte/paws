@@ -41,6 +41,14 @@ def observe(request):
   html = t.render(RequestContext(request, context))
   return HttpResponse(html)
 
+# Staff view.
+@login_required
+def staff(request):
+  t = get_template('paws.html')
+  context = { 'page': 'staff' }
+  html = t.render(RequestContext(request, context))
+  return HttpResponse(html)
+
 # Logout View.
 def logout(request):
   # Logout of the application and redirect.
