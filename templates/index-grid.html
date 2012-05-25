@@ -5,13 +5,21 @@
     <div class="span6">
       <a href="/observe" class="home-button" id="home-observe">
         <h1>Observe</h1>
-        <p><strong>Record animal behavior</strong> after enrichment</p>
+        {% if user.is_superuser %}
+          <p><strong>Manage</strong> observations</p>
+        {% else %}
+          <p><strong>Record animal behavior</strong> after enrichment</p>
+        {% endif %}
       </a>
     </div>
     <div class="span6">
       <a href="/enrichments" class="home-button" id="home-enrichment">
         <h1>Enrichment</h1>
-        <p><strong>Manage enrichment</strong> categories and types</p>
+        {% if user.is_superuser %}
+          <p><strong>Manage enrichment</strong> categories and types</p>
+        {% else %}
+          <p><strong>Browse and Select</strong> enrichments</p>
+        {% endif %}
       </a>
     </div>
   </div>
@@ -19,13 +27,21 @@
     <div class="span6">
       <a href="/animals" class="home-button" id="home-animal">
         <h1>Animals</h1>
-        <p><strong>Manage animals</strong> under your care</p>
+        {% if user.is_superuser %}
+          <p><strong>Manage animals</strong> under your care</p>
+        {% else %}
+          <p><strong>Browse and Select</strong> animals</p>
+        {% endif %}
       </a>
     </div>
     <div class="span6">
       <a href="/staff" class="home-button" id="home-zookeeper">
         <h1>Staff</h1>
-        <p><strong>Manage zookeepers</strong> and their responsibilities</p>
+        {% if user.is_superuser %}
+          <p><strong>Manage zookeepers</strong> and their responsibilities</p>
+        {% else %}
+          <p><strong>Browse</strong> other zookeepers</p>
+        {% endif %}
       </a>
     </div>
   </div>
