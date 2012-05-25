@@ -307,6 +307,8 @@ $(document).ready ->
       PawsViewModel.ObservationListVM.load()
       $('#observationsContainer').show()
       resizeAllCarousels()
+    context.get '/auth/logout', () =>
+      window.location = '/auth/logout' 
   sammy.run()
 
 
