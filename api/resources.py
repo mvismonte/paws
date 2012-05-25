@@ -16,7 +16,7 @@ from paws.main import models
 from tastypie.resources import fields
 from tastypie.resources import ModelResource
 from tastypie.authentication import BasicAuthentication
-from tastypie.authorization import Authorization, DjangoAuthorization
+from tastypie.authorization import Authorization
 from tastypie.utils import trailing_slash
 from tastypie.exceptions import BadRequest
 from haystack.query import SearchQuerySet
@@ -108,7 +108,7 @@ class AnimalObservationResource(ModelResource):
   #override the url for a specific url path of searching
   def override_urls(self):
     return [
-      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/stats%s$"%(self._meta.resource_name, trailing_slash()), self.wrap_view('get_stats'), name="api_get_stats")  
+      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/stats%s$"%(self._meta.resource_name, trailing_slash()), self.wrap_view('get_stats'), name="api_get_stats"),  
     ]
 
   #determine the format of the returning results in json or xml  
@@ -124,7 +124,66 @@ class AnimalObservationResource(ModelResource):
       wrapped_view = super(AnimalObservationResource, self).wrap_view(view)
       return wrapped_view(request, *args, **kwargs)
     return wrapper
- 
+
+
+  #Calculate interaction rate between one given enrichment with other given enrichments
+  def get_stats(self, request, **kwargs):
+    #get the animal_id from url
+    animal_id= request.GET.get('animal_id', None)
+    animal= models.Animal.objects.get (id=animal_id)
+    q_set= self.get_object_list(request)
+    #filter by animal_id if exists
+    try:
+      q_set.filter(animal=animal)
+    except ObjectDoesNotExist:
+      pass
+
+    #list of different enrichment given to animal with id=animal_id
+    enrichment_list=[]
+    total_interaction=0.0
+    for result in q_set:
+      #updating the interaction time
+      total_interaction +=result.interaction_time
+      observation= models.Observation.objects.get(id=result.observation_id)
+      #Make unique enrichment list
+      if observation.enrichment in enrichment_list:
+        pass
+      else:
+        enrichment_list.append(observation.enrichment)
+
+    percent=[]
+    #calculate the percentage of each enrichment's interaction time
+    #over the total interaction time of animal with id=animal_id
+    for e in enrichment_list:
+      total_eachInteraction=0.0;
+      for result in q_set:
+        if models.Observation.objects.get(id=result.observation_id).enrichment == e:
+          total_eachInteraction += result.interaction_time
+        else:
+          pass
+      #Return 0 if the animal has never interacted with any enrichment
+      if total_interaction == 0.0:
+        percentage = 0.0
+      else:
+        percentage= total_eachInteraction/total_interaction
+      #create bundle that stores the result object
+      bundle = self.build_bundle(obj =result, request = request)
+      #reformating the bundle
+      bundle = self.full_dehydrate(bundle)
+      #adding percentage into the bundle
+      bundle.data['percentage']=percentage
+      #append the bundle into the list
+      percent.append(bundle)
+
+
+    #Specifiy the format of json output
+    object_list = {
+      'objects': percent,
+    }
+
+    #Return the search results in json format
+    return self.create_response(request, object_list)
+
 # Animal Resource.
 class AnimalResource(ModelResource):
   # Define foreign keys.
