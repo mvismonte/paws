@@ -113,16 +113,16 @@ $(document).ready ->
 
       @load = () =>
         # Get data from API
-        $.getJSON '/api/v1/species/?format=json', (data) =>
-          mappedSpecies = $.map data.objects, (item) ->
-            return new Species item
-          @species mappedSpecies
+        # $.getJSON '/api/v1/species/?format=json', (data) =>
+        #   mappedSpecies = $.map data.objects, (item) ->
+        #     return new Species item
+        #   @species mappedSpecies
 
-        $.getJSON '/api/v1/animal/?format=json', (data) =>
-          mappedAnimals = $.map data.objects, (item) ->
-            return new Animal item
-          @animals mappedAnimals
-          resizeAllCarousels(false)
+        # $.getJSON '/api/v1/animal/?format=json', (data) =>
+        #   mappedAnimals = $.map data.objects, (item) ->
+        #     return new Animal item
+        #   @animals mappedAnimals
+        #   resizeAllCarousels(false)
 
         $.getJSON '/api/v1/exhibit/?format=json', (data) =>
           mappedExhibits = $.map data.objects, (item) ->
@@ -329,7 +329,6 @@ $(document).ready ->
       $(scroller).width newWidth
       return true
     return false
-
 
   resizeAllCarousels = (refresh=true) ->
     $('.carousel-scroller').each ->
