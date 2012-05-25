@@ -16,7 +16,7 @@ from paws.main import models
 from tastypie.resources import fields
 from tastypie.resources import ModelResource
 from tastypie.authentication import BasicAuthentication
-from tastypie.authorization import Authorization
+from tastypie.authorization import Authorization, DjangoAuthorization
 from tastypie.utils import trailing_slash
 from tastypie.exceptions import BadRequest
 from haystack.query import SearchQuerySet
@@ -114,8 +114,6 @@ class AnimalResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
     queryset = models.Animal.objects.all()
     resource_name = 'animal'
     #allowed actions towards database

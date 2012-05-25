@@ -5,8 +5,10 @@
         <div class="page-header">
           <div class="list-actions">
             <strong>View by:</strong>
-            <a href="#" class="active">Exhibit</a> | 
-            <a href="#">Species</a>
+            <span class="btn-group" data-toggle="buttons-radio">
+              <button class="btn" data-toggle="button">Exhibits</button>
+              <button class="btn">Species</button>
+            </span>
           </div>
           <h1>Your Animals <small>(<a href="#">view all</a>)</small></h1>
         </div>
@@ -39,17 +41,20 @@
         <h3 data-bind="text: name"></h3>
       </div>
 
-      <!-- ko foreach: animals -->
+        <!-- ko foreach: animals -->
       <div class="span3">
-        <div class="list-entry">
+        <div class="list-entry" data-bind="click: $root.activeAnimal, css: {'list-active': active}" data-toggle="modal" data-target="#animal-modal">
           <strong data-bind="text: name"></strong>
-          <small data-bind="text: species.common_name"></small>
+          <small data-bind="text: speciesCommonName"></small>
         </div>
       </div>
+        <!-- /ko -->
+        
       <!-- /ko -->
 
-      <!-- /ko -->
-
+      <div class="span12">
+        <hr>
+      </div>
     </div>
 
 
@@ -69,5 +74,21 @@
       </div>
     </div>
 {% endcomment %}
-
+    
+    <div class="modal hide fade" id="animal-modal" data-bind="with: activeAnimal">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal">×</button>
+        <h3 data-bind="text: name"></h3>
+      </div>
+      <div class="modal-body">
+        <dl class="dl-horizontal">
+          <dt>Species</dt>
+          <dd><span data-bind="text: speciesCommonName"></span> (<span data-bind="text:speciesScientificName"></span>)</dd>
+        </dl>
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn">Close</a>
+        <a href="#" class="btn btn-primary">Save changes</a>
+      </div>
+    </div>
   </div>

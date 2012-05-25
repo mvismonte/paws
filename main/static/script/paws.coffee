@@ -13,7 +13,6 @@ $(document).ready ->
       @speciesCommonName = ko.observable data.species.common_name
       @speciesId = ko.observable data.species.id
       @speciesScientificName = ko.observable data.species.scientific_name
-
       @active = ko.observable false
     toggleActive: () ->
       @active !@active()
@@ -21,9 +20,17 @@ $(document).ready ->
   class Exhibit
     constructor: (data) ->
       @code = ko.observable data.code
-      @housingGroups = ko.observableArray data.housing_groups
+      @housingGroups = ko.observableArray $.map data.housing_groups, (item) ->
+        return new HousingGroup item
       @fullName = ko.computed =>
         return 'Exhibit ' + @code()
+
+  class HousingGroup
+    constructor: (data) ->
+      @name = ko.observable data.name
+      @staff = ko.observable data.staff
+      @animals = ko.observableArray $.map data.animals, (item) ->
+        return new Animal item
 
   class Category
     constructor: (data) ->
@@ -37,7 +44,6 @@ $(document).ready ->
       @categoryName = ko.observable data.subcategory.category.name
       @subcategoryId = ko.observable data.subcategory.id
       @subcategoryName = ko.observable data.subcategory.name
-
       @disabled = false
 
   class Observation
@@ -100,23 +106,27 @@ $(document).ready ->
       @selectExhibit = (exhibit) =>
         animals = []
         $.each exhibit.housingGroups(), (i, hg) =>
-          console.log hg.animals
+          #console.log hg.animals
           animals = animals.concat hg.animals
         @selectedAnimals animals
         console.log @selectedAnimals()
+        window.sammy.setLocation '/observe'
+
+      # Get specific animal for modal
+      @activeAnimal = ko.observable null
 
       @load = () =>
         # Get data from API
-        $.getJSON '/api/v1/species/?format=json', (data) =>
-          mappedSpecies = $.map data.objects, (item) ->
-            return new Species item
-          @species mappedSpecies
+        # $.getJSON '/api/v1/species/?format=json', (data) =>
+        #   mappedSpecies = $.map data.objects, (item) ->
+        #     return new Species item
+        #   @species mappedSpecies
 
-        $.getJSON '/api/v1/animal/?format=json', (data) =>
-          mappedAnimals = $.map data.objects, (item) ->
-            return new Animal item
-          @animals mappedAnimals
-          resizeAllCarousels(false)
+        # $.getJSON '/api/v1/animal/?format=json', (data) =>
+        #   mappedAnimals = $.map data.objects, (item) ->
+        #     return new Animal item
+        #   @animals mappedAnimals
+        #   resizeAllCarousels(false)
 
         $.getJSON '/api/v1/exhibit/?format=json', (data) =>
           mappedExhibits = $.map data.objects, (item) ->
@@ -182,7 +192,6 @@ $(document).ready ->
           return @enrichmentsFilterCategory()
         return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
           return enrichment.subcategoryId() == subcategory.id()
-
 
       @load = () =>
         # Initialize
@@ -272,7 +281,7 @@ $(document).ready ->
 
   # Sammy
   # ################
-  Sammy (context) =>
+  window.sammy = Sammy (context) =>
     context.get '/', () =>
       $('#main > div').hide()
       PawsViewModel.EnrichmentListVM.empty()
@@ -292,13 +301,13 @@ $(document).ready ->
       $('#enrichmentListContainer').show()
       resizeAllCarousels()
     context.get '/observe', () =>
-      $('#home').hide()
+      $('#main > div').hide()
       PawsViewModel.AnimalListVM.empty()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.ObservationListVM.load()
       $('#observationsContainer').show()
       resizeAllCarousels()
-  .run()
+  sammy.run()
 
 
   # UI
@@ -324,7 +333,6 @@ $(document).ready ->
       $(scroller).width newWidth
       return true
     return false
-
 
   resizeAllCarousels = (refresh=true) ->
     $('.carousel-scroller').each ->
@@ -368,6 +376,11 @@ $(document).ready ->
     hScrollbar: false
   }
 
+
   $(window).resize ->
     clearTimeout window.resizeTimeout
     window.resizeTimeout = setTimeout resizeAllCarousels, 500
+
+  $('#animal-modal').modal({
+    show: false
+  })
