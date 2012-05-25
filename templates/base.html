@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8">
     <title>{% block title %}San Diego Zoo - PAWS{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
     <!--[if lt IE 9]>
@@ -62,7 +62,7 @@
                 {% if user.is_authenticated %}
                 <li>
                   <span class="navbar-text">
-                    Welcome, {{ user.first_name }}! <a href="/auth/logout/">Log Out</a>
+                    Welcome, {{ user.first_name }}! <a href="/auth/logout">Log Out</a>
                   </span>
                 </li>
                 {% endif %}

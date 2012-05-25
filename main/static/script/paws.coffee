@@ -10,12 +10,29 @@ $(document).ready ->
   class Animal
     constructor: (data) ->
       @name = ko.observable data.name
+      @id = ko.observable parseInt(data.id)
       @speciesCommonName = ko.observable data.species.common_name
       @speciesId = ko.observable data.species.id
       @speciesScientificName = ko.observable data.species.scientific_name
       @active = ko.observable false
     toggleActive: () ->
       @active !@active()
+
+  class AnimalObservation
+    constructor: (data=null) ->
+      @animalId = ko.observable null
+      @observationId = ko.observable null
+      @interactionTime = ko.observable null
+      @behavior = ko.observable null
+      @description = ko.observable null
+      @indirectUse = ko.observable null
+      if data != null
+        @animalId data.animal.id
+        @observationId data.observation.id
+        @interactionTime data.interaction_time
+        @behavior data.behavior
+        @description data.description
+        @indirectUse data.indirectUse
 
   class Exhibit
     constructor: (data) ->
@@ -47,10 +64,14 @@ $(document).ready ->
       @disabled = false
 
   class Observation
-    constructor: (data) ->
-      @enrichment = ko.observable data.enrichment.name
-      @animalObservations = ko.observableArray data.animal_observations
-      @behavior = ko.observable data.behavior
+    constructor: (data=null) ->
+      @enrichment = ko.observable null
+      @animalObservations = ko.observableArray []
+      @behavior = ko.observable null
+      if data != null
+        @enrichment data.enrichment.name
+        @animalObservations data.animal_observations
+        @behavior data.behavior
 
   class Staff
     constructor: (data) ->
@@ -104,18 +125,41 @@ $(document).ready ->
       # Current animal selection(s)
       @selectedAnimals = ko.observableArray []
 
+      # Select a single animal
+      @selectAnimal = (animal) =>
+        if @selectedAnimals.indexOf(animal.id()) == -1
+          @selectedAnimals.push animal.id()
+        else
+          @selectedAnimals.remove animal.id()
+        #console.log @selectedAnimals()
+
       # Select animal(s) functions
       @selectExhibit = (exhibit) =>
-        animals = []
+        selectAnimals = []
+        deselectAnimals = []
         $.each exhibit.housingGroups(), (i, hg) =>
-          #console.log hg.animals
-          animals = animals.concat hg.animals
-        @selectedAnimals animals
-        console.log @selectedAnimals()
-        window.sammy.setLocation '/observe'
+          $.each hg.animals(), (index, animal) =>
+            if @selectedAnimals.indexOf(animal.id()) == -1
+              selectAnimals.push animal.id()
+            else
+              deselectAnimals.push animal.id()
+        if selectAnimals.length > 0
+          $.each selectAnimals, (index, animal) =>
+            @selectedAnimals.push animal
+        else
+          $.each deselectAnimals, (index, animal) =>
+            @selectedAnimals.remove animal
+        #console.log @selectedAnimals()
 
-      # Get specific animal for modal
-      @activeAnimal = ko.observable null
+      # Observation stuff
+      @observation = ko.observable new Observation()
+
+      @newObservation = () =>
+        @observation().animalObservations $.map @selectedAnimals(), (item) ->
+          animalOb = new AnimalObservation()
+          animalOb.animalId item
+          return animalOb
+        console.log @observation().animalObservations()
 
       @load = () =>
         # Get data from API
@@ -276,7 +320,7 @@ $(document).ready ->
   # Sammy
   # ################
   window.sammy = Sammy (context) =>
-    context.get '/', () =>
+    context.get '/', () => # use regex?
       $('#main > div').hide()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.AnimalListVM.empty()
@@ -308,6 +352,8 @@ $(document).ready ->
       PawsViewModel.ObservationListVM.empty()
       PawsViewModel.StaffListVM.load()
       $('#staffContainer').show()
+    context.get '/auth/logout', () =>
+      window.location = '/auth/logout' 
   sammy.run()
 
 

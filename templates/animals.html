@@ -1,39 +1,34 @@
 {# animals.html #}
   <div class="container" id="animalListContainer">
+
+    {# Headers #}
     <div class="row">
       <div class="span12">
         <div class="page-header">
-          <div class="list-actions">
-            <strong>View by:</strong>
-            <span class="btn-group" data-toggle="buttons-radio">
-              <button class="btn" data-toggle="button">Exhibits</button>
-              <button class="btn">Species</button>
-            </span>
+          <div class="row">
+            <div class="span6">
+              <h1>Your Animals <small>(<a href="#">view all</a>)</small></h1>
+            </div>
+            <div class="span6 btn-toolbar">
+              <div class="btn-group">
+                <button class="btn" data-toggle="modal" data-target="#modal-animal" data-bind="css: {'disabled': selectedAnimals().length == 0}">View Selected</button>
+                <button class="btn" data-toggle="modal" data-target="#modal-animal-upload">Bulk Add</button>
+              </div>
+
+              <div class="btn-group">
+                <button class="btn btn-primary" data-toggle="modal" data-target="#modal-observe-1" data-bind="click: newObservation, css: {'disabled': selectedAnimals().length == 0}">Observe Selected</button>
+              </div>
+            </div>
           </div>
-          <h1>Your Animals <small>(<a href="#">view all</a>)</small></h1>
         </div>
       </div>
     </div>
 
-{% comment %}
-    <div class="carousel list-row" id="speciesSelector" style="display:none">
-      <div class="carousel-scroller">
-        <ul data-bind="foreach: species">
-          <li data-bind="click: $parent.setCurrentSpecies,
-              css: { 'list-active': $parent.currentSpecies() == $data }">
-            <div data-bind="text: commonName"></div>
-          </li>
-        </ul>
-      </div>
-
-      <hr>
-    </div>
-{% endcomment %}
-
+    {# List of exhibits -> housingGroups -> animals #}
     <div class="row list-items" id="animalSelector" data-bind="foreach: exhibits">
 
       <div class="span12">
-        <h2><span data-bind="text: fullName"></span> <button data-bind="click: $parent.selectExhibit" class="btn">Select</button></h2>
+        <h2><span data-bind="text: fullName"></span> <button data-bind="click: $parent.selectExhibit" class="btn">Select all</button></h2>
       </div>
 
       <!-- ko foreach: housingGroups -->
@@ -43,7 +38,7 @@
 
         <!-- ko foreach: animals -->
       <div class="span3">
-        <div class="list-entry" data-bind="click: $root.activeAnimal, css: {'list-active': active}" data-toggle="modal" data-target="#animal-modal">
+        <div class="list-entry" data-bind="click: $root.selectAnimal, css: {'list-active': $root.selectedAnimals.indexOf($data.id()) != -1}">
           <strong data-bind="text: name"></strong>
           <small data-bind="text: speciesCommonName"></small>
         </div>
@@ -56,26 +51,10 @@
         <hr>
       </div>
     </div>
-
-
-{% comment %}
-    <div class="row list-items" id="animalSelector">
-      <div class="carousel-scroller carousel-rows">
-        <ul data-bind="foreach: filterAnimalsBySpecies">
-
-          <li data-bind="click: $data.toggleActive,
-                         css: { 'list-active': $data.active() == true }">
-            <div data-bind="text: name" class="list-title"></div>
-            <div data-bind="text: speciesCommonName" class="list-text"></div>
-            <div data-bind="text: speciesScientificName" class="list-subtext"></div>
-          </li>
-
-        </ul>
-      </div>
-    </div>
-{% endcomment %}
     
-    <div class="modal hide fade" id="animal-modal" data-bind="with: activeAnimal">
+    {# Modal for viewing one animal #}
+    {% comment %}
+    <div class="modal hide fade" id="modal-animal" data-bind="with: activeAnimal">
       <div class="modal-header">
         <button class="close" data-dismiss="modal">×</button>
         <h3 data-bind="text: name"></h3>
@@ -87,8 +66,26 @@
         </dl>
       </div>
       <div class="modal-footer">
-        <a href="#" class="btn">Close</a>
+        <a href="#" class="btn" data-dismiss="modal">Close</a>
         <a href="#" class="btn btn-primary">Save changes</a>
       </div>
     </div>
+    {% endcomment %}
+
+    {# Modal for viewing one animal #}
+    <div class="modal hide fade" id="modal-observe-1" data-bind="with: observation">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal">×</button>
+        <h3></h3>
+      </div>
+      <div class="modal-body">
+
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Close</a>
+        <a href="#" class="btn btn-primary">Save changes</a>
+      </div>
+    </div>
+
+
   </div>
