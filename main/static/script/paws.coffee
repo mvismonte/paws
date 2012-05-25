@@ -106,10 +106,11 @@ $(document).ready ->
       @selectExhibit = (exhibit) =>
         animals = []
         $.each exhibit.housingGroups(), (i, hg) =>
-          console.log hg.animals
+          #console.log hg.animals
           animals = animals.concat hg.animals
         @selectedAnimals animals
         console.log @selectedAnimals()
+        window.sammy.setLocation '/observe'
 
       # Get specific animal for modal
       @activeAnimal = ko.observable null
@@ -280,7 +281,7 @@ $(document).ready ->
 
   # Sammy
   # ################
-  Sammy (context) =>
+  window.sammy = Sammy (context) =>
     context.get '/', () =>
       $('#main > div').hide()
       PawsViewModel.EnrichmentListVM.empty()
@@ -300,13 +301,13 @@ $(document).ready ->
       $('#enrichmentListContainer').show()
       resizeAllCarousels()
     context.get '/observe', () =>
-      $('#home').hide()
+      $('#main > div').hide()
       PawsViewModel.AnimalListVM.empty()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.ObservationListVM.load()
       $('#observationsContainer').show()
       resizeAllCarousels()
-  .run()
+  sammy.run()
 
 
   # UI
