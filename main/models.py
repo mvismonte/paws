@@ -91,7 +91,6 @@ class Species(models.Model):
 # Staff Model
 class Staff(models.Model):
   user = models.OneToOneField(User)
-  animals = models.ManyToManyField('Animal')
   def __unicode__(self):
     return self.user.username
 
