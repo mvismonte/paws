@@ -54,9 +54,11 @@ $(document).ready ->
 
   class Staff
     constructor: (data) ->
-      @name = ko.observable data.name
+      console.log data
       @id = ko.observable data.id
-      @animals = ko.observableArray []
+      @first_name = ko.observable data.user.first_name
+      @last_name = ko.observable data.user.last_name
+      @username = ko.observable data.user.username
 
   class Species
     constructor: (data) ->
@@ -215,30 +217,6 @@ $(document).ready ->
         @enrichments null
         @categoryFilter ''
         @subcategoryFilter ''
-        
-  class StaffViewModel
-    constructor: () ->
-      # Array for staff data
-      @staff = ko.observableArray []
-      
-      # Loading animals for a staff id
-      @loadAniamls = (staff_id) =>
-        animals = ko.observableArray []
-        $.getJSON '/api/v1/animals/?format=json&staff_id=' + staff_id, (data) =>
-          mappedAnimals = $.map data.objects, (item) ->
-            return new Animal item
-          animals = mappedAnimals
-        return animals
-        
-      # Loading the all the staff with thair associated animals
-      @loadStaff = () =>
-        $.getJSON '/api/v1/staff/?formal=json', (data) =>
-          mappedStaff = $.map data.objects, (item) ->
-            staff = new Staff item
-            staff.animals = @loadAnimals staff.id
-            return staff
-          @staff = mappedStaff
-          resizeAllCarousels()  
   
   class ObservationListViewModel
     constructor: () ->
@@ -270,14 +248,30 @@ $(document).ready ->
       @empty = () =>
         @observations null
 
+  class StaffListViewModel
+    constructor: () ->
+      # Array for staff data
+      @staff = ko.observableArray []
+
+    load: () ->
+      # Get data from API
+      $.getJSON '/api/v1/staff/?format=json', (data) =>
+        console.log data
+        mapped = $.map data.objects, (item) ->
+          return new Staff item
+        @staff mapped
+
+
   # The big momma
   PawsViewModel = 
     AnimalListVM: new AnimalListViewModel()
     EnrichmentListVM: new EnrichmentListViewModel()
     ObservationListVM: new ObservationListViewModel()
+    StaffListVM: new StaffListViewModel()
   ko.applyBindings PawsViewModel.AnimalListVM, document.getElementById 'animalListContainer'
   ko.applyBindings PawsViewModel.EnrichmentListVM, document.getElementById 'enrichmentListContainer'
   ko.applyBindings PawsViewModel.ObservationListVM, document.getElementById 'observationsContainer'
+  ko.applyBindings PawsViewModel.StaffListVM, document.getElementById 'staffContainer'
 
   # Sammy
   # ################
@@ -307,6 +301,13 @@ $(document).ready ->
       PawsViewModel.ObservationListVM.load()
       $('#observationsContainer').show()
       resizeAllCarousels()
+    context.get '/staff', () =>
+      $('#main > div').hide()
+      PawsViewModel.AnimalListVM.empty()
+      PawsViewModel.EnrichmentListVM.empty()
+      PawsViewModel.ObservationListVM.empty()
+      PawsViewModel.StaffListVM.load()
+      $('#staffContainer').show()
   sammy.run()
 
 
