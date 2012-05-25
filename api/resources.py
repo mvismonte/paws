@@ -89,20 +89,20 @@ class AnimalObservationResource(ModelResource):
   # Add useful numerical numbers for animal observation    
   def dehydrate(self, bundle):
     #Calculate the total observation time
-    total_observation = 0
-    total_observation = bundle.obj.observation.date_finished -  bundle.obj.observation.date_created
+    total_observation = datetime.timedelta(0)
+    #If there is no observation, set the rate equals to 0 
+    rate = 0
+
+    if bundle.obj.observation.date_finished is not None:
+      total_observation = bundle.obj.observation.date_finished - bundle.obj.observation.date_created
+      #Add the rate of the interaction vs. total observation time
+      #The rate = interaction time is divided by the total observation time
+      rate = bundle.obj.interaction_time/datetime.timedelta.total_seconds(total_observation)
 
     #Add the calculated total observation time into the API results
     bundle.data['total_observation'] = total_observation
-    
-    #Add the rate of the interaction vs. total observation time
-    if bundle.obj.indirect_use:
-      #If there is no observation, set the rate equals to 0 
-      bundle.data['rate'] = 0.0
-    else:
-      #The rate = interaction time is divided bt the total observation time
-      #Add the rate into the API results
-      bundle.data['rate'] = bundle.obj.interaction_time/datetime.timedelta.total_seconds(total_observation)
+    #Add the rate into the API results
+    bundle.data['rate'] = rate
     return bundle
 
  
