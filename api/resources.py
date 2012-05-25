@@ -582,8 +582,6 @@ class HousingGroupResource(ModelResource):
 class StaffResource(ModelResource):
   user = fields.ToOneField(
       'paws.api.resources.UserResource', 'user', full=True)
-  animals = fields.ToManyField(
-      'paws.api.resources.AnimalResource', 'animals', related_name= 'animal')  
   class Meta:
     #authenticate the user
     authentication= customAuthentication()

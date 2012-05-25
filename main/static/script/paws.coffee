@@ -50,7 +50,7 @@ $(document).ready ->
         return new Animal item
 
   class Category
-    constructor: (data) ->
+    constructor: (data={}) ->
       @name = ko.observable data.name
       @id = ko.observable data.id
 
@@ -220,6 +220,14 @@ $(document).ready ->
         return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
           return enrichment.subcategoryId() == subcategory.id()
 
+      # Category Creation fields.
+      @newCategory = new Category
+      @newCategory.name ''
+      delete @newCategory.id
+
+      @newSubcategory = null
+      @newEnrichment = null
+
     # Apply filters
     filterCategory: (category) =>
       if category == @categoryFilter()
@@ -266,6 +274,28 @@ $(document).ready ->
       @enrichments null
       @categoryFilter ''
       @subcategoryFilter ''
+
+    # Modal methods.
+    createCategory: () =>
+      alert @newCategory.name()
+      newCategory =
+        name: @newCategory.name()
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/category/?format=json'
+        data: JSON.stringify newCategory
+        success: @categoryCreated
+        dataType: "application/json",
+        processData:  false,
+        contentType: "application/json"
+
+      $.ajax settings
+
+    categoryCreated: (data) =>
+      alert "Category successfully created!"
+      console.log data
+
   
   class ObservationListViewModel
     constructor: () ->
