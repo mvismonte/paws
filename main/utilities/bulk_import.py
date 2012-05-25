@@ -1,16 +1,17 @@
 # Copyright 2012 PAWS. All rights reserved.
 # Date: 5/5/2012
-# Main Utility Enrichment importer
-# This is utility script used to import species and enrichments into the
+# Main Utility Bulk importer
+# This is utility script used to import enrichments and animals into the
 # database.
 
 from paws.main import models
 
 # A function that takes in a file name and tries to import the database.
 # Example usage:
-# >> from main.utilities import enrichment_import
-# >> enrichment_import.importDatabase('/home/mark/paws/main/utilities/list_enrichments.csv')
-def importDatabase(file):
+# >> from main.utilities import bulk_import
+# >> bulk_import.importEnrichments('/home/mark/paws/main/utilities/list_enrichments.csv')
+# TODO(Mark): Change this function so that it takes in a string instead.
+def importEnrichments(file):
   try:
     f = open(file, 'r+')
   except IOError:
@@ -39,7 +40,7 @@ def importDatabase(file):
     enrichment_presentation = fields[7]
 
     # Use get_or_create to create all models from the one line of the csv.
-    species, created = models.Species.objects.get_or_create(
+    species, create = models.Species.objects.get_or_create(
         common_name=common_name, scientific_name=scientific_name)
     category, create = models.Category.objects.get_or_create(
         name=category_name)
@@ -55,3 +56,42 @@ def importDatabase(file):
   # Don't forget to close the file!
   f.close()
   return True
+
+# A function that takes in a file name and tries to import the database.
+# Example usage:
+# >> from main.utilities import bulk_import
+# >> bulk_import.importEnrichments('/home/mark/paws/main/utilities/list_enrichments.csv')
+def importAnimals(data):
+  # The data should be a list of strings where each string a line of the csv.
+
+  lastExhibit = None
+  lastGroup = None
+  for line in data:
+    fields = line.split(',')
+
+    # Extract fields.
+    scientific_name = fields[0]
+    common_name = fields[1]
+    house_name = fields[2]
+    new_group = fields[3] != ''
+    exhibit_code = fields[4]
+
+    # Use get_or_create to create all models from the one line of the csv.
+    species, create = models.Species.objects.get_or_create(
+        common_name=common_name, scientific_name=scientific_name)
+    exhibit, create = models.Exhibit.objects.get_or_create(code=exhibit_code)
+
+    housing_group = None
+    if (new_group):
+      housing_group, create = models.HousingGroup.objects.get_or_create(
+          exhibit=exhibit, name='')
+    else:
+      housing_group = lastGroup
+
+    animal, create = models.Animal.objects.get_or_create(
+        name=house_name, species=species, housing_group=housing_group)
+
+    lastGroup = housing_group
+    lastExhibit = exhibit
+
+

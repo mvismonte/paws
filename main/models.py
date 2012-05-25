@@ -29,6 +29,7 @@ class AnimalObservation(models.Model):
   animal = models.ForeignKey('Animal')
   observation = models.ForeignKey('Observation')
   interaction_time = models.PositiveIntegerField(null=True, blank=True)
+  observation_time= models.PositiveIntegerField(null= True,blank= True)
   behavior = models.SmallIntegerField(choices=BEHAVIOR_CHOICES, null=True, blank=True)
   description = models.TextField(blank=True)
   indirect_use = models.BooleanField(default=False)

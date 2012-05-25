@@ -1,0 +1,14 @@
+{# observations.html #}
+
+<div class="container" id="staffContainer">
+  <table class="table" data-bind="foreach: staff">
+    <div>
+      <tr>
+        <td data-bind="text: id"></td>
+        <td data-bind="text: username"></td>
+        <td data-bind="text: first_name"></td>
+        <td data-bind="text: last_name"></td>
+      </tr>
+    </div>
+  </table>
+</div>
