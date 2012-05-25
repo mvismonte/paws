@@ -20,9 +20,17 @@ $(document).ready ->
   class Exhibit
     constructor: (data) ->
       @code = ko.observable data.code
-      @housingGroups = ko.observableArray data.housing_groups
+      @housingGroups = ko.observableArray $.map data.housing_groups, (item) ->
+        return new HousingGroup item
       @fullName = ko.computed =>
         return 'Exhibit ' + @code()
+
+  class HousingGroup
+    constructor: (data) ->
+      @name = ko.observable data.name
+      @staff = ko.observable data.staff
+      @animals = ko.observableArray $.map data.animals, (item) ->
+        return new Animal item
 
   class Category
     constructor: (data) ->
@@ -364,6 +372,7 @@ $(document).ready ->
     bounce: true
     hScrollbar: false
   }
+
 
   $(window).resize ->
     clearTimeout window.resizeTimeout

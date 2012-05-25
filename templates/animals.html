@@ -41,9 +41,9 @@
 
         <!-- ko foreach: animals -->
       <div class="span3">
-        <div class="list-entry">
+        <div class="list-entry" data-bind="click: toggleActive, css: {'list-active': active}">
           <strong data-bind="text: name"></strong>
-          <small data-bind="text: species.common_name"></small>
+          <small data-bind="text: speciesCommonName"></small>
         </div>
       </div>
         <!-- /ko -->
