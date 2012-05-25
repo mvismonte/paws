@@ -111,6 +111,9 @@ $(document).ready ->
         @selectedAnimals animals
         console.log @selectedAnimals()
 
+      # Get specific animal for modal
+      @activeAnimal = ko.observable null
+
       @load = () =>
         # Get data from API
         # $.getJSON '/api/v1/species/?format=json', (data) =>
@@ -376,3 +379,7 @@ $(document).ready ->
   $(window).resize ->
     clearTimeout window.resizeTimeout
     window.resizeTimeout = setTimeout resizeAllCarousels, 500
+
+  $('#animal-modal').modal({
+    show: false
+  })
