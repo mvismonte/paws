@@ -3,6 +3,18 @@
 {# observations.html - For viewing observations #}
 
 <div class="container" id="observationsContainer">
+  {# Headers #}
+  <div class="row">
+    <div class="span12">
+      <div class="page-header">
+        <div class="row">
+          <div class="span6">
+            <h1>Your Observations</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <dl data-bind="foreach: observations">
     <dt>
       <h2><span data-bind="text: enrichment.name"></span> <small data-bind="text: date_created"></small></h2>

@@ -304,7 +304,7 @@ $(document).ready ->
 
     load: () ->
       # Get data from API
-      $.getJSON '/api/v1/staff/?format=json', (data) =>
+      $.getJSON '/api/v1/staff/?format=json&staff_id='+'', (data) =>
         console.log data
         mapped = $.map data.objects, (item) ->
           return new Staff item
