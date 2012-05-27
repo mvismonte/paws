@@ -40,7 +40,7 @@ class AnimalObservation(models.Model):
 class Category(models.Model):
   name = models.CharField(max_length=100, null=False, blank=False)
   def __unicode__(self):
-    return self.name 
+    return self.name
 
 # Enrichment Model
 class Enrichment(models.Model):

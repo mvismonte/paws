@@ -41,8 +41,8 @@ class AnimalObservationResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.AnimalObservation.objects.all()
     resource_name = 'animalObservation'
     #allowed actions towards database
@@ -50,7 +50,7 @@ class AnimalObservationResource(ModelResource):
     #post = adding new animalObservation into the database
     #put = updating animalObservation's information in the database
     #delete = delete animalObservation from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new animalObservation into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -200,7 +200,7 @@ class AnimalResource(ModelResource):
     #post = adding new animal into the database
     #put = updating animal's information in the database
     #delete = delete animal from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new animal into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -294,8 +294,8 @@ class AnimalResource(ModelResource):
 class CategoryResource(ModelResource):
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Category.objects.all()
     resource_name = 'category'
     #allowed actions towards database
@@ -303,7 +303,7 @@ class CategoryResource(ModelResource):
     #post = adding new category into the database
     #put = updating category's information in the database
     #delete = delete category from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new category into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -327,8 +327,8 @@ class EnrichmentNoteResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.EnrichmentNote.objects.all()
     resource_name = 'enrichmentNote'
     #allowed actions towards database
@@ -336,7 +336,7 @@ class EnrichmentNoteResource(ModelResource):
     #post = adding new enrichmentNote into the database
     #put = updating enrichmentNote's information in the database
     #delete = delete enrichmentNote from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new enrichmentNote into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -356,10 +356,13 @@ class EnrichmentNoteResource(ModelResource):
     enrichment_id = request.GET.get('enrichment_id', None)
     q_set = super(EnrichmentNoteResource, self).get_object_list(request)
 
+    # Could filter by multiple species: split species_id by comma
+    species_id_list = species_id.split(',')
+
     # Try filtering by species first.
     try:
-      species = models.Species.objects.get(id=species_id)
-      q_set = q_set.filter(species=species)
+      species_list = models.Species.objects.filter(id__in=species_id_list)
+      q_set = q_set.filter(species__in=species_list)
     except ObjectDoesNotExist:
       pass
 
@@ -381,8 +384,8 @@ class EnrichmentResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Enrichment.objects.all()
     resource_name = 'enrichment'
     #allowed actions towards database
@@ -390,7 +393,7 @@ class EnrichmentResource(ModelResource):
     #post = adding new enrichment into the database
     #put = updating enrichment's information in the database
     #delete = delete enrichment from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new enrichment into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -486,8 +489,8 @@ class ObservationResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Observation.objects.all()
     resource_name = 'observation'
     #allowed actions towards database
@@ -495,7 +498,7 @@ class ObservationResource(ModelResource):
     #post = adding new observation into the database
     #put = updating observation's information in the database
     #delete = delete observation from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new observation into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -536,8 +539,8 @@ class ExhibitResource(ModelResource):
   housing_groups = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Exhibit.objects.all()
     resource_name = 'exhibit'
     #allowed actions towards database
@@ -545,7 +548,7 @@ class ExhibitResource(ModelResource):
     #post = adding new exhibit into the database
     #put = updating exhibit' information in the database
     #delete = delete exhibit from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new species into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -563,8 +566,8 @@ class ExhibitResource(ModelResource):
 class SpeciesResource(ModelResource):
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Species.objects.all()
     resource_name = 'species'
     #allowed actions towards database
@@ -572,7 +575,7 @@ class SpeciesResource(ModelResource):
     #post = adding new species into the database
     #put = updating species' information in the database
     #delete = delete species from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new species into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -594,8 +597,8 @@ class HousingGroupResource(ModelResource):
   animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal_set', full=True)
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.HousingGroup.objects.all()
     resource_name = 'housingGroup'
     #allowed actions towards database
@@ -603,7 +606,7 @@ class HousingGroupResource(ModelResource):
     #post = adding new HousingGroup into the database
     #put = updating HousingGroup's information in the database
     #delete = delete HousingGroup from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new HousingGroup into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -617,7 +620,7 @@ class HousingGroupResource(ModelResource):
   def obj_delete(self, request=None, **kwargs):
     return super(HousingGroupResource, self).obj_delete( request, **kwargs)
 
-# Redefine get_object_list to filter for exhibit_id and staff_id.
+  # Redefine get_object_list to filter for exhibit_id and staff_id.
   def get_object_list(self, request):
     staff_id = request.GET.get('staff_id', None)
     exhibit_id = request.GET.get('exhibit_id', None)
@@ -638,14 +641,15 @@ class HousingGroupResource(ModelResource):
       pass
 
     return q_set
+
 # Staff Resource.
 class StaffResource(ModelResource):
   user = fields.ToOneField(
       'paws.api.resources.UserResource', 'user', full=True)
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Staff.objects.all()
     resource_name = 'staff'
     #allowed actions towards database
@@ -653,7 +657,7 @@ class StaffResource(ModelResource):
     #post = adding new staff into the database
     #put = updating staff's information in the database
     #delete = delete staff from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new staff into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -724,7 +728,7 @@ class StaffResource(ModelResource):
     #Return the search results in json format
     return self.create_response(request, object_list)
 
-# Redefine get_object_list to filter for animal_id.
+  # Redefine get_object_list to filter for animal_id.
   def get_object_list(self, request):
     animal_id = request.GET.get('animal_id', None)
     q_set = super(StaffResource, self).get_object_list(request)
@@ -735,8 +739,6 @@ class StaffResource(ModelResource):
       pass
     return q_set
 
-
-
 # Subcategory Resource.
 class SubcategoryResource(ModelResource):
   # Define foreign keys.
@@ -745,8 +747,8 @@ class SubcategoryResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Subcategory.objects.all()
     resource_name = 'subcategory'
     #allowed actions towards database
@@ -754,7 +756,7 @@ class SubcategoryResource(ModelResource):
     #post = adding new subcategory into the database
     #put = update subcategory's information in the database
     #delete = delete subcategory from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new subcategory into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -783,8 +785,8 @@ class SubcategoryResource(ModelResource):
 class UserResource(ModelResource):
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = User.objects.all()
     resource_name = 'user'
     excludes = ['email','password']
@@ -793,12 +795,12 @@ class UserResource(ModelResource):
     # post = adding new user into the database
     # put = updating user's information in the database
     # delete = delete the user from the database
-    list_allowed_methods=['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #adding new user into the database
   def obj_create(self, bundle, request=None, **kwargs):
     try:
-      bundle=super(UserResource,self).obj_create(bundle, request, **kwargs)
+      bundle = super(UserResource,self).obj_create(bundle, request, **kwargs)
       bundle.obj.set_password(bundle.data.get('password'))
       bundle.obj.save()
     except IntegrityError:
@@ -808,7 +810,7 @@ class UserResource(ModelResource):
   #updating user's information
   def obj_update(self, bundle, request=None, **kwards):
     try:
-      bundle=super(UserResource,self).obj_update(bundle, request, **kwargs)
+      bundle = super(UserResource,self).obj_update(bundle, request, **kwargs)
       bundle.obj.set_password(bundle.data.get('password'))
       bundle.obj.save()
     except IntegrityError:

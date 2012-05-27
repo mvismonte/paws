@@ -139,10 +139,10 @@ $(document).ready ->
 
     # Select a single animal
     selectAnimal: (animal) =>
-      if @selectedAnimals.indexOf(animal.id()) == -1
-        @selectedAnimals.push animal.id()
+      if @selectedAnimals.indexOf(animal) == -1
+        @selectedAnimals.push animal
       else
-        @selectedAnimals.remove animal.id()
+        @selectedAnimals.remove animal
       #console.log @selectedAnimals()
 
     # Select animal(s) functions
@@ -151,10 +151,10 @@ $(document).ready ->
       deselectAnimals = []
       $.each exhibit.housingGroups(), (i, hg) =>
         $.each hg.animals(), (index, animal) =>
-          if @selectedAnimals.indexOf(animal.id()) == -1
-            selectAnimals.push animal.id()
+          if @selectedAnimals.indexOf(animal) == -1
+            selectAnimals.push animal
           else
-            deselectAnimals.push animal.id()
+            deselectAnimals.push animal
       if selectAnimals.length > 0
         $.each selectAnimals, (index, animal) =>
           @selectedAnimals.push animal
@@ -166,7 +166,7 @@ $(document).ready ->
     newObservation: () =>
       @observation().animalObservations $.map @selectedAnimals(), (item) ->
         animalOb = new AnimalObservation()
-        animalOb.animalId item
+        animalOb.animalId item.id()
         return animalOb
       console.log @observation().animalObservations()
 
@@ -187,6 +187,11 @@ $(document).ready ->
         mappedExhibits = $.map data.objects, (item) ->
           return new Exhibit item
         @exhibits mappedExhibits
+        # Load all animals into animal object
+        # $.each mappedExhibits, (index, exhibit) =>
+        #   $.each exhibit.housingGroups(), (index, housingGroup) =>
+        #     $.each housingGroup.animals(), (index, animal) =>
+        #       @animals.push animal
 
     empty: () =>
       @species null
