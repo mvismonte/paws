@@ -167,10 +167,11 @@ class AnimalObservationResource(ModelResource):
       else:
         percentage= total_eachInteraction/total_interaction
       #create bundle that stores the result object
-      bundle = self.build_bundle(obj =result, request = request)
+      bundle = self.build_bundle(obj = e, request = request)
       #reformating the bundle
-      bundle = self.full_dehydrate(bundle)
-      #adding percentage into the bundle
+      #adding the enrichment name into the bundle
+      bundle.data['Enrichment'] = e
+      #adding the percentage into the bundle
       bundle.data['percentage']=percentage
       #append the bundle into the list
       percent.append(bundle)
