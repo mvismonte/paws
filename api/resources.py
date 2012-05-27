@@ -276,7 +276,7 @@ class EnrichmentNoteResource(ModelResource):
     #post = adding new enrichmentNote into the database
     #put = updating enrichmentNote's information in the database
     #delete = delete enrichmentNote from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new enrichmentNote into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -296,10 +296,13 @@ class EnrichmentNoteResource(ModelResource):
     enrichment_id = request.GET.get('enrichment_id', None)
     q_set = super(EnrichmentNoteResource, self).get_object_list(request)
 
+    # Could filter by multiple species: split species_id by comma
+    species_id_list = species_id.split(',')
+
     # Try filtering by species first.
     try:
-      species = models.Species.objects.get(id=species_id)
-      q_set = q_set.filter(species=species)
+      species_list = models.Species.objects.filter(id__in=species_id_list)
+      q_set = q_set.filter(species__in=species_list)
     except ObjectDoesNotExist:
       pass
 
