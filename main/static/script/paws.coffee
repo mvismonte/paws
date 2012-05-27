@@ -50,7 +50,7 @@ $(document).ready ->
         return new Animal item
 
   class Category
-    constructor: (data) ->
+    constructor: (data={}) ->
       @name = ko.observable data.name
       @id = ko.observable data.id
 
@@ -93,9 +93,14 @@ $(document).ready ->
 
   class Subcategory
     constructor: (data) ->
-      @name = ko.observable data.name
-      @id = ko.observable data.id
-      @categoryId = ko.observable data.category.id
+      if (data?)
+        @name = ko.observable data.name
+        @id = ko.observable data.id
+        @categoryId = ko.observable data.category.id
+      else
+        @name = ko.observable ''
+        @id = ko.observable ''
+        @categoryId = ko.observable ''
 
   # ViewModels
   # ----------------
@@ -225,6 +230,16 @@ $(document).ready ->
         return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
           return enrichment.subcategoryId() == subcategory.id()
 
+      # Category Creation fields.
+      @newCategory = new Category
+      @newCategory.name ''
+      delete @newCategory.id
+
+      @newSubcategory = new Subcategory
+      @newSubcategory.name ''
+      @newSubcategory.categoryId ''
+      delete @newSubcategory.id
+
     # Apply filters
     filterCategory: (category) =>
       if category == @categoryFilter()
@@ -271,6 +286,55 @@ $(document).ready ->
       @enrichments null
       @categoryFilter ''
       @subcategoryFilter ''
+
+    # Modal methods.
+    createCategory: () =>
+      alert @newCategory.name()
+      newCategory =
+        name: @newCategory.name()
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/category/?format=json'
+        data: JSON.stringify newCategory
+        success: @categoryCreated
+        dataType: "application/json",
+        processData:  false,
+        contentType: "application/json"
+
+      $.ajax settings
+
+    categoryCreated: (data, textStatus, jqXHR) =>
+      alert "Category successfully created!"
+      console.log data
+      console.log textStatus
+      console.log jqXHR
+
+      # Need to add logic to append newly created category to the list.
+
+    createSubcategory: () =>
+      category = @newSubcategory.categoryId()
+      console.log category
+      newSubcategory =
+        name: @newSubcategory.name()
+        category: "/api/v1/category/#{category.id()}/"
+
+      console.log newSubcategory
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/subcategory/?format=json'
+        data: JSON.stringify newSubcategory
+        success: @subcategoryCreated
+        dataType: "application/json",
+        processData:  false,
+        contentType: "application/json"
+
+      $.ajax settings
+
+    subcategoryCreated: (data, textStatus, jqXHR) =>
+      alert "Subcategory successfully created!"
+      console.log data
   
   class ObservationListViewModel
     constructor: () ->
@@ -295,8 +359,8 @@ $(document).ready ->
     load: () =>
       # Get data from API
       $.getJSON '/api/v1/observation/?format=json', (data) =>
-        mapped = $.map data.objects, (item) ->
-          return new Observation item
+        #mapped = $.map data.objects, (item) ->
+        #  return new Observation item
         @observations data.objects
 
     empty: () =>
