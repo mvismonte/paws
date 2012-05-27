@@ -40,7 +40,7 @@
 
         <!-- ko foreach: animals -->
       <div class="span3">
-        <div class="list-entry" data-bind="click: $root.selectAnimal, css: {'list-active': $root.selectedAnimals.indexOf($data.id()) != -1}">
+        <div class="list-entry" data-bind="click: $root.selectAnimal, css: {'list-active': $root.selectedAnimals.indexOf($data) != -1}">
           <strong data-bind="text: name"></strong>
           <small data-bind="text: speciesCommonName"></small>
         </div>
@@ -74,13 +74,16 @@
     </div>
     {% endcomment %}
 
-    {# Modal for viewing one animal #}
+    {# Modal for making an observation #}
     <div class="modal hide fade" id="modal-observe-1" data-bind="with: observation">
       <div class="modal-header">
         <button class="close" data-dismiss="modal">×</button>
         <h3 data-bind="text: modalTitle()"></h3>
       </div>
       <div class="modal-body">
+        <div data-bind="foreach: $root.selectedAnimals">
+          <span data-bind="text: name"></span>
+        </div>
 
       </div>
       <div class="modal-footer">
