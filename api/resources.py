@@ -357,14 +357,17 @@ class EnrichmentNoteResource(ModelResource):
     q_set = super(EnrichmentNoteResource, self).get_object_list(request)
 
     # Could filter by multiple species: split species_id by comma
-    species_id_list = species_id.split(',')
+    species_id_list = []
+    if species_id != None:
+      species_id_list = species_id.split(',')
 
     # Try filtering by species first.
-    try:
-      species_list = models.Species.objects.filter(id__in=species_id_list)
-      q_set = q_set.filter(species__in=species_list)
-    except ObjectDoesNotExist:
-      pass
+    if species_id != None:
+      try:
+        species_list = models.Species.objects.filter(id__in=species_id_list)
+        q_set = q_set.filter(species__in=species_list)
+      except ObjectDoesNotExist:
+        pass
 
     # Try filtering by enrichment next.
     try:
