@@ -171,6 +171,7 @@ class AnimalObservationResource(ModelResource):
       #reformating the bundle
       #adding the enrichment name into the bundle
       bundle.data['Enrichment'] = e
+      bundle.data['id']= e.id
       #adding the percentage into the bundle
       bundle.data['percentage']=percentage
       #append the bundle into the list
