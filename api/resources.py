@@ -359,7 +359,10 @@ class EnrichmentNoteResource(ModelResource):
     # Could filter by multiple species: split species_id by comma
     species_id_list = []
     if species_id != None:
-      species_id_list = species_id.split(',')
+      for s in species_id.split(','):
+        if s != '':
+          species_id_list.append(int(s))
+    print species_id_list
 
     # Try filtering by species first.
     if species_id != None:
