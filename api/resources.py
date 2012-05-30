@@ -272,7 +272,7 @@ class AnimalResource(ModelResource):
   # Redefine get_object_list to filter for species_id and/or housingGroup_id
   def get_object_list(self, request):
     species_id = request.GET.get('species_id', None)
-    housingGroup_id=request.GET.get('housing_id', None)
+    housingGroup_id = request.GET.get('housing_id', None)
     q_set = super(AnimalResource, self).get_object_list(request)
      # Try filtering by species if it exists.
     try:
@@ -282,8 +282,8 @@ class AnimalResource(ModelResource):
       pass
      # Try filtering by housingGroup if it exists.
     try:
-      housinggroup=models.HousingGroup.objects.get(id=housingGroup_id)
-      q_set=q_set.filter(housing_group=housinggroup)
+      housinggroup = models.HousingGroup.objects.get(id=housingGroup_id)
+      q_set = q_set.filter(housing_group=housinggroup)
     except ObjectDoesNotExist:
       pass
     return q_set
@@ -355,14 +355,19 @@ class EnrichmentNoteResource(ModelResource):
     q_set = super(EnrichmentNoteResource, self).get_object_list(request)
 
     # Could filter by multiple species: split species_id by comma
-    species_id_list = species_id.split(',')
+    species_id_list = []
+    if species_id != None:
+      for s in species_id.split(','):
+        if s != '':
+          species_id_list.append(int(s))
 
     # Try filtering by species first.
-    try:
-      species_list = models.Species.objects.filter(id__in=species_id_list)
-      q_set = q_set.filter(species__in=species_list)
-    except ObjectDoesNotExist:
-      pass
+    if species_id != None:
+      try:
+        species_list = models.Species.objects.filter(id__in=species_id_list)
+        q_set = q_set.filter(species__in=species_list)
+      except ObjectDoesNotExist:
+        pass
 
     # Try filtering by enrichment next.
     try:
