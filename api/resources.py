@@ -274,7 +274,7 @@ class AnimalResource(ModelResource):
   # Redefine get_object_list to filter for species_id and/or housingGroup_id
   def get_object_list(self, request):
     species_id = request.GET.get('species_id', None)
-    housingGroup_id=request.GET.get('housing_id', None)
+    housingGroup_id = request.GET.get('housing_id', None)
     q_set = super(AnimalResource, self).get_object_list(request)
      # Try filtering by species if it exists.
     try:
@@ -284,8 +284,8 @@ class AnimalResource(ModelResource):
       pass
      # Try filtering by housingGroup if it exists.
     try:
-      housinggroup=models.HousingGroup.objects.get(id=housingGroup_id)
-      q_set=q_set.filter(housing_group=housinggroup)
+      housinggroup = models.HousingGroup.objects.get(id=housingGroup_id)
+      q_set = q_set.filter(housing_group=housinggroup)
     except ObjectDoesNotExist:
       pass
     return q_set
