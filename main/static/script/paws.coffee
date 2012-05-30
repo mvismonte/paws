@@ -15,19 +15,18 @@ $(document).ready ->
       @speciesId = ko.observable data.species.id
       @speciesScientificName = ko.observable data.species.scientific_name
       @active = ko.observable false
-    toggleActive: () ->
-      @active !@active()
+      @observation = ko.observable null
 
   class AnimalObservation
     constructor: (data=null) ->
-      @animalId = ko.observable null
+      @animal = ko.observable null
       @observationId = ko.observable null
       @interactionTime = ko.observable null
       @behavior = ko.observable null
       @description = ko.observable null
       @indirectUse = ko.observable null
       if data != null
-        @animalId data.animal.id
+        @animal new Animal data.animal
         @observationId data.observation.id
         @interactionTime data.interaction_time
         @behavior data.behavior
@@ -72,10 +71,6 @@ $(document).ready ->
         @enrichment data.enrichment.name
         @animalObservations data.animal_observations
         @behavior data.behavior
-    modalTitle: () ->
-      length = @animalObservations().length
-      pluralized = if length > 1 then ' animals' else ' animal'
-      return 'Observing ' + length + pluralized
 
   class Staff
     constructor: (data) ->
@@ -123,8 +118,14 @@ $(document).ready ->
           return animal.speciesId() == species.id()
 
       # Enrichment application
-      # Current animal selection(s)
+      # Current animal selection(s), the animals themselves
       @selectedAnimals = ko.observableArray []
+
+      # Title for observation modal dialog
+      @modalTitle = ko.computed =>
+        length = @selectedAnimals().length
+        pluralized = if length != 1 then ' animals' else ' animal'
+        return 'Observing ' + length + pluralized
 
       # Observation stuff
       @observation = ko.observable new Observation()
@@ -137,13 +138,26 @@ $(document).ready ->
         @currentSpecies(species)
       resizeAllCarousels()
 
-    # Select a single animal
+    # Boolean, animal is selected
+    isSelected: (animal) =>
+      return animal.active()
+
+    # Add animal to selected object
     selectAnimal: (animal) =>
-      if @selectedAnimals.indexOf(animal) == -1
-        @selectedAnimals.push animal
+      animal.active true
+      @selectedAnimals.push animal
+
+    # Remove animal from selected object
+    deselectAnimal: (animal) =>
+      animal.active false
+      @selectedAnimals.remove animal
+
+    # Toggle a single animal's state
+    toggleAnimal: (animal) =>
+      if !@isSelected(animal)
+        @selectAnimal(animal)
       else
-        @selectedAnimals.remove animal
-      #console.log @selectedAnimals()
+        @deselectAnimal(animal)
 
     # Select animal(s) functions
     selectExhibit: (exhibit) =>
@@ -151,47 +165,48 @@ $(document).ready ->
       deselectAnimals = []
       $.each exhibit.housingGroups(), (i, hg) =>
         $.each hg.animals(), (index, animal) =>
-          if @selectedAnimals.indexOf(animal) == -1
+          if !@isSelected(animal)
             selectAnimals.push animal
           else
             deselectAnimals.push animal
       if selectAnimals.length > 0
         $.each selectAnimals, (index, animal) =>
-          @selectedAnimals.push animal
+          @selectAnimal(animal)
       else
         $.each deselectAnimals, (index, animal) =>
-          @selectedAnimals.remove animal
-      #console.log @selectedAnimals()
+          @deselectAnimal(animal)
 
+    # Make a new observation
+    # Observations are stored in the Animal
     newObservation: () =>
-      @observation().animalObservations $.map @selectedAnimals(), (item) ->
-        animalOb = new AnimalObservation()
-        animalOb.animalId item.id()
-        return animalOb
-      console.log @observation().animalObservations()
+      $.each @selectedAnimals(), (index, animal) =>
+        # Initialize new observation if it doesn't exist
+        if animal.observation == null
+          animal.observation = new AnimalObservation()
+      # Load enrichments for active species
+      @loadEnrichments()
 
     load: () =>
       # Get data from API
-      # $.getJSON '/api/v1/species/?format=json', (data) =>
-      #   mappedSpecies = $.map data.objects, (item) ->
-      #     return new Species item
-      #   @species mappedSpecies
-
-      # $.getJSON '/api/v1/animal/?format=json', (data) =>
-      #   mappedAnimals = $.map data.objects, (item) ->
-      #     return new Animal item
-      #   @animals mappedAnimals
-      #   resizeAllCarousels(false)
-
       $.getJSON '/api/v1/exhibit/?format=json', (data) =>
         mappedExhibits = $.map data.objects, (item) ->
           return new Exhibit item
         @exhibits mappedExhibits
-        # Load all animals into animal object
-        # $.each mappedExhibits, (index, exhibit) =>
-        #   $.each exhibit.housingGroups(), (index, housingGroup) =>
-        #     $.each housingGroup.animals(), (index, animal) =>
-        #       @animals.push animal
+
+    loadEnrichments: () =>
+      # Build the species set
+      speciesSet = {}
+      $.each @selectedAnimals(), (index, animal) =>
+        speciesSet[animal.speciesId()] = true
+      # For each item in species set, add that to the url
+      url = '/api/v1/enrichment/?format=json&limit=0&species_id='
+      $.each speciesSet, (key, value) =>
+        url += key + ','
+      $.getJSON url, (data) =>
+        mappedEnrichments = $.map data.objects, (item) ->
+          return new Enrichment item
+        #@enrichments mappedEnrichments
+        resizeAllCarousels()
 
     empty: () =>
       @species null
