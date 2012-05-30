@@ -362,7 +362,6 @@ class EnrichmentNoteResource(ModelResource):
       for s in species_id.split(','):
         if s != '':
           species_id_list.append(int(s))
-    print species_id_list
 
     # Try filtering by species first.
     if species_id != None:
