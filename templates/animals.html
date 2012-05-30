@@ -81,6 +81,39 @@
         <h3 data-bind="text: modalTitle()"></h3>
       </div>
       <div class="modal-body">
+
+        <div class="carousel">
+          <div class="carousel-scroller">
+            <ul data-bind="foreach: categories">
+              <li data-bind="click: $parent.filterCategory,
+            css: { 'list-active': $parent.categoryFilter() == $data }" class="list-entry">
+                <span data-bind="text: name"></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="carousel">
+          <div class="carousel-scroller">
+            <ul data-bind="foreach: subcategoriesFilterCategory">
+              <li data-bind="click: $parent.filterSubcategory,
+                  css: { 'list-active': $parent.subcategoryFilter() == $data }" class="list-item">
+                <span data-bind="text: name"></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="carousel">
+          <div class="carousel-scroller carousel-rows">
+            <ul data-bind="foreach: enrichmentsFilterSubcategory">
+              <li class="list-item">
+                <span data-bind="text: name"></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
         <div data-bind="foreach: selectedAnimals">
           <span data-bind="text: name"></span>
         </div>

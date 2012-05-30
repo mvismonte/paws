@@ -10,7 +10,7 @@ $(document).ready ->
   class Animal
     constructor: (data) ->
       @name = ko.observable data.name
-      @id = ko.observable parseInt(data.id)
+      @id = ko.observable data.id
       @speciesCommonName = ko.observable data.species.common_name
       @speciesId = ko.observable data.species.id
       @speciesScientificName = ko.observable data.species.scientific_name
@@ -55,12 +55,23 @@ $(document).ready ->
 
   class Enrichment
     constructor: (data) ->
+      @id = ko.observable data.id
       @name = ko.observable data.name # non-observable is fine
       @categoryId = ko.observable data.subcategory.category.id
       @categoryName = ko.observable data.subcategory.category.name
       @subcategoryId = ko.observable data.subcategory.id
       @subcategoryName = ko.observable data.subcategory.name
+      @count = ko.observable 0
       @disabled = false
+
+  class EnrichmentNote
+    constructor: (data) ->
+      @enrichmentId = ko.observable data.enrichment.id
+      @speciesCommonName = ko.observable data.species.common_name
+      @speciesId = ko.observable data.species.id
+      @speciesScientificName = ko.observable data.species.scientific_name
+      @limitations = ko.observable data.limitations
+      @instructions = ko.observable data.instructions
 
   class Observation
     constructor: (data=null) ->
@@ -96,15 +107,19 @@ $(document).ready ->
         @name = ko.observable ''
         @id = ko.observable ''
         @categoryId = ko.observable ''
+      @count = ko.observable 0
 
   # ViewModels
   # ----------------
   class AnimalListViewModel
     constructor: () ->
       # Arrays for holding data
-      @species = ko.observableArray []
       @animals = ko.observableArray []
       @exhibits = ko.observableArray []
+      @categories = ko.observableArray []
+      @subcategories = ko.observableArray []
+      @enrichments = ko.observableArray []
+      @enrichmentNotes = ko.observableArray []
 
       # Current filter variables
       @currentSpecies = ko.observable ''
@@ -129,6 +144,57 @@ $(document).ready ->
 
       # Observation stuff
       @observation = ko.observable new Observation()
+
+      # Filtered lists
+
+      # Current Filters
+      @categoryFilter = ko.observable ''
+      @subcategoryFilter = ko.observable ''
+
+      @subcategoriesFilterCategory = ko.computed =>
+        category = @categoryFilter()
+        if category == ''
+          return []
+        return ko.utils.arrayFilter @subcategories(), (subcategory) ->
+          return subcategory.categoryId() == category.id()
+
+      @enrichmentsFilterCategory = ko.computed =>
+        category = @categoryFilter()
+        if category == ''
+          return @enrichments()
+        return ko.utils.arrayFilter @enrichments(), (enrichment) ->
+          return enrichment.categoryId() == category.id()
+          
+      @enrichmentsFilterSubcategory = ko.computed =>
+        subcategory = @subcategoryFilter()
+        if subcategory == ''
+          return @enrichmentsFilterCategory()
+        return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
+          return enrichment.subcategoryId() == subcategory.id()
+
+
+    # Apply filters
+    filterCategory: (category) =>
+      if category == @categoryFilter()
+        @subcategoryFilter('')
+        @categoryFilter('')
+      else
+        @subcategoryFilter('')
+        @categoryFilter(category)
+      resizeAllCarousels()
+
+    filterSubcategory: (subcategory) =>
+      if subcategory == @subcategoryFilter()
+        @subcategoryFilter('')
+      else
+        @subcategoryFilter(subcategory)
+      resizeAllCarousels()
+      ## For disable instead of remove, need css rule, not working
+      #ko.utils.arrayForEach @enrichments(), (enrichment) ->
+      #  if enrichment.subcategoryId() != subcategory.id()
+      #    enrichment.disabled = true
+      #  else
+      #    enrichment.disabled = false
 
     # Apply filters
     setCurrentSpecies: (species) =>
@@ -186,6 +252,7 @@ $(document).ready ->
       # Load enrichments for active species
       @loadEnrichments()
 
+    # Load exhibits and animals
     load: () =>
       # Get data from API
       $.getJSON '/api/v1/exhibit/?format=json', (data) =>
@@ -193,21 +260,56 @@ $(document).ready ->
           return new Exhibit item
         @exhibits mappedExhibits
 
+    # Check if ID exists in observableArray
+    idInArray: (id, array) =>
+      retval = false
+      $.each array, (index, value) =>
+        if id == value.id()
+          retval = true
+          return false # break
+      return retval
+
+    # Load enrichments based on the species that are selected
     loadEnrichments: () =>
       # Build the species set
       speciesSet = {}
       $.each @selectedAnimals(), (index, animal) =>
         speciesSet[animal.speciesId()] = true
+
       # For each item in species set, add that to the url
-      url = '/api/v1/enrichment/?format=json&limit=0&species_id='
+      url = '/api/v1/enrichmentNote/?format=json&limit=0&species_id='
       $.each speciesSet, (key, value) =>
         url += key + ','
+
+      # Empty out the arrays before we begin
+      @enrichmentNotes []
+      @enrichments [] 
+      @subcategories []
+      @categories []
+
+      # Get teh data
       $.getJSON url, (data) =>
-        mappedEnrichments = $.map data.objects, (item) ->
-          return new Enrichment item
-        #@enrichments mappedEnrichments
+        mappedEnrichmentNotes = $.map data.objects, (item) =>
+          # Create a new enrichmentNote to store everything in
+          enrichmentNote = new EnrichmentNote item
+
+          # Create a new Enrichment, push if it's not in array already
+          tempEnrichment = new Enrichment item.enrichment
+          @enrichments.push tempEnrichment if !@idInArray tempEnrichment.id(), @enrichments()
+
+          # Create a new Subcategory, push if it's not in array already
+          tempSubcategory = new Subcategory item.enrichment.subcategory
+          @subcategories.push tempSubcategory if !@idInArray tempSubcategory.id(), @subcategories()
+          # Create a new Category, push if it's not in array already
+
+          tempCategory = new Category item.enrichment.subcategory.category
+          @categories.push tempCategory if !@idInArray tempCategory.id(), @categories()
+          return enrichmentNote
+
+        @enrichmentNotes mappedEnrichmentNotes
         resizeAllCarousels()
 
+    # Clear everything out
     empty: () =>
       @species null
       @animals null
