@@ -429,12 +429,12 @@ $(document).ready ->
       if (newCategory.name.length == 0)
         @newCategoryNameErrorMessage true
         @newCategoryNameMessageBody 'Category name cannot be blank'
-        return
+        return false
 
       if (newCategory.name.length > 100)
         @newCategoryNameErrorMessage true
         @newCategoryNameMessageBody 'Category name is too long'
-        return
+        return false
 
       settings =
         type: 'POST'
@@ -455,19 +455,27 @@ $(document).ready ->
         # Show success message and remove extra weight.
         @newCategoryIsCreating false
         @newCategoryNameSuccessMessage true
+        @newCategoryNameErrorMessage false
 
-        # Add new category to @categories.
-        @categories.push newCategory
+        # Add new category to @categories and refresh.
+        @categories.push {
+          name: ko.observable newCategory.name
+          id: ko.observable newCategory.id
+        }
+        resizeAllCarousels()
 
-      settings.error = (jqXHR, textStatus, errorThrown) ->
+      settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Category not created!"
-        console.log textStatus
-        console.log jqXHR
-        console.log errorThrown
+        @newCategoryNameErrorMessage true
+        @newCategoryAjaxLoad false
+        @newCategoryNameMessageBody 'An unexpected error occured'
 
       # Make the ajax call.
       @newCategoryAjaxLoad true
       $.ajax settings
+
+      # Return false to prevent default behavior.
+      return false
 
     createSubcategory: () =>
       category = @newSubcategory.categoryId()
