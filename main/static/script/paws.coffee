@@ -91,8 +91,6 @@ $(document).ready ->
       pluralized = if length > 1 then ' animals' else ' animal'
       return 'Observing ' + length + pluralized
 
-        @dateFinished = ko.observable null
-
   class Staff
     constructor: (data) ->
       console.log data
