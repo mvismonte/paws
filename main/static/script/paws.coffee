@@ -19,19 +19,20 @@ $(document).ready ->
 
   class AnimalObservation
     constructor: (data=null) ->
-      @animal = ko.observable null
-      @observationId = ko.observable null
-      @interactionTime = ko.observable null
-      @behavior = ko.observable null
-      @description = ko.observable null
-      @indirectUse = ko.observable null
-      if data != null
-        @animal new Animal data.animal
-        @observationId data.observation.id
-        @interactionTime data.interaction_time
-        @behavior data.behavior
-        @description data.description
-        @indirectUse data.indirectUse
+      if data?
+        @animal = ko.observable new Animal data.animal
+        @observationId = ko.observable data.observation.id
+        @interactionTime = ko.observable data.interaction_time
+        @behavior = ko.observable data.behavior
+        @description = ko.observable data.description
+        @indirectUse = ko.observable data.indirectUse
+      else
+        @animal = ko.observable null
+        @observationId = ko.observable null
+        @interactionTime = ko.observable null
+        @behavior = ko.observable null
+        @description = ko.observable null
+        @indirectUse = ko.observable null
 
   class Exhibit
     constructor: (data) ->
@@ -75,13 +76,14 @@ $(document).ready ->
 
   class Observation
     constructor: (data=null) ->
-      @enrichment = ko.observable null
-      @animalObservations = ko.observableArray []
-      @behavior = ko.observable null
-      if data != null
-        @enrichment data.enrichment.name
-        @animalObservations data.animal_observations
-        @behavior data.behavior
+      if data?
+        @enrichment = ko.observable data.enrichment.name
+        @animalObservations = ko.observable data.animal_observations
+        @behavior = ko.observable data.behavior
+      else
+        @enrichment = ko.observable null
+        @animalObservations = ko.observableArray []
+        @behavior = ko.observable null
 
   class Staff
     constructor: (data) ->
@@ -99,7 +101,7 @@ $(document).ready ->
 
   class Subcategory
     constructor: (data) ->
-      if (data?)
+      if data?
         @name = ko.observable data.name
         @id = ko.observable data.id
         @categoryId = ko.observable data.category.id
