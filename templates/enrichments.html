@@ -72,13 +72,27 @@
   <div class="modal hide fade" id="modal-enrichment-subcategory">
     <div class="modal-header">
       <button class="close" data-dismiss="modal">×</button>
-      <h3></h3>
+      <h3>Create Subcategory</h3>
     </div>
     <div class="modal-body">
-      <select data-bind="options: categories, value: newSubcategory.categoryId, optionsText: 'name'"></select>
-      <input type="text" data-bind="value: newSubcategory.name" class="span3" placeholder="Subcategory name...">
+      {# Info messages #}
+      <div class="alert alert-error">
+        <button class="close">×</button>
+        <strong>Error!</strong> <span></span>
+      </div>
+      <div class="alert alert-success">
+        <strong>Success!</strong> <span>Subcategory created</span>
+      </div>
+
+      <fieldset>
+        Name:
+        <input type="text" data-bind="value: newSubcategory.name" class="span3" placeholder="Subcategory name..."> <br/>
+        Category:
+        <select data-bind="options: categories, value: newSubcategory.categoryId, optionsText: 'name'"></select>
+      </fieldset>
     </div>
     <div class="modal-footer">
+      <img src="/static/img/ajax-loader.gif"/>
       <a href="#" class="btn" data-dismiss="modal">Close</a>
       <a href="#" class="btn btn-primary" data-bind="click: createSubcategory">Create Subcategory</a>
     </div>

@@ -425,8 +425,6 @@ $(document).ready ->
       newCategory =
         name: @newCategory.name()
 
-      console.log "Size: #{newCategory.name.length}"
-
       # Validate fields before continuing.
       if (newCategory.name.length == 0)
         @newCategoryNameErrorMessage true
