@@ -123,6 +123,7 @@ $(document).ready ->
 
       # Current filter variables
       @currentSpecies = ko.observable ''
+      @currentEnrichment = ko.observable null
 
       # Compute the filtered lists
       @filterAnimalsBySpecies = ko.computed =>
@@ -135,6 +136,9 @@ $(document).ready ->
       # Enrichment application
       # Current animal selection(s), the animals themselves
       @selectedAnimals = ko.observableArray []
+
+      # checks to see if animals changed
+      @selectedAnimalsChanged = false
 
       # Title for observation modal dialog
       @modalTitleEnrichment = ko.computed =>
@@ -210,6 +214,7 @@ $(document).ready ->
 
     # Add animal to selected object
     selectAnimal: (animal) =>
+      @selectedAnimalsChanged = true
       animal.active true
       @selectedAnimals.push animal
 
@@ -245,12 +250,17 @@ $(document).ready ->
     # Make a new observation
     # Observations are stored in the Animal
     newObservation: () =>
-      $.each @selectedAnimals(), (index, animal) =>
-        # Initialize new observation if it doesn't exist
-        if animal.observation == null
-          animal.observation = new AnimalObservation()
-      # Load enrichments for active species
-      @loadEnrichments()
+      if @selectedAnimalsChanged
+        $.each @selectedAnimals(), (index, animal) =>
+          # Initialize new observation if it doesn't exist
+          if animal.observation == null
+            animal.observation = new AnimalObservation()
+        # Load enrichments for active species
+        @loadEnrichments()
+      @selectedAnimalsChanged = false
+
+    selectEnrichment: (enrichment) =>
+      @currentEnrichment enrichment
 
     # Load exhibits and animals
     load: () =>
@@ -269,6 +279,11 @@ $(document).ready ->
           return false # break
       return retval
 
+    gotoStep2: () =>
+      if @currentEnrichment()?
+        $('#modal-observe-1').modal('hide')
+        $('#modal-observe-2').modal('show')
+
     # Load enrichments based on the species that are selected
     loadEnrichments: () =>
       # Build the species set
@@ -286,6 +301,7 @@ $(document).ready ->
       @enrichments [] 
       @subcategories []
       @categories []
+      @currentEnrichment {}
 
       # Get teh data
       $.getJSON url, (data) =>
@@ -307,6 +323,14 @@ $(document).ready ->
           return enrichmentNote
 
         @enrichmentNotes mappedEnrichmentNotes
+        @enrichments.sort (a, b) ->
+          if a.name() == b.name()
+            return 0
+          else if a.name() < b.name()
+            return -1
+          else
+            return 1
+
         resizeAllCarousels()
 
     # Clear everything out
@@ -344,6 +368,7 @@ $(document).ready ->
           return @enrichments()
         return ko.utils.arrayFilter @enrichments(), (enrichment) ->
           return enrichment.categoryId() == category.id()
+
       @enrichmentsFilterSubcategory = ko.computed =>
         subcategory = @subcategoryFilter()
         if subcategory == ''
@@ -399,6 +424,13 @@ $(document).ready ->
         mappedEnrichments = $.map data.objects, (item) ->
           return new Enrichment item
         @enrichments mappedEnrichments
+        @enrichments.sort (a, b) ->
+          if a.name() == b.name()
+            return 0
+          else if a.name() < b.name()
+            return -1
+          else
+            return 1
         resizeAllCarousels()
 
     empty: () =>
@@ -584,7 +616,8 @@ $(document).ready ->
         resized = resizeCarousel this, 1, false
       if refresh and resized
         console.log 'Refreshing carousel'
-        scrollers[$(this).parent().prop('id')].refresh()
+        $.each scrollers, (key, value) ->
+          value.refresh()
 
   scrollers.categorySelector = new iScroll 'categorySelector', {
       vScroll: false
@@ -604,20 +637,13 @@ $(document).ready ->
       bounce: true
       hScrollbar: false
     }
-  scrollers.speciesSelector = new iScroll 'speciesSelector', {
-    vScroll: false
+  scrollers.observationEnrichments = new iScroll 'observationEnrichments', {
+    vScroll: true
+    hScroll: false
     momentum: true
     bounce: true
-    hScrollbar: false
+    vScrollbar: true
   }
-  scrollers.animalSelector = new iScroll 'animalSelector', {
-    vScroll: false
-    momentum: true
-    bounce: true
-    hScrollbar: false
-  }
-
-
   $(window).resize ->
     clearTimeout window.resizeTimeout
     window.resizeTimeout = setTimeout resizeAllCarousels, 500

@@ -107,24 +107,39 @@
         </div>
 
         <h4>Enrichment</h4>
-        <div class="list-stacked">
-          <div class="list-stacked-scroller">
-            <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items">
-              <li>
-                <span data-bind="text: name"></span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div data-bind="foreach: selectedAnimals">
-          <span data-bind="text: name"></span>
+        <div class="list-vertical" id="observationEnrichments">
+          <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items clearfix">
+            <li class="list-entry"
+              data-bind="click: $root.selectEnrichment,
+                css: {'list-active': $root.currentEnrichment() == $data }">
+              <span data-bind="text: name"></span>
+            </li>
+          </ul>
         </div>
 
       </div>
       <div class="modal-footer">
+        <span data-bind="with: currentEnrichment">
+          <strong>Current enrichment: </strong>
+          <span data-bind="text: name"></span>
+        </span>
+        &nbsp;
         <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a href="#" class="btn btn-primary">Next Step</a>
+        <a href="#" class="btn btn-primary" data-bind="click: gotoStep2">Next Step</a>
+      </div>
+    </div>
+
+    <div class="modal hide fade" id="modal-observe-2">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal">×</button>
+        <h3 data-bind="text: modalTitleEnrichment()"></h3>
+      </div>
+      <div class="modal-body">
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Close</a>
+        <a href="#" class="btn">Save for later</a>
+        <a href="#" class="btn btn-primary">Finish Observation</a>
       </div>
     </div>
 
