@@ -80,10 +80,14 @@ $(document).ready ->
         @enrichment = ko.observable data.enrichment.name
         @animalObservations = ko.observable data.animal_observations
         @behavior = ko.observable data.behavior
+        @dateCreated = ko.observable data.date_created
+        @dateFinished = ko.observable data.date_finished
       else
         @enrichment = ko.observable null
         @animalObservations = ko.observableArray []
         @behavior = ko.observable null
+        @dateCreated = ko.observable null
+        @dateFinished = ko.observable null
 
   class Staff
     constructor: (data) ->
@@ -148,6 +152,13 @@ $(document).ready ->
         pluralized = if length != 1 then ' animals' else ' animal'
         return 'Select Enrichment - Observing ' + length + pluralized
 
+      # Title for observation modal dialog
+      @modalTitleAnimals = ko.computed =>
+        length = @selectedAnimals().length
+        pluralized = if length != 1 then ' animals' else ' animal'
+        enrichName = if @currentEnrichment()? then @currentEnrichment().name() + ' - ' else ''
+        return enrichName + 'Observing ' + length + pluralized
+
       # Observation stuff
       @observation = ko.observable new Observation()
 
@@ -156,6 +167,14 @@ $(document).ready ->
       # Current Filters
       @categoryFilter = ko.observable ''
       @subcategoryFilter = ko.observable ''
+
+      @behaviorType = [
+        { id: -2, type: 'Avoid'}
+        { id: -1, type: 'Negative'}
+        { id: 0, type: 'N/A'}
+        { id: 1, type: 'Positive'}
+      ]
+
 
       @subcategoriesFilterCategory = ko.computed =>
         category = @categoryFilter()
@@ -255,8 +274,8 @@ $(document).ready ->
       if @selectedAnimalsChanged
         $.each @selectedAnimals(), (index, animal) =>
           # Initialize new observation if it doesn't exist
-          if animal.observation == null
-            animal.observation = new AnimalObservation()
+          if @selectedAnimals()[index].observation() == null
+            @selectedAnimals()[index].observation new AnimalObservation()
         # Load enrichments for active species
         @loadEnrichments()
       @selectedAnimalsChanged = false
@@ -303,7 +322,7 @@ $(document).ready ->
       @enrichments [] 
       @subcategories []
       @categories []
-      @currentEnrichment {}
+      @currentEnrichment null
 
       # Get teh data
       $.getJSON url, (data) =>
