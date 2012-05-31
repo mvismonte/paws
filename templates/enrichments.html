@@ -35,7 +35,7 @@
     </div>
   </div>
 
-<button class="btn btn-primary" data-toggle="modal" data-target="#modal-enrichment-category">New Category</button>
+<button class="btn btn-primary" data-bind="click: openCreateCategory" data-toggle="modal" data-target="#modal-enrichment-category">New Category</button>
 <button class="btn btn-primary" data-toggle="modal" data-target="#modal-enrichment-subcategory">New Subcategory</button>
 <button class="btn btn-primary" data-toggle="modal" data-target="#modal-enrichment">New Enrichment</button>
 
@@ -46,17 +46,23 @@
       <h3>Create Category</h3>
     </div>
     <div class="modal-body">
-      {# Error messages #}
-      <div class="alert alert-error" data-bind="visible: newCategoryNameBlankError">
-        <button class="close" data-bind="click: function() { newCategoryNameBlankError(false) }">×</button>
-        <strong>Error!</strong> Namefield cannot be blank.
+      {# Info messages #}
+      <div class="alert alert-error" data-bind="visible: newCategoryNameErrorMessage">
+        <button class="close" data-bind="click: function() { newCategoryNameErrorMessage(false) }">×</button>
+        <strong>Error!</strong> <span data-bind="text: newCategoryNameMessageBody"></span>
+      </div>
+      <div class="alert alert-success" data-bind="visible: newCategoryNameSuccessMessage">
+        <strong>Success!</strong> <span>Category created</span>
       </div>
 
       {# Input fields #}
-      <p>Name: </p>
-      <input type="text" data-bind="value: newCategory.name" class="span3" placeholder="Category name...">
+      <fieldset data-bind="visible: newCategoryIsCreating">
+        Name: 
+        <input type="text" data-bind="value: newCategory.name" class="span3" placeholder="Category name...">
+      </fieldset>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer" data-bind="visible: newCategoryIsCreating">
+      <img data-bind="visible: newCategoryAjaxLoad" src="/static/img/ajax-loader.gif"/>
       <a href="#" class="btn" data-dismiss="modal">Close</a>
       <a href="#" class="btn btn-primary" data-bind="click: createCategory">Create Category</a>
     </div>
