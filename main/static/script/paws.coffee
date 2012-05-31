@@ -19,19 +19,20 @@ $(document).ready ->
 
   class AnimalObservation
     constructor: (data=null) ->
-      @animal = ko.observable null
-      @observationId = ko.observable null
-      @interactionTime = ko.observable null
-      @behavior = ko.observable null
-      @description = ko.observable null
-      @indirectUse = ko.observable null
-      if data != null
-        @animal new Animal data.animal
-        @observationId data.observation.id
-        @interactionTime data.interaction_time
-        @behavior data.behavior
-        @description data.description
-        @indirectUse data.indirectUse
+      if data?
+        @animal = ko.observable new Animal data.animal
+        @observationId = ko.observable data.observation.id
+        @interactionTime = ko.observable data.interaction_time
+        @behavior = ko.observable data.behavior
+        @description = ko.observable data.description
+        @indirectUse = ko.observable data.indirectUse
+      else
+        @animal = ko.observable null
+        @observationId = ko.observable null
+        @interactionTime = ko.observable null
+        @behavior = ko.observable null
+        @description = ko.observable null
+        @indirectUse = ko.observable null
 
   class Exhibit
     constructor: (data) ->
@@ -75,13 +76,18 @@ $(document).ready ->
 
   class Observation
     constructor: (data=null) ->
-      @enrichment = ko.observable null
-      @animalObservations = ko.observableArray []
-      @behavior = ko.observable null
-      if data != null
-        @enrichment data.enrichment.name
-        @animalObservations data.animal_observations
-        @behavior data.behavior
+      if data?
+        @enrichment = ko.observable data.enrichment.name
+        @animalObservations = ko.observable data.animal_observations
+        @behavior = ko.observable data.behavior
+        @dateCreated = ko.observable data.date_created
+        @dateFinished = ko.observable data.date_finished
+      else
+        @enrichment = ko.observable null
+        @animalObservations = ko.observableArray []
+        @behavior = ko.observable null
+        @dateCreated = ko.observable null
+        @dateFinished = ko.observable null
 
   class Staff
     constructor: (data) ->
@@ -99,7 +105,7 @@ $(document).ready ->
 
   class Subcategory
     constructor: (data) ->
-      if (data?)
+      if data?
         @name = ko.observable data.name
         @id = ko.observable data.id
         @categoryId = ko.observable data.category.id
@@ -123,6 +129,7 @@ $(document).ready ->
 
       # Current filter variables
       @currentSpecies = ko.observable ''
+      @currentEnrichment = ko.observable null
 
       # Compute the filtered lists
       @filterAnimalsBySpecies = ko.computed =>
@@ -136,11 +143,21 @@ $(document).ready ->
       # Current animal selection(s), the animals themselves
       @selectedAnimals = ko.observableArray []
 
+      # checks to see if animals changed
+      @selectedAnimalsChanged = false
+
       # Title for observation modal dialog
       @modalTitleEnrichment = ko.computed =>
         length = @selectedAnimals().length
         pluralized = if length != 1 then ' animals' else ' animal'
         return 'Select Enrichment - Observing ' + length + pluralized
+
+      # Title for observation modal dialog
+      @modalTitleAnimals = ko.computed =>
+        length = @selectedAnimals().length
+        pluralized = if length != 1 then ' animals' else ' animal'
+        enrichName = if @currentEnrichment()? then @currentEnrichment().name() + ' - ' else ''
+        return enrichName + 'Observing ' + length + pluralized
 
       # Observation stuff
       @observation = ko.observable new Observation()
@@ -150,6 +167,14 @@ $(document).ready ->
       # Current Filters
       @categoryFilter = ko.observable ''
       @subcategoryFilter = ko.observable ''
+
+      @behaviorType = [
+        { id: -2, type: 'Avoid'}
+        { id: -1, type: 'Negative'}
+        { id: 0, type: 'N/A'}
+        { id: 1, type: 'Positive'}
+      ]
+
 
       @subcategoriesFilterCategory = ko.computed =>
         category = @categoryFilter()
@@ -210,6 +235,7 @@ $(document).ready ->
 
     # Add animal to selected object
     selectAnimal: (animal) =>
+      @selectedAnimalsChanged = true
       animal.active true
       @selectedAnimals.push animal
 
@@ -245,12 +271,17 @@ $(document).ready ->
     # Make a new observation
     # Observations are stored in the Animal
     newObservation: () =>
-      $.each @selectedAnimals(), (index, animal) =>
-        # Initialize new observation if it doesn't exist
-        if animal.observation == null
-          animal.observation = new AnimalObservation()
-      # Load enrichments for active species
-      @loadEnrichments()
+      if @selectedAnimalsChanged
+        $.each @selectedAnimals(), (index, animal) =>
+          # Initialize new observation if it doesn't exist
+          if @selectedAnimals()[index].observation() == null
+            @selectedAnimals()[index].observation new AnimalObservation()
+        # Load enrichments for active species
+        @loadEnrichments()
+      @selectedAnimalsChanged = false
+
+    selectEnrichment: (enrichment) =>
+      @currentEnrichment enrichment
 
     # Load exhibits and animals
     load: () =>
@@ -269,6 +300,11 @@ $(document).ready ->
           return false # break
       return retval
 
+    gotoStep2: () =>
+      if @currentEnrichment()?
+        $('#modal-observe-1').modal('hide')
+        $('#modal-observe-2').modal('show')
+
     # Load enrichments based on the species that are selected
     loadEnrichments: () =>
       # Build the species set
@@ -286,6 +322,7 @@ $(document).ready ->
       @enrichments [] 
       @subcategories []
       @categories []
+      @currentEnrichment null
 
       # Get teh data
       $.getJSON url, (data) =>
@@ -307,6 +344,14 @@ $(document).ready ->
           return enrichmentNote
 
         @enrichmentNotes mappedEnrichmentNotes
+        @enrichments.sort (a, b) ->
+          if a.name() == b.name()
+            return 0
+          else if a.name() < b.name()
+            return -1
+          else
+            return 1
+
         resizeAllCarousels()
 
     # Clear everything out
@@ -344,6 +389,7 @@ $(document).ready ->
           return @enrichments()
         return ko.utils.arrayFilter @enrichments(), (enrichment) ->
           return enrichment.categoryId() == category.id()
+
       @enrichmentsFilterSubcategory = ko.computed =>
         subcategory = @subcategoryFilter()
         if subcategory == ''
@@ -403,6 +449,13 @@ $(document).ready ->
         mappedEnrichments = $.map data.objects, (item) ->
           return new Enrichment item
         @enrichments mappedEnrichments
+        @enrichments.sort (a, b) ->
+          if a.name() == b.name()
+            return 0
+          else if a.name() < b.name()
+            return -1
+          else
+            return 1
         resizeAllCarousels()
 
     empty: () =>
@@ -622,7 +675,8 @@ $(document).ready ->
         resized = resizeCarousel this, 1, false
       if refresh and resized
         console.log 'Refreshing carousel'
-        scrollers[$(this).parent().prop('id')].refresh()
+        $.each scrollers, (key, value) ->
+          value.refresh()
 
   scrollers.categorySelector = new iScroll 'categorySelector', {
       vScroll: false
@@ -642,20 +696,13 @@ $(document).ready ->
       bounce: true
       hScrollbar: false
     }
-  scrollers.speciesSelector = new iScroll 'speciesSelector', {
-    vScroll: false
+  scrollers.observationEnrichments = new iScroll 'observationEnrichments', {
+    vScroll: true
+    hScroll: false
     momentum: true
     bounce: true
-    hScrollbar: false
+    vScrollbar: true
   }
-  scrollers.animalSelector = new iScroll 'animalSelector', {
-    vScroll: false
-    momentum: true
-    bounce: true
-    hScrollbar: false
-  }
-
-
   $(window).resize ->
     clearTimeout window.resizeTimeout
     window.resizeTimeout = setTimeout resizeAllCarousels, 500

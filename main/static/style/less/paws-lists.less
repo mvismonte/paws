@@ -44,17 +44,20 @@
   box-shadow: inset 0px -2px 0px darken(@green, 10%);
   color: @almostWhite;
 }
-.list-stacked {
+.list-vertical {
   width: 100%;
   height: 260px;
   overflow: hidden;
-}
-.list-stacked-scroller {
-  width: 1000px;
+  position: relative;
   ul {
-    width: 150px;
-    margin: 5px;
-    float: left;
+    list-style: none;
+    margin: 0;
+    li {
+      float: left;
+    }
+  }
+  .list-entry {
+    padding: 5px;
   }
 }
 .list-actions {
@@ -64,7 +67,14 @@
 }
 .list-items li {
   margin: 5px;
-  width: 200px;
+  width: 140px;
+  span {
+    width: 140px;
+    height: @baseLineHeight * 2;
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+  }
 }
 .list-row {
   margin-top: 10px;
