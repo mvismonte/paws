@@ -90,14 +90,11 @@ class AnimalObservationResource(ModelResource):
   def dehydrate(self, bundle):
     #If there is no observation, set the rate equals to 0 
     rate = 0
-
-    if bundle.obj.interaction_time is not None and bundle.obj.observation_time is not None and bundle.obj.indirect_use is False:
+    if bundle.obj.interaction_time is not None and bundle.obj.observation_time is not None and bundle.obj.indirect_use is False and bundle.obj.observation_time != 0:
       #Add the rate of the interaction vs. total observation time
       #The rate = interaction time is divided by the total observation time
       rate = bundle.obj.interaction_time/float(bundle.obj.observation_time)
 
-  
-  
     #Add the rate into the API results
     bundle.data['rate'] = rate
     return bundle
