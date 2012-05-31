@@ -74,7 +74,7 @@
     </div>
     {% endcomment %}
 
-    {# Modal for making an observation #}
+    {# Modal for making an observation - picking an enrichment #}
     <div class="modal hide fade" id="modal-observe-1">
       <div class="modal-header">
         <button class="close" data-dismiss="modal">×</button>
@@ -107,24 +107,77 @@
         </div>
 
         <h4>Enrichment</h4>
-        <div class="list-stacked">
-          <div class="list-stacked-scroller">
-            <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items">
-              <li>
-                <span data-bind="text: name"></span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div data-bind="foreach: selectedAnimals">
-          <span data-bind="text: name"></span>
+        <div class="list-vertical" id="observationEnrichments">
+          <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items clearfix">
+            <li class="list-entry"
+              data-bind="click: $root.selectEnrichment,
+                css: {'list-active': $root.currentEnrichment() == $data }">
+              <span data-bind="text: name"></span>
+            </li>
+          </ul>
         </div>
 
       </div>
       <div class="modal-footer">
+        <span data-bind="with: currentEnrichment">
+          <strong>Current enrichment: </strong>
+          <span data-bind="text: name"></span>
+        </span>
+        &nbsp;
         <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a href="#" class="btn btn-primary">Next Step</a>
+        <a href="#" class="btn btn-primary" data-bind="click: gotoStep2">Next Step</a>
+      </div>
+    </div>
+
+    {# Modal for making an observation - actually making the notes #}
+    <div class="modal hide fade" id="modal-observe-2">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal">×</button>
+        <h3 data-bind="text: modalTitleAnimals()"></h3>
+      </div>
+
+      <div class="modal-body">
+        <dl data-bind="with: observation">
+          <dd>
+            <dl data-bind="foreach: $root.selectedAnimals">
+              <dt>
+                <h3>
+                  <span data-bind="text: name"></span>
+                  <small>
+                    <span data-bind="text: speciesCommonName"></span> - 
+                    <em data-bind="text: speciesScientificName"></em>
+                  </small>
+                </h3>
+              </dt>
+              <!-- ko with: observation -->
+              <dd class="row">
+                <label class="span2">
+                  Behavior
+                  <select data-bind="options: $root.behaviorType, value: behavior, optionsText: 'type', optionsValue: 'id'" class="span2"></select>
+                </label>
+                <label class="span1">
+                  Indirect Use
+                  <input type="checkbox" data-bind="checked: indirectUse" class="pull-right"></input>
+                </label>
+                <label class="span1">
+                  Time
+                  <input data-bind="value: interactionTime" class="span1"></input>
+                </label>
+                <label class="span2">
+                  Description
+                  <input data-bind="value: description" class="span2"></textarea>
+                </label>
+              </dd>
+              <!-- /ko -->
+            </dl>
+          </dd>
+        </dl>
+      </div>
+
+      <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Close</a>
+        <a href="#" class="btn">Save for later</a>
+        <a href="#" class="btn btn-primary">Finish Observation</a>
       </div>
     </div>
 

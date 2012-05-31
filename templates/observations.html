@@ -3,6 +3,18 @@
 {# observations.html - For viewing observations #}
 
 <div class="container" id="observationsContainer">
+  {# Headers #}
+  <div class="row">
+    <div class="span12">
+      <div class="page-header">
+        <div class="row">
+          <div class="span6">
+            <h1>Your Observations</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <dl data-bind="foreach: observations">
     <dt>
       <h2><span data-bind="text: enrichment.name"></span> <small data-bind="text: date_created"></small></h2>
@@ -30,11 +42,11 @@
           </label>
           <label class="span1">
             Time
-            <input data-bind="value: interaction_time" class="span1"></input>
+            <input data-bind="value: interaction_time, valueUpdate: 'afterkeydown'" class="span1"></input>
           </label>
           <label class="span7">
             Description
-            <input data-bind="value: description" class="span7"></textarea>
+            <input data-bind="value: description, valueUpdate: 'afterkeydown'" class="span7"></textarea>
           </label>
         </dd>
       </dl>
