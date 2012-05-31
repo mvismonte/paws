@@ -429,12 +429,12 @@ $(document).ready ->
       if (newCategory.name.length == 0)
         @newCategoryNameErrorMessage true
         @newCategoryNameMessageBody 'Category name cannot be blank'
-        return false
+        return
 
       if (newCategory.name.length > 100)
         @newCategoryNameErrorMessage true
         @newCategoryNameMessageBody 'Category name is too long'
-        return false
+        return
 
       settings =
         type: 'POST'
@@ -473,9 +473,6 @@ $(document).ready ->
       # Make the ajax call.
       @newCategoryAjaxLoad true
       $.ajax settings
-
-      # Return false to prevent default behavior.
-      return false
 
     createSubcategory: () =>
       category = @newSubcategory.categoryId()

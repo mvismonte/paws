@@ -56,7 +56,7 @@
       </div>
 
       {# Input fields #}
-      <form class="form-horizontal" data-bind="visible: newCategoryIsCreating, submit: createCategory">
+      <form class="form-horizontal" data-bind="visible: newCategoryIsCreating, submit: function() { createCategory(); return false }">
         <fieldset>
           <div class="control-group">
             <label class="control-label" for="input01">Name</label>
