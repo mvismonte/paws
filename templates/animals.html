@@ -40,7 +40,7 @@
 
         <!-- ko foreach: animals -->
       <div class="span3">
-        <div class="list-entry" data-bind="click: $root.selectAnimal, css: {'list-active': $root.selectedAnimals.indexOf($data.id()) != -1}">
+        <div class="list-entry" data-bind="click: $root.toggleAnimal, css: {'list-active': active}">
           <strong data-bind="text: name"></strong>
           <small data-bind="text: speciesCommonName"></small>
         </div>
@@ -74,20 +74,111 @@
     </div>
     {% endcomment %}
 
-    {# Modal for viewing one animal #}
-    <div class="modal hide fade" id="modal-observe-1" data-bind="with: observation">
+    {# Modal for making an observation - picking an enrichment #}
+    <div class="modal hide fade" id="modal-observe-1">
       <div class="modal-header">
         <button class="close" data-dismiss="modal">×</button>
-        <h3 data-bind="text: modalTitle()"></h3>
+        <h3 data-bind="text: modalTitleEnrichment()"></h3>
       </div>
       <div class="modal-body">
 
+        <h4>Category</h4>
+        <div class="carousel">
+          <div class="carousel-scroller">
+            <ul data-bind="foreach: categories">
+              <li data-bind="click: $parent.filterCategory,
+            css: { 'list-active': $parent.categoryFilter() == $data }" class="list-entry">
+                <span data-bind="text: name"></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <h4>Subcategory</h4>
+        <div class="carousel">
+          <div class="carousel-scroller">
+            <ul data-bind="foreach: subcategoriesFilterCategory">
+              <li data-bind="click: $parent.filterSubcategory,
+                  css: { 'list-active': $parent.subcategoryFilter() == $data }" class="list-item">
+                <span data-bind="text: name"></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <h4>Enrichment</h4>
+        <div class="list-vertical" id="observationEnrichments">
+          <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items clearfix">
+            <li class="list-entry"
+              data-bind="click: $root.selectEnrichment,
+                css: {'list-active': $root.currentEnrichment() == $data }">
+              <span data-bind="text: name"></span>
+            </li>
+          </ul>
+        </div>
+
       </div>
       <div class="modal-footer">
+        <span data-bind="with: currentEnrichment">
+          <strong>Current enrichment: </strong>
+          <span data-bind="text: name"></span>
+        </span>
+        &nbsp;
         <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a href="#" class="btn btn-primary">Save changes</a>
+        <a href="#" class="btn btn-primary" data-bind="click: gotoStep2">Next Step</a>
       </div>
     </div>
 
+    {# Modal for making an observation - actually making the notes #}
+    <div class="modal hide fade" id="modal-observe-2">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal">×</button>
+        <h3 data-bind="text: modalTitleAnimals()"></h3>
+      </div>
+
+      <div class="modal-body">
+        <dl data-bind="with: observation">
+          <dd>
+            <dl data-bind="foreach: $root.selectedAnimals">
+              <dt>
+                <h3>
+                  <span data-bind="text: name"></span>
+                  <small>
+                    <span data-bind="text: speciesCommonName"></span> - 
+                    <em data-bind="text: speciesScientificName"></em>
+                  </small>
+                </h3>
+              </dt>
+              <!-- ko with: observation -->
+              <dd class="row">
+                <label class="span2">
+                  Behavior
+                  <select data-bind="options: $root.behaviorType, value: behavior, optionsText: 'type', optionsValue: 'id'" class="span2"></select>
+                </label>
+                <label class="span1">
+                  Indirect Use
+                  <input type="checkbox" data-bind="checked: indirectUse" class="pull-right"></input>
+                </label>
+                <label class="span1">
+                  Time
+                  <input data-bind="value: interactionTime" class="span1"></input>
+                </label>
+                <label class="span2">
+                  Description
+                  <input data-bind="value: description" class="span2"></textarea>
+                </label>
+              </dd>
+              <!-- /ko -->
+            </dl>
+          </dd>
+        </dl>
+      </div>
+
+      <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Close</a>
+        <a href="#" class="btn">Save for later</a>
+        <a href="#" class="btn btn-primary">Finish Observation</a>
+      </div>
+    </div>
 
   </div>

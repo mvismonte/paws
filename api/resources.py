@@ -16,7 +16,7 @@ from paws.main import models
 from tastypie.resources import fields
 from tastypie.resources import ModelResource
 from tastypie.authentication import BasicAuthentication
-from tastypie.authorization import Authorization, DjangoAuthorization
+from tastypie.authorization import Authorization
 from tastypie.utils import trailing_slash
 from tastypie.exceptions import BadRequest
 from haystack.query import SearchQuerySet
@@ -41,8 +41,8 @@ class AnimalObservationResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.AnimalObservation.objects.all()
     resource_name = 'animalObservation'
     #allowed actions towards database
@@ -50,7 +50,7 @@ class AnimalObservationResource(ModelResource):
     #post = adding new animalObservation into the database
     #put = updating animalObservation's information in the database
     #delete = delete animalObservation from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new animalObservation into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -88,19 +88,16 @@ class AnimalObservationResource(ModelResource):
 
   # Add useful numerical numbers for animal observation    
   def dehydrate(self, bundle):
-    #Calculate the total observation time
-    total_observation = datetime.timedelta(0)
     #If there is no observation, set the rate equals to 0 
     rate = 0
 
-    if bundle.obj.observation.date_finished is not None:
-      total_observation = bundle.obj.observation.date_finished - bundle.obj.observation.date_created
+    if bundle.obj.interaction_time is not None and bundle.obj.observation_time is not None and bundle.obj.indirect_use is False:
       #Add the rate of the interaction vs. total observation time
       #The rate = interaction time is divided by the total observation time
-      rate = bundle.obj.interaction_time/datetime.timedelta.total_seconds(total_observation)
+      rate = bundle.obj.interaction_time/float(bundle.obj.observation_time)
 
-    #Add the calculated total observation time into the API results
-    bundle.data['total_observation'] = total_observation
+  
+  
     #Add the rate into the API results
     bundle.data['rate'] = rate
     return bundle
@@ -108,7 +105,7 @@ class AnimalObservationResource(ModelResource):
   #override the url for a specific url path of searching
   def override_urls(self):
     return [
-      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/stats%s$"%(self._meta.resource_name, trailing_slash()), self.wrap_view('get_stats'), name="api_get_stats")  
+      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/stats%s$"%(self._meta.resource_name, trailing_slash()), self.wrap_view('get_stats'), name="api_get_stats"),  
     ]
 
   #determine the format of the returning results in json or xml  
@@ -124,7 +121,68 @@ class AnimalObservationResource(ModelResource):
       wrapped_view = super(AnimalObservationResource, self).wrap_view(view)
       return wrapped_view(request, *args, **kwargs)
     return wrapper
- 
+
+
+  #Calculate interaction rate between one given enrichment with other given enrichments
+  def get_stats(self, request, **kwargs):
+    #get the animal_id from url
+    animal_id= request.GET.get('animal_id', None)
+    animal= models.Animal.objects.get (id=animal_id)
+    q_set= self.get_object_list(request)
+    #filter by animal_id if exists
+    try:
+      q_set.filter(animal=animal)
+    except ObjectDoesNotExist:
+      pass
+
+    #list of different enrichment given to animal with id=animal_id
+    enrichment_list=[]
+    total_interaction=0.0
+    for result in q_set:
+      #updating the interaction time
+      total_interaction +=result.interaction_time
+      observation= models.Observation.objects.get(id=result.observation_id)
+      #Make unique enrichment list
+      if observation.enrichment in enrichment_list:
+        pass
+      else:
+        enrichment_list.append(observation.enrichment)
+
+    percent=[]
+    #calculate the percentage of each enrichment's interaction time
+    #over the total interaction time of animal with id=animal_id
+    for e in enrichment_list:
+      total_eachInteraction=0.0;
+      for result in q_set:
+        if models.Observation.objects.get(id=result.observation_id).enrichment == e:
+          total_eachInteraction += result.interaction_time
+        else:
+          pass
+      #Return 0 if the animal has never interacted with any enrichment
+      if total_interaction == 0.0:
+        percentage = 0.0
+      else:
+        percentage= total_eachInteraction/total_interaction
+      #create bundle that stores the result object
+      bundle = self.build_bundle(obj = e, request = request)
+      #reformating the bundle
+      #adding the enrichment name into the bundle
+      bundle.data['Enrichment'] = e
+      bundle.data['id']= e.id
+      #adding the percentage into the bundle
+      bundle.data['percentage']=percentage
+      #append the bundle into the list
+      percent.append(bundle)
+
+
+    #Specifiy the format of json output
+    object_list = {
+      'objects': percent,
+    }
+
+    #Return the search results in json format
+    return self.create_response(request, object_list)
+
 # Animal Resource.
 class AnimalResource(ModelResource):
   # Define foreign keys.
@@ -140,7 +198,7 @@ class AnimalResource(ModelResource):
     #post = adding new animal into the database
     #put = updating animal's information in the database
     #delete = delete animal from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new animal into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -214,7 +272,7 @@ class AnimalResource(ModelResource):
   # Redefine get_object_list to filter for species_id and/or housingGroup_id
   def get_object_list(self, request):
     species_id = request.GET.get('species_id', None)
-    housingGroup_id=request.GET.get('housing_id', None)
+    housingGroup_id = request.GET.get('housing_id', None)
     q_set = super(AnimalResource, self).get_object_list(request)
      # Try filtering by species if it exists.
     try:
@@ -224,8 +282,8 @@ class AnimalResource(ModelResource):
       pass
      # Try filtering by housingGroup if it exists.
     try:
-      housinggroup=models.HousingGroup.objects.get(id=housingGroup_id)
-      q_set=q_set.filter(housing_group=housinggroup)
+      housinggroup = models.HousingGroup.objects.get(id=housingGroup_id)
+      q_set = q_set.filter(housing_group=housinggroup)
     except ObjectDoesNotExist:
       pass
     return q_set
@@ -234,8 +292,8 @@ class AnimalResource(ModelResource):
 class CategoryResource(ModelResource):
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Category.objects.all()
     resource_name = 'category'
     #allowed actions towards database
@@ -243,7 +301,7 @@ class CategoryResource(ModelResource):
     #post = adding new category into the database
     #put = updating category's information in the database
     #delete = delete category from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new category into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -267,8 +325,8 @@ class EnrichmentNoteResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.EnrichmentNote.objects.all()
     resource_name = 'enrichmentNote'
     #allowed actions towards database
@@ -276,7 +334,7 @@ class EnrichmentNoteResource(ModelResource):
     #post = adding new enrichmentNote into the database
     #put = updating enrichmentNote's information in the database
     #delete = delete enrichmentNote from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new enrichmentNote into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -296,12 +354,20 @@ class EnrichmentNoteResource(ModelResource):
     enrichment_id = request.GET.get('enrichment_id', None)
     q_set = super(EnrichmentNoteResource, self).get_object_list(request)
 
+    # Could filter by multiple species: split species_id by comma
+    species_id_list = []
+    if species_id != None:
+      for s in species_id.split(','):
+        if s != '':
+          species_id_list.append(int(s))
+
     # Try filtering by species first.
-    try:
-      species = models.Species.objects.get(id=species_id)
-      q_set = q_set.filter(species=species)
-    except ObjectDoesNotExist:
-      pass
+    if species_id != None:
+      try:
+        species_list = models.Species.objects.filter(id__in=species_id_list)
+        q_set = q_set.filter(species__in=species_list)
+      except ObjectDoesNotExist:
+        pass
 
     # Try filtering by enrichment next.
     try:
@@ -321,8 +387,8 @@ class EnrichmentResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Enrichment.objects.all()
     resource_name = 'enrichment'
     #allowed actions towards database
@@ -330,7 +396,7 @@ class EnrichmentResource(ModelResource):
     #post = adding new enrichment into the database
     #put = updating enrichment's information in the database
     #delete = delete enrichment from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new enrichment into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -426,8 +492,8 @@ class ObservationResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Observation.objects.all()
     resource_name = 'observation'
     #allowed actions towards database
@@ -435,7 +501,7 @@ class ObservationResource(ModelResource):
     #post = adding new observation into the database
     #put = updating observation's information in the database
     #delete = delete observation from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new observation into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -476,8 +542,8 @@ class ExhibitResource(ModelResource):
   housing_groups = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Exhibit.objects.all()
     resource_name = 'exhibit'
     #allowed actions towards database
@@ -485,7 +551,7 @@ class ExhibitResource(ModelResource):
     #post = adding new exhibit into the database
     #put = updating exhibit' information in the database
     #delete = delete exhibit from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new species into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -503,8 +569,8 @@ class ExhibitResource(ModelResource):
 class SpeciesResource(ModelResource):
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Species.objects.all()
     resource_name = 'species'
     #allowed actions towards database
@@ -512,7 +578,7 @@ class SpeciesResource(ModelResource):
     #post = adding new species into the database
     #put = updating species' information in the database
     #delete = delete species from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new species into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -534,8 +600,8 @@ class HousingGroupResource(ModelResource):
   animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal_set', full=True)
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.HousingGroup.objects.all()
     resource_name = 'housingGroup'
     #allowed actions towards database
@@ -543,7 +609,7 @@ class HousingGroupResource(ModelResource):
     #post = adding new HousingGroup into the database
     #put = updating HousingGroup's information in the database
     #delete = delete HousingGroup from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new HousingGroup into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -557,7 +623,7 @@ class HousingGroupResource(ModelResource):
   def obj_delete(self, request=None, **kwargs):
     return super(HousingGroupResource, self).obj_delete( request, **kwargs)
 
-# Redefine get_object_list to filter for exhibit_id and staff_id.
+  # Redefine get_object_list to filter for exhibit_id and staff_id.
   def get_object_list(self, request):
     staff_id = request.GET.get('staff_id', None)
     exhibit_id = request.GET.get('exhibit_id', None)
@@ -578,16 +644,15 @@ class HousingGroupResource(ModelResource):
       pass
 
     return q_set
+
 # Staff Resource.
 class StaffResource(ModelResource):
   user = fields.ToOneField(
       'paws.api.resources.UserResource', 'user', full=True)
-  animals = fields.ToManyField(
-      'paws.api.resources.AnimalResource', 'animals', related_name= 'animal')  
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Staff.objects.all()
     resource_name = 'staff'
     #allowed actions towards database
@@ -595,7 +660,7 @@ class StaffResource(ModelResource):
     #post = adding new staff into the database
     #put = updating staff's information in the database
     #delete = delete staff from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new staff into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -666,7 +731,7 @@ class StaffResource(ModelResource):
     #Return the search results in json format
     return self.create_response(request, object_list)
 
-# Redefine get_object_list to filter for animal_id.
+  # Redefine get_object_list to filter for animal_id.
   def get_object_list(self, request):
     animal_id = request.GET.get('animal_id', None)
     q_set = super(StaffResource, self).get_object_list(request)
@@ -677,8 +742,6 @@ class StaffResource(ModelResource):
       pass
     return q_set
 
-
-
 # Subcategory Resource.
 class SubcategoryResource(ModelResource):
   # Define foreign keys.
@@ -687,8 +750,8 @@ class SubcategoryResource(ModelResource):
 
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = models.Subcategory.objects.all()
     resource_name = 'subcategory'
     #allowed actions towards database
@@ -696,7 +759,7 @@ class SubcategoryResource(ModelResource):
     #post = adding new subcategory into the database
     #put = update subcategory's information in the database
     #delete = delete subcategory from the database
-    list_allowed_methods= ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #creating new subcategory into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -725,8 +788,8 @@ class SubcategoryResource(ModelResource):
 class UserResource(ModelResource):
   class Meta:
     #authenticate the user
-    authentication= customAuthentication()
-    authorization=Authorization()
+    authentication = customAuthentication()
+    authorization = Authorization()
     queryset = User.objects.all()
     resource_name = 'user'
     excludes = ['email','password']
@@ -735,12 +798,12 @@ class UserResource(ModelResource):
     # post = adding new user into the database
     # put = updating user's information in the database
     # delete = delete the user from the database
-    list_allowed_methods=['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','delete']
 
   #adding new user into the database
   def obj_create(self, bundle, request=None, **kwargs):
     try:
-      bundle=super(UserResource,self).obj_create(bundle, request, **kwargs)
+      bundle = super(UserResource,self).obj_create(bundle, request, **kwargs)
       bundle.obj.set_password(bundle.data.get('password'))
       bundle.obj.save()
     except IntegrityError:
@@ -750,7 +813,7 @@ class UserResource(ModelResource):
   #updating user's information
   def obj_update(self, bundle, request=None, **kwards):
     try:
-      bundle=super(UserResource,self).obj_update(bundle, request, **kwargs)
+      bundle = super(UserResource,self).obj_update(bundle, request, **kwargs)
       bundle.obj.set_password(bundle.data.get('password'))
       bundle.obj.save()
     except IntegrityError:
