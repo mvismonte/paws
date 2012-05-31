@@ -355,6 +355,7 @@ $(document).ready ->
       @newCategory = new Category
       @newCategory.name ''
       delete @newCategory.id
+      @newCategoryNameBlankError = ko.observable false
 
       @newSubcategory = new Subcategory
       @newSubcategory.name ''
@@ -410,9 +411,13 @@ $(document).ready ->
 
     # Modal methods.
     createCategory: () =>
-      alert @newCategory.name()
       newCategory =
         name: @newCategory.name()
+
+      # Validate fields before continuing.
+      if (newCategory.name.length == 0)
+        @newCategoryNameBlankError(true)
+        return
 
       settings =
         type: 'POST'
@@ -625,3 +630,8 @@ $(document).ready ->
   $('#animal-modal').modal({
     show: false
   })
+
+  # Standard boostrap alert binding.
+  $('.alert').bind 'close', ->
+    alert 'An alert has been closed'
+
