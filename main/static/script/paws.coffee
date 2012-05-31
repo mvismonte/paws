@@ -522,11 +522,14 @@ $(document).ready ->
         { id: 0, type: 'N/A'}
         { id: 1, type: 'Positive'}
       ]
+      @activeObservation = ko.observable null
 
-    save: () =>
-      $.ajax "/api/v1/observation/", { #BAD, will overwrite
-          data: ko.toJSON { objects: self.observations }
-          type: "PUT"
+    finishObservation: () =>
+      console.log "finishing observation "+@activeObservation().id
+      return
+      $.ajax "/api/v1/observation/"+@activeObservation().id+"/?format=json", {
+          data: ko.toJSON { objects: self.activeObservation }
+          type: "PATCH"
           contentType: "application/json"
           success: (result) -> 
             alert(result)

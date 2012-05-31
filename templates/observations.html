@@ -20,7 +20,7 @@
       <h2><span data-bind="text: enrichment.name"></span> <small data-bind="text: date_created"></small></h2>
     </dt>
     <dd>
-      <button class="btn pull-right">End Observation</button>
+      <button data-toggle="modal" data-target="#modal-observation-complete" class="btn pull-right" data-bind="click: $root.activeObservation">End Observation</button>
       <dl data-bind="foreach: animal_observations" class="well">
         <dt>
           <h3>
@@ -52,7 +52,17 @@
       </dl>
     </dd>
   </dl>
-
+  {# Modal for completing observation #}
+  <div class="modal hide fade" id="modal-observation-complete">
+    <div class="modal-body">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3>Finish observation?</h3>
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+      <a href="#" class="btn btn-primary" data-bind="click: $root.finishObservation">Finish!</a>
+    </div>
+  </div>
 
   {#<button data-bind="click: complete">Finish</button>#}
   {#<button data-bind="click: save">Save for later</button>#}
