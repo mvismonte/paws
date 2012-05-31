@@ -12,6 +12,18 @@
 <div class="container" id="login">
   <div class="row">
     <h2>SD Zoo PAWS Login</h2>
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+      <button class="close" data-dismiss="alert">×</button>
+      <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% if form.errors %}
+    <div class="alert alert-error">
+      <button class="close" data-dismiss="alert">×</button>
+      <p>Your username and password didn't match. Please try again.</p>
+    </div>
+    {% endif %}
     <form action="." method="POST">
       <fieldset>
         {% csrf_token %}

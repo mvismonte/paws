@@ -398,9 +398,13 @@ $(document).ready ->
           return enrichment.subcategoryId() == subcategory.id()
 
       # Category Creation fields.
-      @newCategory = new Category
-      @newCategory.name ''
-      delete @newCategory.id
+      @newCategory =
+        name: ko.observable ''
+      @newCategoryNameErrorMessage = ko.observable false
+      @newCategoryNameSuccessMessage = ko.observable false
+      @newCategoryNameMessageBody = ko.observable ''
+      @newCategoryAjaxLoad = ko.observable false
+      @newCategoryIsCreating = ko.observable true
 
       @newSubcategory = new Subcategory
       @newSubcategory.name ''
@@ -462,29 +466,63 @@ $(document).ready ->
       @subcategoryFilter ''
 
     # Modal methods.
+    openCreateCategory: () =>
+      @newCategory.name ''
+      @newCategoryNameErrorMessage false
+      @newCategoryNameSuccessMessage false
+      @newCategoryNameMessageBody ''
+      @newCategoryAjaxLoad false
+      @newCategoryIsCreating true
+
     createCategory: () =>
-      alert @newCategory.name()
       newCategory =
         name: @newCategory.name()
+
+      console.log "Size: #{newCategory.name.length}"
+
+      # Validate fields before continuing.
+      if (newCategory.name.length == 0)
+        @newCategoryNameErrorMessage true
+        @newCategoryNameMessageBody 'Category name cannot be blank'
+        return
+
+      if (newCategory.name.length > 100)
+        @newCategoryNameErrorMessage true
+        @newCategoryNameMessageBody 'Category name is too long'
+        return
 
       settings =
         type: 'POST'
         url: '/api/v1/category/?format=json'
         data: JSON.stringify newCategory
-        success: @categoryCreated
-        dataType: "application/json",
+        dataType: "json",
         processData:  false,
         contentType: "application/json"
 
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "Category successfully created!"
+
+        # Extract the category id from the Location response header.
+        locationsURL = jqXHR.getResponseHeader 'Location'
+        pieces = locationsURL.split "/"
+        newCategory.id = pieces[pieces.length - 2]
+
+        # Show success message and remove extra weight.
+        @newCategoryIsCreating false
+        @newCategoryNameSuccessMessage true
+
+        # Add new category to @categories.
+        @categories.push newCategory
+
+      settings.error = (jqXHR, textStatus, errorThrown) ->
+        console.log "Category not created!"
+        console.log textStatus
+        console.log jqXHR
+        console.log errorThrown
+
+      # Make the ajax call.
+      @newCategoryAjaxLoad true
       $.ajax settings
-
-    categoryCreated: (data, textStatus, jqXHR) =>
-      alert "Category successfully created!"
-      console.log data
-      console.log textStatus
-      console.log jqXHR
-
-      # Need to add logic to append newly created category to the list.
 
     createSubcategory: () =>
       category = @newSubcategory.categoryId()
@@ -672,3 +710,7 @@ $(document).ready ->
   $('#animal-modal').modal({
     show: false
   })
+
+  # Enable dismissal of an alert via javascript:
+  $(".alert").alert()
+
