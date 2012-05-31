@@ -42,11 +42,11 @@
           </label>
           <label class="span1">
             Time
-            <input data-bind="value: interaction_time" class="span1"></input>
+            <input data-bind="value: interaction_time, valueUpdate: 'afterkeydown'" class="span1"></input>
           </label>
           <label class="span7">
             Description
-            <input data-bind="value: description" class="span7"></textarea>
+            <input data-bind="value: description, valueUpdate: 'afterkeydown'" class="span7"></textarea>
           </label>
         </dd>
       </dl>

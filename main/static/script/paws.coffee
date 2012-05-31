@@ -66,12 +66,10 @@ $(document).ready ->
   class Observation
     constructor: (data=null) ->
       @enrichment = ko.observable null
-      @animalObservations = ko.observableArray []
-      @behavior = ko.observable null
+      @animal_observations = ko.observableArray []
       if data != null
-        @enrichment data.enrichment.name
+        @enrichment data.enrichment
         @animalObservations data.animal_observations
-        @behavior data.behavior
     modalTitle: () ->
       length = @animalObservations().length
       pluralized = if length > 1 then ' animals' else ' animal'
@@ -279,7 +277,7 @@ $(document).ready ->
       ]
 
     save: () =>
-      $.ajax "/api/v1/observation/", {
+      $.ajax "/api/v1/observation/", { #BAD, will overwrite
           data: ko.toJSON { objects: self.observations }
           type: "PUT"
           contentType: "application/json"
@@ -320,6 +318,12 @@ $(document).ready ->
   ko.applyBindings PawsViewModel.EnrichmentListVM, document.getElementById 'enrichmentListContainer'
   ko.applyBindings PawsViewModel.ObservationListVM, document.getElementById 'observationsContainer'
   ko.applyBindings PawsViewModel.StaffListVM, document.getElementById 'staffContainer'
+
+  PawsViewModel.ObservationListVM.observations.subscribe (value) ->
+    console.log this
+    console.log value
+    console.log "hi"
+
 
   # Sammy
   # ################
