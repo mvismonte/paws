@@ -137,10 +137,10 @@ $(document).ready ->
       @selectedAnimals = ko.observableArray []
 
       # Title for observation modal dialog
-      @modalTitle = ko.computed =>
+      @modalTitleEnrichment = ko.computed =>
         length = @selectedAnimals().length
         pluralized = if length != 1 then ' animals' else ' animal'
-        return 'Observing ' + length + pluralized
+        return 'Select Enrichment - Observing ' + length + pluralized
 
       # Observation stuff
       @observation = ko.observable new Observation()
@@ -311,8 +311,12 @@ $(document).ready ->
 
     # Clear everything out
     empty: () =>
-      @species null
-      @animals null
+      @animals []
+      @exhibits []
+      @categories []
+      @subcategories []
+      @enrichments []
+      @enrichmentNotes []
       @currentSpecies ''
 
   class EnrichmentListViewModel
@@ -511,32 +515,32 @@ $(document).ready ->
   # ################
   window.sammy = Sammy (context) =>
     context.get '/', () => # use regex?
-      $('#main > div').hide()
+      $('#main > div:not(#home)').hide()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.AnimalListVM.empty()
       $('#home').show()
       resizeAllCarousels()
     context.get '/animals', () =>
-      $('#main > div').hide()
+      $('#main > div:not(#animalListContainer)').hide()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.AnimalListVM.load()
       $('#animalListContainer').show()
       resizeAllCarousels()
     context.get '/enrichments', () =>
-      $('#main > div').hide()
+      $('#main > div:not(#enrichmentListContainer)').hide()
       PawsViewModel.AnimalListVM.empty()
       PawsViewModel.EnrichmentListVM.load()
       $('#enrichmentListContainer').show()
       resizeAllCarousels()
     context.get '/observe', () =>
-      $('#main > div').hide()
+      $('#main > div:not(#observationsContainer)').hide()
       PawsViewModel.AnimalListVM.empty()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.ObservationListVM.load()
       $('#observationsContainer').show()
       resizeAllCarousels()
     context.get '/staff', () =>
-      $('#main > div').hide()
+      $('#main > div:not(#staffContainer)').hide()
       PawsViewModel.AnimalListVM.empty()
       PawsViewModel.EnrichmentListVM.empty()
       PawsViewModel.ObservationListVM.empty()
