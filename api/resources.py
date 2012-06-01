@@ -149,17 +149,47 @@ class AnimalObservationResource(ModelResource):
     #calculate the percentage of each enrichment's interaction time
     #over the total interaction time of animal with id=animal_id
     for e in enrichment_list:
-      total_eachInteraction=0.0;
+      total_eachInteraction=0.0
+      #behavior occurance
+      positive=0
+      NA=0
+      negative=0
+      avoid=0
+      #total time of each occurance
+      pos_interaction=0.0
+      na_interaction=0.0
+      neg_interaction=0.0
+      avoid_interaction=0.0
       for result in q_set:
         if models.Observation.objects.get(id=result.observation_id).enrichment == e:
           total_eachInteraction += result.interaction_time
+          if(result.behavior == 1):
+            positive += 1
+            pos_interaction+=result.interaction_time
+          if(result.behavior == 0):
+            NA += 1
+            na_interaction+=result.interaction_time
+          if(result.behavior == -1):
+            negative += 1
+            neg_interaction+=result.interaction_time
+          if(result.behavior == -2):
+            avoid += 1
+            avoid_interaction+=result.interaction_time
         else:
           pass
       #Return 0 if the animal has never interacted with any enrichment
       if total_interaction == 0.0:
-        percentage = 0.0
+        percentage=0.0
+        pos_percentage=0.0
+        na_percentage=0.0
+        neg_percentage=0.0
+        avoid_percentage=0.0
       else:
         percentage= total_eachInteraction/total_interaction
+        pos_percentage= pos_interaction/total_eachInteraction
+        na_percentage= na_interaction/total_eachInteraction
+        neg_percentage= neg_interaction/total_eachInteraction
+        avoid_percentage= avoid_interaction/total_eachInteraction
       #create bundle that stores the result object
       bundle = self.build_bundle(obj = e, request = request)
       #reformating the bundle
@@ -167,7 +197,15 @@ class AnimalObservationResource(ModelResource):
       bundle.data['Enrichment'] = e
       bundle.data['id']= e.id
       #adding the percentage into the bundle
-      bundle.data['percentage']=percentage
+      bundle.data['overall_percentage']=percentage
+      bundle.data['positive_occurance']=positive
+      bundle.data['positive_percentage']=pos_percentage
+      bundle.data['na_occurance']=NA
+      bundle.data['na_percentage']=na_percentage
+      bundle.data['negative_interaction']=negative
+      bundle.data['neg_occurance']=neg_percentage
+      bundle.data['avoid_occuranve']=avoid
+      bundle.data['avoid_percentage']=avoid_percentage
       #append the bundle into the list
       percent.append(bundle)
 
