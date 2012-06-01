@@ -406,10 +406,14 @@ $(document).ready ->
       @newCategoryAjaxLoad = ko.observable false
       @newCategoryIsCreating = ko.observable true
 
-      @newSubcategory = new Subcategory
-      @newSubcategory.name ''
-      @newSubcategory.categoryId ''
-      delete @newSubcategory.id
+      @newSubcategory =
+        name: ko.observable ''
+        category: ko.observable ''
+      @newSubcategoryNameErrorMessage = ko.observable false
+      @newSubcategoryNameSuccessMessage = ko.observable false
+      @newSubcategoryNameMessageBody = ko.observable ''
+      @newSubcategoryAjaxLoad = ko.observable false
+      @newSubcategoryIsCreating = ko.observable true
 
     # Apply filters
     filterCategory: (category) =>
@@ -474,6 +478,15 @@ $(document).ready ->
       @newCategoryAjaxLoad false
       @newCategoryIsCreating true
 
+    openCreateSubcategory: () =>
+      @newSubcategory.name ''
+      @newSubcategory.category ''
+      @newSubcategoryNameErrorMessage false
+      @newSubcategoryNameSuccessMessage false
+      @newSubcategoryNameMessageBody ''
+      @newSubcategoryAjaxLoad false
+      @newSubcategoryIsCreating true
+
     createCategory: () =>
       newCategory =
         name: @newCategory.name()
@@ -528,23 +541,62 @@ $(document).ready ->
       $.ajax settings
 
     createSubcategory: () =>
-      category = @newSubcategory.categoryId()
-      console.log category
+      category = @newSubcategory.category()
       newSubcategory =
         name: @newSubcategory.name()
         category: "/api/v1/category/#{category.id()}/"
 
       console.log newSubcategory
 
+      # Validate fields before continuing.
+      if (newSubcategory.name.length == 0)
+        @newSubcategoryNameErrorMessage true
+        @newSubcategoryNameMessageBody 'Subcategory name cannot be blank'
+        return
+
+      if (newSubcategory.name.length > 100)
+        @newSubcategoryNameErrorMessage true
+        @newSubcategoryNameMessageBody 'Subcategory name is too long'
+        return
+
       settings =
         type: 'POST'
         url: '/api/v1/subcategory/?format=json'
         data: JSON.stringify newSubcategory
         success: @subcategoryCreated
-        dataType: "application/json",
+        dataType: "json",
         processData:  false,
         contentType: "application/json"
 
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "Subcategory successfully created!"
+
+        # Extract the category id from the Location response header.
+        locationsURL = jqXHR.getResponseHeader 'Location'
+        pieces = locationsURL.split "/"
+        newSubcategory.id = pieces[pieces.length - 2]
+
+        # Show success message and remove extra weight.
+        @newSubcategoryIsCreating false
+        @newSubcategoryNameSuccessMessage true
+        @newSubcategoryNameErrorMessage false
+
+        # Add new subcategory to @subcategories and refresh.
+        @subcategories.push {
+          name: ko.observable newSubcategory.name
+          id: ko.observable newSubcategory.id
+          categoryId: ko.observable category.id()
+        }
+        resizeAllCarousels()
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Subcategory not created!"
+        @newSubcategoryNameErrorMessage true
+        @newSubcategoryAjaxLoad false
+        @newSubcategoryNameMessageBody 'An unexpected error occured'
+
+      # Make the ajax call.
+      @newSubcategoryAjaxLoad true
       $.ajax settings
 
     subcategoryCreated: (data, textStatus, jqXHR) =>
