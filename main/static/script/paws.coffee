@@ -491,6 +491,11 @@ $(document).ready ->
       newCategory =
         name: @newCategory.name()
 
+      # Make sure we are not in the middle of loading.
+      if (@newCategoryAjaxLoad())
+        console.log "We are already trying to send something"
+        return false
+
       # Validate fields before continuing.
       if (newCategory.name.length == 0)
         @newCategoryNameErrorMessage true
@@ -523,6 +528,8 @@ $(document).ready ->
         @newCategoryNameSuccessMessage true
         @newCategoryNameErrorMessage false
 
+        console.log newCategory
+
         # Add new category to @categories and refresh.
         @categories.push {
           name: ko.observable newCategory.name
@@ -547,6 +554,11 @@ $(document).ready ->
         category: "/api/v1/category/#{category.id()}/"
 
       console.log newSubcategory
+
+        # Make sure we are not in the middle of loading.
+      if (@newSubcategoryAjaxLoad())
+        console.log "We are already trying to send something"
+        return
 
       # Validate fields before continuing.
       if (newSubcategory.name.length == 0)
@@ -599,10 +611,7 @@ $(document).ready ->
       @newSubcategoryAjaxLoad true
       $.ajax settings
 
-    subcategoryCreated: (data, textStatus, jqXHR) =>
-      alert "Subcategory successfully created!"
-      console.log data
-  
+
   class ObservationListViewModel
     constructor: () ->
       # Arrays for holding data
