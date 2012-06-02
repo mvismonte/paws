@@ -115,6 +115,18 @@ $(document).ready ->
       @username = ko.observable data.user.username
       @full_name = ko.computed =>
         return @first_name() + ' ' + @last_name()
+      @housingGroups = ko.observableArray []
+      @loading = ko.observable false
+    loadInfo: () ->
+      if @housingGroups().length != 0
+        return
+      # Get housing groups
+      @loading true
+      $.getJSON '/api/v1/housingGroup/?format=json&staff_id=' + @id(), (data) =>
+        mapped = $.map data.objects, (item) ->
+          return new HousingGroup item
+        @housingGroups mapped
+        @loading false
 
   class Species
     constructor: (data) ->
@@ -776,7 +788,7 @@ $(document).ready ->
         @observations data.objects
 
     empty: () =>
-      @observations null
+      @observations []
 
     prettyDate: (date) =>
       d = new Date Date.parse date
@@ -797,9 +809,19 @@ $(document).ready ->
         first_name: ko.observable ''
         last_name: ko.observable ''
 
+      @currentStaff = ko.observable
+        full_name: ''
+        housingGroups: []
+        loading: false
+
+    viewInfo: (staff) =>
+      staff.loadInfo()
+      $('#modal-staff-info').modal('show')
+      @currentStaff staff
+
     load: () ->
       # Get data from API
-      $.getJSON '/api/v1/staff/?format=json&staff_id='+'', (data) =>
+      $.getJSON '/api/v1/staff/?format=json', (data) =>
         console.log data
         mapped = $.map data.objects, (item) ->
           return new Staff item
@@ -820,7 +842,6 @@ $(document).ready ->
     console.log this
     console.log value
     console.log "observation array changed"
-
 
   # Sammy
   # ################
@@ -933,4 +954,3 @@ $(document).ready ->
 
   # Enable dismissal of an alert via javascript:
   $(".alert").alert()
-
