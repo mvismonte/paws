@@ -1,7 +1,7 @@
 {# Copyright 2012 PAWS. All right reserved #}
 {# Date: 5/14/2012 #}
 {# animals.html #}
-  <div class="container" id="animalListContainer">
+  <div class="container" id="animalListContainer" style="display: none;">
 
     {# Headers #}
     <div class="row">
@@ -125,60 +125,24 @@
         </span>
         &nbsp;
         <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a href="#" class="btn btn-primary" data-bind="click: gotoStep2">Next Step</a>
+        <a href="#" class="btn btn-primary" data-bind="click: gotoStep2">Observe</a>
       </div>
     </div>
 
-    {# Modal for making an observation - actually making the notes #}
-    <div class="modal hide fade" id="modal-observe-2">
+    {# Modal for viewing information about an animal #}
+    <div class="modal hide fade" id="modal-animal-info">
       <div class="modal-header">
         <button class="close" data-dismiss="modal">×</button>
-        <h3 data-bind="text: modalTitleAnimals()"></h3>
+        <h3 data-bind="text: modalTitleAnimal()"></h3>
       </div>
-
       <div class="modal-body">
-        <dl data-bind="with: observation">
-          <dd>
-            <dl data-bind="foreach: $root.selectedAnimals">
-              <dt>
-                <h3>
-                  <span data-bind="text: name"></span>
-                  <small>
-                    <span data-bind="text: speciesCommonName"></span> - 
-                    <em data-bind="text: speciesScientificName"></em>
-                  </small>
-                </h3>
-              </dt>
-              <!-- ko with: observation -->
-              <dd class="row">
-                <label class="span2">
-                  Behavior
-                  <select data-bind="options: $root.behaviorType, value: behavior, optionsText: 'type', optionsValue: 'id'" class="span2"></select>
-                </label>
-                <label class="span1">
-                  Indirect Use
-                  <input type="checkbox" data-bind="checked: indirectUse" class="pull-right"></input>
-                </label>
-                <label class="span1">
-                  Time
-                  <input data-bind="value: interactionTime" class="span1"></input>
-                </label>
-                <label class="span2">
-                  Description
-                  <input data-bind="value: description" class="span2"></textarea>
-                </label>
-              </dd>
-              <!-- /ko -->
-            </dl>
-          </dd>
-        </dl>
-      </div>
 
+      </div>
       <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a href="#" class="btn">Save for later</a>
-        <a href="#" class="btn btn-primary">Finish Observation</a>
+        <a href="#" class="btn btn-primary" data-bind="click: gotoStep2">Observe</a>
       </div>
     </div>
+
 
   </div>
