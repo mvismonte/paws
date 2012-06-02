@@ -934,9 +934,18 @@ class UserResource(ModelResource):
     self.method_check(request, allowed=['post'])
     self.is_authenticated(request)
     self.throttle_check(request)
-
+ 
     # Somebody should surround this in a try I think?
     user_list = json.loads(request.raw_post_data)
     print user_list
+    import_users = bulk_import.importUsers(user_list)
+    objects = []
+    for result in import_users:
+      bundle = self.build_bundle(obj=result, request=request)
+      bundle = self.full_dehydrate(bundle)
+      objects.append(bundle)
 
-    return self.create_response(request, {})
+    object_list = {
+      'objects': objects,
+    }
+    return self.create_response(request, object_list)

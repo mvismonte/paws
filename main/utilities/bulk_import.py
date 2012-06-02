@@ -5,6 +5,7 @@
 # database.
 
 from paws.main import models
+from django.core.exceptions import ObjectDoesNotExist
 
 # A function that takes in a file name and tries to import the database.
 # Example usage:
@@ -87,3 +88,52 @@ def importAnimals(data):
 
 
 
+def importUsers(array):
+  user_list = []
+
+  # Gets an array of user data
+  # Formatted as <first_name>, <first_name>, <password>, <is_superuser>
+  for line in array:
+    # The fields are divided by comma
+    fields = line.split(',')
+    
+    # Check the line for proper format
+    if len(fields) != 4:
+      continue
+
+    first_name = fields[0]
+    last_name = fields[1]
+    password = fields[2]
+    is_superuser = fields[3]
+    
+    username = first_name[0] + last_name
+    username = username.lower()
+    count = 0    
+
+    original_username = username
+    # Check if the username is already in the database
+    # While User is still in the database
+    while True:
+      # Try to get the User with username username
+      try:
+        user = models.User.objects.get(username=username)
+        count += 1
+        # Append a number to the username if it already exists
+        username = original_username + str(count)
+      except ObjectDoesNotExist:
+        user = models.User.objects.create_user(
+            username=username,
+           # first_name=first_name,
+           # last_name=last_name,
+            password=password,
+           # is_superuser=is_superuser,
+            email=' ' )
+        user.is_superuser = is_superuser
+        user.first_name = first_name
+        user.last_name = last_name
+        user.save()
+        #staff, create = models.Staff.objects.create(user=user)
+        user_list.append(user);
+        break
+    
+    return user_list
