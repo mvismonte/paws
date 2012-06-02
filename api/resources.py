@@ -337,10 +337,15 @@ class AnimalResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
-    # Somebody should surround this in a try I think?
-    animal_list = json.loads(request.raw_post_data)
+    # try to load the json file
+    try:
+      animal_list = json.loads(request.raw_post_data)
+    except ValueError, e:
+      raise ValueError('Bad JSON: %s' % e)
     print animal_list
+    #import the data into the database
     import_animal= bulk_import.importAnimals(animal_list)
+    #build imported animals bundles
     objects = []
     for result in import_animal:
       #create bundle that stores the result object
@@ -558,10 +563,15 @@ class EnrichmentResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
-    # Somebody should surround this in a try I think?
-    enrichment_list = json.loads(request.raw_post_data)
+    # try loading the json
+    try:
+      enrichment_list = json.loads(request.raw_post_data)
+    except ValueError, e:
+      raise ValueError('Bad JSON: %s' % e)
     print enrichment_list
+    # importing the new enrichment into the database
     import_enrichment=bulk_import.importEnrichments(enrichment_list)
+    # build new enrichments bundles
     objects = []
     for result in import_enrichment:
       #create bundle that stores the result object
