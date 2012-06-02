@@ -684,6 +684,11 @@ $(document).ready ->
     empty: () =>
       @observations null
 
+    prettyDate: (date) =>
+      d = new Date Date.parse date
+      return d.toString()
+
+
   class StaffListViewModel
     constructor: () ->
       # Array for staff data

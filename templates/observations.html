@@ -9,7 +9,7 @@
   </div>
   <dl data-bind="foreach: observations">
     <dt>
-      <h2><span data-bind="text: enrichment.name"></span> <small data-bind="text: date_created"></small></h2>
+      <h2><span data-bind="text: enrichment.name"></span> <small data-bind="text: $root.prettyDate(date_created)"></small></h2>
     </dt>
     <dd>
       <button data-toggle="modal" data-target="#modal-observation-complete" class="btn pull-right" data-bind="click: $root.activeObservation">End Observation</button>
