@@ -22,6 +22,7 @@ from tastypie.exceptions import BadRequest
 from haystack.query import SearchQuerySet
 from haystack.query import EmptySearchQuerySet
 import datetime
+import json
 
 #Custom Authentication
 class customAuthentication(BasicAuthentication):
@@ -835,7 +836,14 @@ class UserResource(ModelResource):
     # delete = delete the user from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  #adding new user into the database
+  def override_urls(self):
+    return [
+        url(r"^(?P<resource_name>%s)/bulk%s$" % 
+            (self._meta.resource_name, trailing_slash()), 
+            self.wrap_view('bulk_add'), name="api_bulk_add"),
+    ]
+
+  # Adding new user into the database
   def obj_create(self, bundle, request=None, **kwargs):
     try:
       bundle = super(UserResource,self).obj_create(bundle, request, **kwargs)
@@ -845,7 +853,7 @@ class UserResource(ModelResource):
       raise BadRequest('That username already exists')
     return bundle
 
-  #updating user's information
+  # Updating user's information
   def obj_update(self, bundle, request=None, **kwards):
     try:
       bundle = super(UserResource,self).obj_update(bundle, request, **kwargs)
@@ -855,6 +863,17 @@ class UserResource(ModelResource):
       raise BadRequest('That username already exists')
     return bundle
 
-  #deleting user from the database
+  # Deleting user from the database
   def obj_delete(self, request=None, **kwargs):
     return super(UserResource, self).obj_delete( request, **kwargs)
+
+  # Bulk add view.
+  def bulk_add(self, request, **kwargs):
+    self.method_check(request, allowed=['post'])
+    self.is_authenticated(request)
+    self.throttle_check(request)
+
+    # Somebody should surround this in a try I think?
+    user_list = json.loads(request.raw_post_data)
+
+    return self.create_response(request, {})
