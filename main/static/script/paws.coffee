@@ -541,6 +541,7 @@ $(document).ready ->
       @newCategoryAjaxLoad = ko.observable false
       @newCategoryIsCreating = ko.observable true
 
+      # When making a new enrichment, display only subcategories that fit category
       @newSubcategoryOptions = ko.computed =>
         return ko.utils.arrayFilter @subcategories(), (subcategory) =>
           return subcategory.categoryId() == @newEnrichment.category().id()
