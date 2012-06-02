@@ -30,13 +30,16 @@
   display: none;
 }
 .carousel li {
-  background: @grayLighter;
+  background: @white;
   border: 1px solid darken(@grayLighter, 20%);
   box-shadow: inset 0px -2px 0px darken(@grayLighter, 10%);
   text-align: center;
   padding: 10px;
   margin: 0 5px;
   //width: 120px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
 }
 .carousel .list-active {
   background: @green;
@@ -116,4 +119,17 @@
   border: 1px solid darken(@green, 20%);
   box-shadow: inset 0px -2px 0px darken(@green, 10%);
   color: @almostWhite;
+}
+
+#enrichmentSelector h4{
+  text-transform: capitalize;
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.label{
+  text-transform: capitalize;
+}
+#addnew{
+  margin-bottom: 20px;
 }
