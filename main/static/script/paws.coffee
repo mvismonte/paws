@@ -702,6 +702,7 @@ $(document).ready ->
       newStaff =
         first_name: @newStaff.first_name()
         last_name: @newStaff.last_name()
+        
 
       # Make sure we are not in the middle of loading.
       if (@newStaffAjaxLoad())
