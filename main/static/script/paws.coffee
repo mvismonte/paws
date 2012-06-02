@@ -157,7 +157,7 @@ $(document).ready ->
         return 'Select Enrichment - Observing ' + length + pluralized
 
       # Title for observation modal dialog
-      @modalTitleAnimals = ko.computed =>
+      @modalTitleAnimal = ko.computed =>
         length = @selectedAnimals().length
         pluralized = if length != 1 then ' animals' else ' animal'
         enrichName = if @currentEnrichment()? then @currentEnrichment().name() + ' - ' else ''
