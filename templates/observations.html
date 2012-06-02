@@ -9,17 +9,17 @@
   </div>
   <dl data-bind="foreach: observations">
     <dt>
-      <h2><span data-bind="text: enrichment.name"></span> <small data-bind="text: $root.prettyDate(date_created)"></small></h2>
+      <h2><span data-bind="text: enrichment().name"></span> <small data-bind="text: $root.prettyDate(date_created())"></small></h2>
     </dt>
     <dd>
       <button data-toggle="modal" data-target="#modal-observation-complete" class="btn pull-right" data-bind="click: $root.activeObservation">End Observation</button>
       <dl data-bind="foreach: animal_observations" class="well">
         <dt>
           <h3>
-            <span data-bind="text: animal.name"></span>
+            <span data-bind="text: animal().name"></span>
             <small>
-              <span data-bind="text: animal.species.common_name"></span> - 
-              <em data-bind="text: animal.species.scientific_name"></em>
+              <span data-bind="text: animal().speciesCommonName"></span> - 
+              <em data-bind="text: animal().speciesScientificName"></em>
             </small>
           </h3>
         </dt>
@@ -36,12 +36,12 @@
           </label>
           <label class="span1">
             Time
-            <input data-bind="value: interaction_time, valueUpdate: 'afterkeydown'" class="span1"></input>
+            <input data-bind="value: interaction_time" class="span1"></input>
           </label>
           <label class="span7">
             {% comment %}
             Description
-            <input data-bind="value: description, valueUpdate: 'afterkeydown'" class="span7"></textarea>
+            <input data-bind="value: description" class="span7"></textarea>
             {% endcomment %}
           </label>
         </dd>

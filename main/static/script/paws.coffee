@@ -12,6 +12,7 @@ $(document).ready ->
 
   # Knockout
   # ###############
+  updateAnimalObservation = new ko.subscribable()
 
   # Models
   # ----------------
@@ -30,23 +31,36 @@ $(document).ready ->
       if data?
         @id = data.id
         @animal = ko.observable new Animal data.animal
-        @observationId = ko.observable data.observation.id
-        @interactionTime = ko.observable data.interaction_time
-        @behavior = ko.observable data.behavior
-        @description = ko.observable data.description
-        @indirectUse = ko.observable data.indirectUse
+        @observation_id = ko.observable data.observation.id
+        @interaction_time = ko.observable data.interaction_time
+        #@behavior = ko.observable data.behavior
+        #@description = ko.observable data.description
+        @indirect_use = ko.observable data.indirectUse
 
-        @interactionTime.subscribe (value) ->
-          console.log "change interactionTime"
-          console.log value
+        @interaction_time.subscribe (value) =>
+          console.log "change interaction_time"
+          d =
+            id: @id
+            value: value
+            type: "interaction_time"
+          console.log d
+          updateAnimalObservation.notifySubscribers d, "interaction_time"
+        @indirect_use.subscribe (value) =>
+          console.log "change indirect_use"
+          d =
+            id: @id
+            value: value
+            type: "indirect_use"
+          console.log d
+          updateAnimalObservation.notifySubscribers d, "indirect_use"
       else
         @id = ko.observable null
         @animal = ko.observable null
-        @observationId = ko.observable null
-        @interactionTime = ko.observable null
-        @behavior = ko.observable null
-        @description = ko.observable null
-        @indirectUse = ko.observable null
+        @observation_id = ko.observable null
+        @interaction_time = ko.observable null
+        #@behavior = ko.observable null
+        #@description = ko.observable null
+        @indirect_use = ko.observable null
 
   class Exhibit
     constructor: (data) ->
@@ -767,6 +781,14 @@ $(document).ready ->
         { id: 1, type: 'Positive'}
       ]
       @activeObservation = ko.observable null
+      updateAnimalObservation.subscribe (data) =>
+          console.log "saving indirect_use"
+          @saveAnimalObservation data
+        , @, "indirect_use"
+      updateAnimalObservation.subscribe (data) =>
+          console.log "saving interaction_time"
+          @saveAnimalObservation data
+        , @, "interaction_time"
 
     finishObservation: () =>
       try
@@ -776,18 +798,18 @@ $(document).ready ->
       obs = {}
       obs.date_finished = new Date().toISOString().split('.')[0]
       console.log obs
-      $.ajax "/api/v1/observation/"+@activeObservation().id+"/?format=json", {
-          data: JSON.stringify obs
-          dataType: "json"
-          type: "PUT"
-          contentType: "application/json"
-          processDate: false
-          success: (result) => 
-            console.log "finished observation"
-            @observations.remove @activeObservation()
-            @activeObservation null
-          error: (result) =>
-            console.log result
+      $.ajax "/api/v1/observation/#{@activeObservation().id}/?format=json", {
+        data: JSON.stringify obs
+        dataType: "json"
+        type: "PUT"
+        contentType: "application/json"
+        processData: false
+        success: (result) => 
+          console.log "finished observation"
+          @observations.remove @activeObservation()
+          @activeObservation null
+        error: (result) =>
+          console.log result
       }
 
     load: () =>
@@ -795,23 +817,39 @@ $(document).ready ->
       $.getJSON '/api/v1/observation/?format=json&staff_id='+window.userId, (data) =>
         mapped = $.map data.objects, (item) ->
           return new Observation item
-        @observations data.objects
+        @observations mapped
         @observations.subscribe (value) ->
           console.log(value)
           console.log "observation change"
 
-    empty: () =>
+    saveAnimalObservation: (data) =>
+      console.log "here"
+      obs = {}
+      obs[data.type] = data.value
+      console.log JSON.stringify obs
+      $.ajax "/api/v1/animalObservation/#{data.id}/?format=json", {
+        data: JSON.stringify obs
+        dataType: "json"
+        type: "PUT"
+        contentType: "application/json"
+        processData: false
+        success: (result) => 
+          console.log result
+        error: (result) =>
+          console.log result
+      }
+      return
+
+    empty: () =>  
       @observations []
 
-    prettyDate: (date) =>
-      d = new Date Date.parse date
+    prettyDate: (data) =>
+      d = new Date Date.parse data
       return d.toString()
 
-<<<<<<< Updated upstream
-=======
 
 
->>>>>>> Stashed changes
+
   class StaffListViewModel
     constructor: () ->
       # Array for staff data
