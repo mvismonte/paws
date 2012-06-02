@@ -552,9 +552,14 @@ class ObservationResource(ModelResource):
 
   # Redefine get_object_list to filter for enrichment_id and staff_id.
   def get_object_list(self, request):
+    show_completed = request.GET.get('show_completed', None)
     staff_id = request.GET.get('staff_id', None)
     enrichment_id = request.GET.get('enrichment_id', None)
     q_set = super(ObservationResource, self).get_object_list(request)
+
+    # Filter completed observations
+    if not show_completed:
+      q_set = q_set.filter(date_finished__isnull=True)
 
     # Try filtering by staff_id if it exists.
     try:
