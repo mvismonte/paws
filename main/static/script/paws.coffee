@@ -792,70 +792,10 @@ $(document).ready ->
       @newStaffSuccess = ko.observable false
       @newStaffIsCreating = ko.observable true
       @newStaffAjaxLoad = ko.observable false
+
       @newStaff =
         first_name: ko.observable ''
         last_name: ko.observable ''
-
-    createStaff: () =>
-      newStaff =
-        first_name: @newStaff.first_name()
-        last_name: @newStaff.last_name()
-        username: @newStaff.first_name()[0] + @newStaff.last_name()
-
-      # Make sure we are not in the middle of loading.
-      if (@newStaffAjaxLoad())
-        console.log "We are already trying to send something"
-        return false
-
-      # Validate fields before continuing.
-      if (newStaff.first_name.length == 0 || newStaff.last_name.length == 0)
-        @newStaffError 'Names must not be blank'
-        return
-
-      if (newStaff.first_name.length > 100 || newStaff.last_name.length > 100)
-        @newStaffError 'Names must not exceed 100 characters'
-        return
-
-      settings =
-        type: 'POST'
-        url: '/api/v1/staff/?format=json'
-        data: JSON.stringify newStaff
-        dataType: "json",
-        processData:  false,
-        contentType: "application/json"
-
-      settings.success = (data, textStatus, jqXHR) =>
-        console.log "Staff successfully created!"
-
-        # Extract the category id from the Location response header.
-        locationsURL = jqXHR.getResponseHeader 'Location'
-        pieces = locationsURL.split "/"
-        newStaff.id = pieces[pieces.length - 2]
-
-        # Show success message and remove extra weight.
-        @newStaffIsCreating false
-        @newStaffSuccess true
-        @newStaffError null
-
-        console.log newStaff
-
-        # Add new category to @categories and refresh.
-        @staff.push {
-          name: ko.observable newStaff.name
-          id: ko.observable newStaff.id
-        }
-        resizeAllCarousels()
-
-      settings.error = (jqXHR, textStatus, errorThrown) =>
-        console.log "Staff not created!"
-        @newStaffNameErrorMessage true
-        @newStaffAjaxLoad false
-        @newStaffNameMessageBody 'An unexpected error occured'
-
-      # Make the ajax call.
-      @newStaffAjaxLoad true
-      $.ajax settings    
-
 
     load: () ->
       # Get data from API
