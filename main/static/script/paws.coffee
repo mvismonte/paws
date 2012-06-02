@@ -28,13 +28,19 @@ $(document).ready ->
   class AnimalObservation
     constructor: (data=null) ->
       if data?
+        @id = data.id
         @animal = ko.observable new Animal data.animal
         @observationId = ko.observable data.observation.id
         @interactionTime = ko.observable data.interaction_time
         @behavior = ko.observable data.behavior
         @description = ko.observable data.description
         @indirectUse = ko.observable data.indirectUse
+
+        @interactionTime.subscribe (value) ->
+          console.log "change interactionTime"
+          console.log value
       else
+        @id = ko.observable null
         @animal = ko.observable null
         @observationId = ko.observable null
         @interactionTime = ko.observable null
@@ -92,15 +98,19 @@ $(document).ready ->
   class Observation
     constructor: (data=null) ->
       if data?
+        @id = data.id
         @enrichment = ko.observable data.enrichment # not using .name for now
-        @animal_observations = ko.observable data.animal_observations # not using camel case to reflect JSON
-        @dateCreated = ko.observable data.date_created
-        @dateFinished = ko.observable data.date_finished
+        animalObs = $.map data.animal_observations, (item) ->
+          return new AnimalObservation item
+        @animal_observations = ko.observableArray animalObs
+        @date_created = ko.observable data.date_created
+        @date_finished = ko.observable data.date_finished
       else
+        @id = null
         @enrichment = ko.observable null
         @animal_observations = ko.observableArray []
-        @behavior = ko.observable null
-        @dateCreated = ko.observable null
+        @date_created = ko.observable null
+        @date_finished = ko.observable null
     modalTitle: () ->
       length = @animal_observations().length
       pluralized = if length > 1 then ' animals' else ' animal'
@@ -782,10 +792,13 @@ $(document).ready ->
 
     load: () =>
       # Get data from API
-      $.getJSON '/api/v1/observation/?format=json&staff_id'+window.userId, (data) =>
-        #mapped = $.map data.objects, (item) ->
-        #  return new Observation item
+      $.getJSON '/api/v1/observation/?format=json&staff_id='+window.userId, (data) =>
+        mapped = $.map data.objects, (item) ->
+          return new Observation item
         @observations data.objects
+        @observations.subscribe (value) ->
+          console.log(value)
+          console.log "observation change"
 
     empty: () =>
       @observations []
@@ -794,6 +807,11 @@ $(document).ready ->
       d = new Date Date.parse date
       return d.toString()
 
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
   class StaffListViewModel
     constructor: () ->
       # Array for staff data
@@ -838,10 +856,6 @@ $(document).ready ->
   ko.applyBindings PawsViewModel.ObservationListVM, document.getElementById 'observationsContainer'
   ko.applyBindings PawsViewModel.StaffListVM, document.getElementById 'staffContainer'
 
-  PawsViewModel.ObservationListVM.observations.subscribe (value) ->
-    console.log this
-    console.log value
-    console.log "observation array changed"
 
   # Sammy
   # ################
@@ -871,6 +885,7 @@ $(document).ready ->
       PawsViewModel.ObservationListVM.load()
       $('#observationsContainer').show()
       resizeAllCarousels()
+
     context.get '/staff', () =>
       $('#main > div:not(#staffContainer)').hide()
       PawsViewModel.AnimalListVM.empty()
@@ -882,7 +897,17 @@ $(document).ready ->
       window.location = '/auth/logout' 
   sammy.run()
 
-
+  ###
+  console.log PawsViewModel.ObservationListVM.observations
+  console.log PawsViewModel.ObservationListVM.observations()
+  $.each PawsViewModel.ObservationListVM.observations(), (obs) ->
+    console.log "in"
+    console.log obs
+    obs.animal_observations.indirectUse.subscribe (value) ->
+      console.log this
+      console.log value 
+      console.log "observation array changed"
+      ###
   # UI
   # ################
   
