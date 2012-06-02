@@ -96,6 +96,8 @@ $(document).ready ->
       @first_name = ko.observable data.user.first_name
       @last_name = ko.observable data.user.last_name
       @username = ko.observable data.user.username
+      @full_name = ko.computed =>
+        return @first_name() + ' ' + @last_name()
 
   class Species
     constructor: (data) ->

@@ -3,14 +3,13 @@
 {# staff.html #}
 
 <div class="container" id="staffContainer" style="display: none;">
-  <table class="table" data-bind="foreach: staff">
-    <div>
-      <tr>
-        <td data-bind="text: id"></td>
-        <td data-bind="text: username"></td>
-        <td data-bind="text: first_name"></td>
-        <td data-bind="text: last_name"></td>
-      </tr>
+  <div class="row list-items" data-bind="foreach: staff">
+    <div class="span3">
+      <div class="list-entry">
+        <strong data-bind="text: full_name"></strong>
+        <small data-bind="text: username"></small>
+      </div>
     </div>
-  </table>
+  </div>
+
 </div>
