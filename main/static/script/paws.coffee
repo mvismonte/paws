@@ -541,6 +541,7 @@ $(document).ready ->
       @newCategoryAjaxLoad = ko.observable false
       @newCategoryIsCreating = ko.observable true
 
+      # Subcategory creation fields.
       @newSubcategory =
         name: ko.observable ''
         category: ko.observable ''
@@ -549,6 +550,17 @@ $(document).ready ->
       @newSubcategoryNameMessageBody = ko.observable ''
       @newSubcategoryAjaxLoad = ko.observable false
       @newSubcategoryIsCreating = ko.observable true
+
+      # Enrichment creation fields.
+      @newEnrichment =
+        name: ko.observable ''
+        category: ko.observable ''
+        subcategory: ko.observable ''
+      @newEnrichmentNameErrorMessage = ko.observable false
+      @newEnrichmentNameSuccessMessage = ko.observable false
+      @newEnrichmentNameMessageBody = ko.observable ''
+      @newEnrichmentAjaxLoad = ko.observable false
+      @newEnrichmentIsCreating = ko.observable true
 
     # Apply filters
     filterCategory: (category) =>
@@ -621,6 +633,15 @@ $(document).ready ->
       @newSubcategoryNameMessageBody ''
       @newSubcategoryAjaxLoad false
       @newSubcategoryIsCreating true
+
+    openCreateEnrichment: () =>
+      @newEnrichment.name ''
+      @newEnrichment.subcategory ''
+      @newEnrichmentNameErrorMessage false
+      @newEnrichmentNameSuccessMessage false
+      @newEnrichmentNameMessageBody ''
+      @newEnrichmentAjaxLoad false
+      @newEnrichmentIsCreating true
 
     createCategory: () =>
       newCategory =
@@ -745,6 +766,80 @@ $(document).ready ->
       # Make the ajax call.
       @newSubcategoryAjaxLoad true
       $.ajax settings
+
+    createEnrichment: () =>
+        category = @newEnrichment.category()
+        subcategory = @newEnrichment.subcategory()
+        newEnrichment =
+          name: @newEnrichment.name()
+          subcategory: "/api/v1/category/#{subcategory.id()}/"
+
+        console.log newEnrichment
+
+          # Make sure we are not in the middle of loading.
+        if (@newEnrichmentAjaxLoad())
+          console.log "We are already trying to send something"
+          return
+
+        # Validate fields before continuing.
+        if (newEnrichment.name.length == 0)
+          @newEnrichmentNameErrorMessage true
+          @newEnrichmentNameMessageBody 'Enrichment name cannot be blank'
+          return
+
+        if (newEnrichment.name.length > 100)
+          @newEnrichmentNameErrorMessage true
+          @newEnrichmentNameMessageBody 'Enrichment name is too long'
+          return
+
+        settings =
+          type: 'POST'
+          url: '/api/v1/enrichment/?format=json'
+          data: JSON.stringify newEnrichment
+          success: @enrichmentCreated
+          dataType: "json",
+          processData:  false,
+          contentType: "application/json"
+
+        settings.success = (data, textStatus, jqXHR) =>
+          console.log "Enrichment successfully created!"
+
+          # Extract the category id from the Location response header.
+          locationsURL = jqXHR.getResponseHeader 'Location'
+          pieces = locationsURL.split "/"
+          newEnrichment.id = pieces[pieces.length - 2]
+
+          # Show success message and remove extra weight.
+          @newEnrichmentIsCreating false
+          @newEnrichmentNameSuccessMessage true
+          @newEnrichmentNameErrorMessage false
+
+          # Add new enrichment to @subcategories and refresh.
+          @enrichments.push {
+            name: ko.observable newEnrichment.name
+            id: ko.observable newEnrichment.id
+            subcategoryId: ko.observable subcategory.id()
+            ###
+            @id = ko.observable data.id
+            @name = ko.observable data.name # non-observable is fine
+            @categoryId = ko.observable data.subcategory.category.id
+            @categoryName = ko.observable data.subcategory.category.name
+            @subcategoryId = ko.observable data.subcategory.id
+            @subcategoryName = ko.observable data.subcategory.name###
+            count: ko.observable 0
+            disabled: false
+          }
+          resizeAllCarousels()
+
+        settings.error = (jqXHR, textStatus, errorThrown) =>
+          console.log "Enrichment not created!"
+          @newEnrichmentNameErrorMessage true
+          @newEnrichmentAjaxLoad false
+          @newEnrichmentNameMessageBody 'An unexpected error occured'
+
+        # Make the ajax call.
+        @newEnrichmentAjaxLoad true
+        $.ajax settings
 
   class ObservationListViewModel
     constructor: () ->
