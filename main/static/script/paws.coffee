@@ -77,17 +77,19 @@ $(document).ready ->
   class Observation
     constructor: (data=null) ->
       if data?
-        @enrichment = ko.observable data.enrichment.name
-        @animalObservations = ko.observable data.animal_observations
-        @behavior = ko.observable data.behavior
+        @enrichment = ko.observable data.enrichment # not using .name for now
+        @animal_observations = ko.observable data.animal_observations # not using camel case to reflect JSON
         @dateCreated = ko.observable data.date_created
         @dateFinished = ko.observable data.date_finished
       else
         @enrichment = ko.observable null
-        @animalObservations = ko.observableArray []
+        @animal_observations = ko.observableArray []
         @behavior = ko.observable null
         @dateCreated = ko.observable null
-        @dateFinished = ko.observable null
+    modalTitle: () ->
+      length = @animal_observations().length
+      pluralized = if length > 1 then ' animals' else ' animal'
+      return 'Observing ' + length + pluralized
 
   class Staff
     constructor: (data) ->
@@ -624,7 +626,7 @@ $(document).ready ->
       ]
 
     save: () =>
-      $.ajax "/api/v1/observation/", {
+      $.ajax "/api/v1/observation/", { #BAD, will overwrite
           data: ko.toJSON { objects: self.observations }
           type: "PUT"
           contentType: "application/json"
@@ -649,7 +651,7 @@ $(document).ready ->
 
     load: () ->
       # Get data from API
-      $.getJSON '/api/v1/staff/?format=json', (data) =>
+      $.getJSON '/api/v1/staff/?format=json&staff_id='+'', (data) =>
         console.log data
         mapped = $.map data.objects, (item) ->
           return new Staff item
@@ -665,6 +667,12 @@ $(document).ready ->
   ko.applyBindings PawsViewModel.EnrichmentListVM, document.getElementById 'enrichmentListContainer'
   ko.applyBindings PawsViewModel.ObservationListVM, document.getElementById 'observationsContainer'
   ko.applyBindings PawsViewModel.StaffListVM, document.getElementById 'staffContainer'
+
+  PawsViewModel.ObservationListVM.observations.subscribe (value) ->
+    console.log this
+    console.log value
+    console.log "hi"
+
 
   # Sammy
   # ################
