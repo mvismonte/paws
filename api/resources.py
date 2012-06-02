@@ -56,11 +56,11 @@ class AnimalObservationResource(ModelResource):
 
   #creating new animalObservation into database
   def obj_create(self, bundle, request=None, **kwargs):
-    return super(SpeciesResource, self).obj_create(bundle, request, **kwargs)
+    return super(AnimalObservationResource, self).obj_create(bundle, request, **kwargs)
     
   #update animalObservation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
-    return super(SpeciesResource, self).obj_update(bundle, request, **kwargs)
+    return super(AnimalObservationResource, self).obj_update(bundle, request, **kwargs)
 
   #delete animalObervation from the database
   def obj_delete(self, request=None, **kwargs):
@@ -624,9 +624,14 @@ class ObservationResource(ModelResource):
 
   # Redefine get_object_list to filter for enrichment_id and staff_id.
   def get_object_list(self, request):
+    show_completed = request.GET.get('show_completed', None)
     staff_id = request.GET.get('staff_id', None)
     enrichment_id = request.GET.get('enrichment_id', None)
     q_set = super(ObservationResource, self).get_object_list(request)
+
+    # Filter completed observations
+    if not show_completed:
+      q_set = q_set.filter(date_finished__isnull=True)
 
     # Try filtering by staff_id if it exists.
     try:
@@ -756,7 +761,7 @@ class HousingGroupResource(ModelResource):
 class StaffResource(ModelResource):
   user = fields.ToOneField(
       'paws.api.resources.UserResource', 'user', full=True)
-  housing_group = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
+  #housing_group = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
   class Meta:
     #authenticate the user
     authentication = customAuthentication()

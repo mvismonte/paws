@@ -22,7 +22,7 @@
 
   <div class="row list-items" data-bind="foreach: staff">
     <div class="span3">
-      <div class="list-entry">
+      <div class="list-entry" data-bind="click: $root.viewInfo">
         <strong data-bind="text: full_name"></strong>
         <small data-bind="text: username"></small>
       </div>
@@ -46,7 +46,7 @@
       </div>
 
       {# Input fields #}
-      <form action="#" class="form-horizontal" data-bind="visible: newStaffIsCreating, submit: function() { createStaff(); return false }">
+      <form action="#" class="form-horizontal" data-bind="visible: newStaffIsCreating, submit: function() {return false }">
         <fieldset>
           <div class="control-group">
             <label class="control-label" for="input01">First Name</label>
@@ -64,9 +64,31 @@
     <div class="modal-footer" data-bind="visible: newStaffIsCreating">
       <img data-bind="visible: newStaffAjaxLoad" src="/static/img/ajax-loader.gif"/>
       <a href="#" class="btn" data-dismiss="modal">Close</a>
-      <a href="#" class="btn btn-primary" data-bind="click: createStaff">Create Category</a>
+      <a href="#" class="btn btn-primary" data-bind="">Create Category</a>
     </div>
   </div>
 
+  {# Modal for viewing staff #}
+  <div class="modal hide fade" id="modal-staff-info" data-bind="with: currentStaff">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3 data-bind="text: full_name"></h3>
+    </div>
+    <div class="modal-body">
+      <h4>Housing Groups</h4>
+      <ul data-bind="foreach: housingGroups">
+        <li  >
+          <ul data-bind="foreach: animals">
+            <li data-bind="text: name"></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="modal-footer" data-bind="visible: $root.newStaffIsCreating">
+      <img data-bind="visible: loading" src="/static/img/ajax-loader.gif"/>
+      <a href="#" class="btn" data-dismiss="modal">Close</a>
+      <a href="#" class="btn btn-primary" data-bind="">Create Category</a>
+    </div>
+  </div>
 
 </div>

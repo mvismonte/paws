@@ -14,7 +14,7 @@ from django.template.loader import get_template
 @login_required
 def home(request):
   t = get_template('paws.html')
-  context = { 'page': 'home' }
+  context = { 'page': 'home' , 'user': request.user }
   html = t.render(RequestContext(request, context))
   return HttpResponse(html)
 
