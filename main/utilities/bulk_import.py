@@ -123,11 +123,10 @@ def addUser(first_name, last_name, password, is_superuser):
       staff = models.Staff.objects.create(user=user)
       staff.save()
 
-      user_list.append(user);
-
       # Now the user is unique
       unique = True
 
+  return user
 
 # Add a bulk of users
 def importUsers(array):
@@ -148,11 +147,13 @@ def importUsers(array):
     password = fields[2]
     is_superuser = fields[3]
     
-    addUser(
+    user = addUser(
         first_name=first_name,
         last_name=last_name,
         password=password,
         is_superuser=is_superuser)
+
+    user_list.append(user);
 
   return user_list
 
