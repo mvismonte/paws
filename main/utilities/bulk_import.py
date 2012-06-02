@@ -88,6 +88,14 @@ def importAnimals(data):
 
 # Add a single user
 def addUser(first_name, last_name, password, is_superuser):
+  # Make sure that first and last name are not blank
+  if first_name == "" or last_name == "":
+    return None
+  
+  # Capatalize first and last name
+  first_name = first_name.capitalize()
+  last_name = last_name.capitalize()
+
   # Make username based on first and last name of user 
   username = first_name[0] + last_name
   username = username.lower()
@@ -114,7 +122,7 @@ def addUser(first_name, last_name, password, is_superuser):
           username=username,
           password=password,
           email=' ' )
-      user.is_superuser = is_superuser=="1"
+      user.is_superuser = is_superuser
       user.first_name = first_name
       user.last_name = last_name
       user.save()
@@ -151,9 +159,10 @@ def importUsers(array):
         first_name=first_name,
         last_name=last_name,
         password=password,
-        is_superuser=is_superuser)
+        is_superuser=(is_superuser=="1"))
 
-    user_list.append(user);
+    if user:
+      user_list.append(user)
 
   return user_list
 

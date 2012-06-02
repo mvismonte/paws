@@ -19,6 +19,7 @@ from tastypie.authentication import BasicAuthentication
 from tastypie.authorization import Authorization
 from tastypie.utils import trailing_slash
 from tastypie.exceptions import BadRequest
+from tastypie.http import HttpApplicationError
 from haystack.query import SearchQuerySet
 from haystack.query import EmptySearchQuerySet
 from paws.main.utilities import bulk_import
@@ -918,6 +919,9 @@ class UserResource(ModelResource):
         url(r"^(?P<resource_name>%s)/bulk%s$" % 
             (self._meta.resource_name, trailing_slash()), 
             self.wrap_view('bulk_add'), name="api_bulk_add"),
+		url(r"^(?P<resource_name>%s)/add_user%s$" %
+		    (self._meta.resource_name, trailing_slash()),
+			self.wrap_view('add_user'), name="api_add_user"),
     ]
 
   # Adding new user into the database
@@ -944,23 +948,50 @@ class UserResource(ModelResource):
   def obj_delete(self, request=None, **kwargs):
     return super(UserResource, self).obj_delete( request, **kwargs)
 
+  def add_user(self, request, **kwargs):
+    self.method_check(request, allowed=['post'])
+    self.is_authenticated(request)
+    self.throttle_check(request)
+
+    try:
+      user = json.loads(request.raw_post_data)
+      print user
+      import_user = bulk_import.addUser(
+          first_name = user["first_name"], 
+          last_name = user["last_name"],
+          password = user["password"],
+          is_superuser = user["is_superuser"])
+      object = self.build_bundle(obj=import_user, request=request)
+      object = self.full_dehydrate(object)
+      ret_user = {
+        'object': object,
+      }
+	  
+      return self.create_response(request, ret_user)
+    except ValueError:
+      return self.create_response(request, "Invalid JSON", response_class=HttpApplicationError)
+	
   # Bulk add view.
   def bulk_add(self, request, **kwargs):
     self.method_check(request, allowed=['post'])
     self.is_authenticated(request)
     self.throttle_check(request)
  
-    # Somebody should surround this in a try I think?
-    user_list = json.loads(request.raw_post_data)
-    print user_list
-    import_users = bulk_import.importUsers(user_list)
-    objects = []
-    for result in import_users:
-      bundle = self.build_bundle(obj=result, request=request)
-      bundle = self.full_dehydrate(bundle)
-      objects.append(bundle)
+    # Try making a new user
+    try:
+      user_list = json.loads(request.raw_post_data)
+      print user_list
+      import_users = bulk_import.importUsers(user_list)
+      objects = []
+      for result in import_users:
+        bundle = self.build_bundle(obj=result, request=request)
+        bundle = self.full_dehydrate(bundle)
+        objects.append(bundle)
 
-    object_list = {
-      'objects': objects,
-    }
-    return self.create_response(request, object_list)
+      object_list = {
+        'objects': objects,
+      }
+
+      return self.create_response(request, object_list)
+    except ValueError:
+      return self.create_response(request, "Invalid JSON", response_class=HttpApplicationError)
