@@ -1,5 +1,14 @@
 $(document).ready ->
-
+  unless Date::toISOString
+    pad = (number) ->
+      r = String(number)
+      r = "0" + r  if r.length is 1
+      r
+    Date::toISOString = ->
+      @getUTCFullYear() + "-" + pad(@getUTCMonth() + 1) + "-"
+      + pad(@getUTCDate()) + "T" + pad(@getUTCHours()) + ":"
+      + pad(@getUTCMinutes()) + ":" + pad(@getUTCSeconds()) + "."
+      + String((@getUTCMilliseconds() / 1000).toFixed(3)).slice(2, 5) + "Z"
 
   # Knockout
   # ###############
@@ -525,14 +534,25 @@ $(document).ready ->
       @activeObservation = ko.observable null
 
     finishObservation: () =>
-      console.log "finishing observation "+@activeObservation().id
-      return
+      try
+        console.log "finishing observation: "+@activeObservation().id
+      catch TypeError
+        return
+      obs = {}
+      obs.date_finished = new Date().toISOString().split('.')[0]
+      console.log obs
       $.ajax "/api/v1/observation/"+@activeObservation().id+"/?format=json", {
-          data: ko.toJSON { objects: self.activeObservation }
-          type: "PATCH"
+          data: JSON.stringify obs
+          dataType: "json"
+          type: "PUT"
           contentType: "application/json"
-          success: (result) -> 
-            alert(result)
+          processDate: false
+          success: (result) => 
+            console.log "finished observation"
+            @observations.remove @activeObservation()
+            @activeObservation null
+          error: (result) =>
+            console.log result
       }
 
     load: () =>
@@ -572,7 +592,7 @@ $(document).ready ->
   PawsViewModel.ObservationListVM.observations.subscribe (value) ->
     console.log this
     console.log value
-    console.log "hi"
+    console.log "observation array changed"
 
 
   # Sammy
