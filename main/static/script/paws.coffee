@@ -772,13 +772,18 @@ $(document).ready ->
 
     load: () =>
       # Get data from API
-      $.getJSON '/api/v1/observation/?format=json', (data) =>
+      $.getJSON '/api/v1/observation/?format=json&staff_id'+window.userId, (data) =>
         #mapped = $.map data.objects, (item) ->
         #  return new Observation item
         @observations data.objects
 
     empty: () =>
       @observations null
+
+    prettyDate: (date) =>
+      d = new Date Date.parse date
+      return d.toString()
+
 
   class StaffListViewModel
     constructor: () ->
