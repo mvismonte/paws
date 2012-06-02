@@ -9,7 +9,7 @@
         <div class="page-header">
           <div class="row">
             <div class="span6">
-              <h1>Your Animals <small>(<a href="#">view all</a>)</small></h1>
+              <h1><span data-bind="text: viewText"></span> <small>(<a href="#" data-bind="click: toggleViewAll">toggle animals</a>)</small></h1>
             </div>
             <div class="span6 btn-toolbar">
               <div class="btn-group">
@@ -29,27 +29,29 @@
     {# List of exhibits -> housingGroups -> animals #}
     <div class="row list-items" id="animalSelector" data-bind="foreach: exhibits">
 
-      <div class="span12">
+      <div class="span12" data-bind="visible: $root.viewAll() || $data.numOwned() > 0">
         <h2><span data-bind="text: fullName"></span> <button data-bind="click: $parent.selectExhibit" class="btn">Select all</button></h2>
       </div>
 
       <!-- ko foreach: housingGroups -->
-      <div class="span12">
-        <h3 data-bind="text: name"></h3>
-      </div>
-
-        <!-- ko foreach: animals -->
-      <div class="span3">
-        <div class="list-entry" data-bind="click: $root.toggleAnimal, css: {'list-active': active}">
-          <strong data-bind="text: name"></strong>
-          <small data-bind="text: speciesCommonName"></small>
+      <div data-bind="visible: $root.viewAll() || $data.isInStaff()">
+        <div class="span12">
+          <h3 data-bind="text: name"></h3>
         </div>
+
+          <!-- ko foreach: animals -->
+        <div class="span3">
+          <div class="list-entry" data-bind="click: $root.toggleAnimal, css: {'list-active': active}">
+            <strong data-bind="text: name"></strong>
+            <small data-bind="text: speciesCommonName"></small>
+          </div>
+        </div>
+          <!-- /ko -->
       </div>
-        <!-- /ko -->
         
       <!-- /ko -->
 
-      <div class="span12">
+      <div class="span12" data-bind="visible: $root.viewAll() || $data.numOwned() > 0">
         <hr>
       </div>
     </div>
@@ -125,7 +127,7 @@
         </span>
         &nbsp;
         <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a href="#" class="btn btn-primary" data-bind="click: gotoStep2">Observe</a>
+        <a href="#" class="btn btn-primary" data-bind="click: createObservation">Observe</a>
       </div>
     </div>
 
@@ -140,7 +142,7 @@
       </div>
       <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a href="#" class="btn btn-primary" data-bind="click: gotoStep2">Observe</a>
+        <a href="#" class="btn btn-primary" data-bind="">Observe</a>
       </div>
     </div>
 
