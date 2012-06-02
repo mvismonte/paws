@@ -13,7 +13,6 @@ $(document).ready ->
   # Knockout
   # ###############
 
-
   # Models
   # ----------------
   class Animal
@@ -735,7 +734,6 @@ $(document).ready ->
       @newSubcategoryAjaxLoad true
       $.ajax settings
 
-
   class ObservationListViewModel
     constructor: () ->
       # Arrays for holding data
@@ -783,7 +781,6 @@ $(document).ready ->
     prettyDate: (date) =>
       d = new Date Date.parse date
       return d.toString()
-
 
   class StaffListViewModel
     constructor: () ->
