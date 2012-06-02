@@ -18,23 +18,28 @@ class Animal(models.Model):
 
 # AnimalObservation Model
 class AnimalObservation(models.Model):
+
+  # Fields
+  animal = models.ForeignKey('Animal')
+  observation = models.ForeignKey('Observation')
+  interaction_time = models.PositiveIntegerField(null=True, blank=True)
+  observation_time= models.PositiveIntegerField(null=True,blank=True)
+  behavior = models.ForeignKey('Behavior', null=True)
+  indirect_use = models.BooleanField(default=False)
+  def __unicode__(self):
+    return "%s for %s" % (self.observation.enrichment.name, self.animal.name)
+
+# BehaviorModel
+class Behavior(models.Model):
   BEHAVIOR_CHOICES = (
     (-2, 'Avoid'),
     (-1, 'Negative'),
     (0, 'N/A'),
     (1, 'Positive'),
   )
-
-  # Fields
-  animal = models.ForeignKey('Animal')
-  observation = models.ForeignKey('Observation')
-  interaction_time = models.PositiveIntegerField(null=True, blank=True)
-  observation_time= models.PositiveIntegerField(null= True,blank= True)
-  behavior = models.SmallIntegerField(choices=BEHAVIOR_CHOICES, null=True, blank=True)
+  reaction = models.SmallIntegerField(choices=BEHAVIOR_CHOICES, null=True, blank=True)
+  enrichment = models.ForeignKey('Enrichment')
   description = models.TextField(blank=True)
-  indirect_use = models.BooleanField(default=False)
-  def __unicode__(self):
-    return "%s for %s" % (self.observation.enrichment.name, self.animal.name)
 
 # Category Model
 class Category(models.Model):
