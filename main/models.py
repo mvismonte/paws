@@ -18,7 +18,6 @@ class Animal(models.Model):
 
 # AnimalObservation Model
 class AnimalObservation(models.Model):
-
   # Fields
   animal = models.ForeignKey('Animal')
   observation = models.ForeignKey('Observation')
@@ -81,7 +80,7 @@ class HousingGroup(models.Model):
 class Observation(models.Model):
   enrichment = models.ForeignKey('Enrichment')
   staff = models.ForeignKey('Staff')
-  date_created = models.DateTimeField()
+  date_created = models.DateTimeField(default=datetime.now())
   date_finished = models.DateTimeField(null=True, blank=True)
   def __unicode__(self):
     return "%s by %s on %s" % (self.enrichment.name,

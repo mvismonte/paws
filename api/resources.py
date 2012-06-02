@@ -54,11 +54,11 @@ class AnimalObservationResource(ModelResource):
 
   #creating new animalObservation into database
   def obj_create(self, bundle, request=None, **kwargs):
-    return super(SpeciesResource, self).obj_create(bundle, request, **kwargs)
+    return super(AnimalObservationResource, self).obj_create(bundle, request, **kwargs)
     
   #update animalObservation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
-    return super(SpeciesResource, self).obj_update(bundle, request, **kwargs)
+    return super(AnimalObservationResource, self).obj_update(bundle, request, **kwargs)
 
   #delete animalObervation from the database
   def obj_delete(self, request=None, **kwargs):

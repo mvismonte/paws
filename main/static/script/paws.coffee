@@ -151,6 +151,19 @@ $(document).ready ->
       @currentSpecies = ko.observable ''
       @currentEnrichment = ko.observable null
 
+      # Making new
+      @newObservationAjaxLoad = ko.observable false
+      @newObservationError = ko.observable null
+      @newObservationIsCreating = ko.observable false
+      @newObservationSuccess = ko.observable false
+
+      # Making new
+      @newAnimalObservationAjaxLoad = ko.observable false
+      @newAnimalObservationError = ko.observable null
+      @newAnimalObservationIsCreating = ko.observable false
+      @newAnimalObservationSuccess = ko.observable false
+
+
       # If viewing all keeper's animals or just yours
       @viewAll = ko.observable false
       @viewText = ko.computed =>
@@ -328,11 +341,6 @@ $(document).ready ->
           return false # break
       return retval
 
-    gotoStep2: () =>
-      if @currentEnrichment()?
-        $('#modal-observe-1').modal('hide')
-        $('#modal-observe-2').modal('show')
-
     # Load enrichments based on the species that are selected
     loadEnrichments: () =>
       # Build the species set
@@ -381,6 +389,94 @@ $(document).ready ->
             return 1
 
         resizeAllCarousels()
+
+    createObservation: () =>
+      newObservation =
+        enrichment: '/api/v1/enrichment/' + @currentEnrichment().id() + '/'
+        staff: '/api/v1/enrichment/' + window.userId + '/'
+
+      # Make sure we are not in the middle of loading.
+      if (@newObservationAjaxLoad())
+        console.log "We are already trying to send something"
+        return false
+
+      # Validate fields before continuing.
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/observation/?format=json'
+        data: JSON.stringify newObservation
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "Observation successfully created!"
+        console.log jqXHR.getResponseHeader 'Location'
+
+        # Extract the category id from the Location response header.
+        locationsURL = jqXHR.getResponseHeader 'Location'
+        pieces = locationsURL.split "/"
+        newObservation.id = pieces[pieces.length - 2]
+
+        # Show success message and remove extra weight.
+        @newObservationIsCreating false
+        @newObservationSuccess true
+        @newObservationError null
+
+        console.log newObservation
+
+        @createAnimalObservation(newObservation.id)
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Observation not created!"
+        @newObservationNameErrorMessage true
+        @newObservationAjaxLoad false
+        @newObservationNameMessageBody 'An unexpected error occured'
+
+      # Make the ajax call.
+      @newObservationAjaxLoad true
+      $.ajax settings    
+
+    createAnimalObservation: (observationId) =>
+      for animal in @selectedAnimals()
+        newAnimalObservation =
+          animal: '/api/v1/animal/' + animal.id() + '/'
+          observation: '/api/v1/observation/' + observationId + '/'
+
+        # Validate fields before continuing.
+
+        settings =
+          type: 'POST'
+          url: '/api/v1/animalObservation/?format=json'
+          data: JSON.stringify newAnimalObservation
+          dataType: "json",
+          processData:  false,
+          contentType: "application/json"
+
+        settings.success = (data, textStatus, jqXHR) =>
+          console.log "Animalobservation successfully created!"
+
+          # Extract the category id from the Location response header.
+          locationsURL = jqXHR.getResponseHeader 'Location'
+          pieces = locationsURL.split "/"
+          newAnimalObservation.id = pieces[pieces.length - 2]
+
+          # Show success message and remove extra weight.
+          @newAnimalObservationIsCreating false
+          @newAnimalObservationSuccess true
+          @newAnimalObservationError null
+
+          console.log newAnimalObservation
+
+        settings.error = (jqXHR, textStatus, errorThrown) =>
+          console.log "Animalobservation not created!"
+          @newAnimalObservationNameErrorMessage true
+          @newAnimalObservationNameMessageBody 'An unexpected error occured'
+
+        # Make the ajax call.
+        $.ajax settings    
+
 
     # Clear everything out
     empty: () =>
@@ -702,7 +798,7 @@ $(document).ready ->
       newStaff =
         first_name: @newStaff.first_name()
         last_name: @newStaff.last_name()
-        
+        username: @newStaff.first_name()[0] + @newStaff.last_name()
 
       # Make sure we are not in the middle of loading.
       if (@newStaffAjaxLoad())
