@@ -3,6 +3,23 @@
 {# staff.html #}
 
 <div class="container" id="staffContainer" style="display: none;">
+  <div class="row">
+    <div class="span12">
+      <div class="page-header">
+        <div class="row">
+          <div class="span6">
+            <h1>Zookeepers</h1>
+          </div>
+          <div class="span6">
+            <div class="btn-group pull-right">
+              <button class="btn btn-primary" data-bind="" data-toggle="modal" data-target="#modal-staff-new">Add Zookeeper</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row list-items" data-bind="foreach: staff">
     <div class="span3">
       <div class="list-entry">
@@ -11,5 +28,45 @@
       </div>
     </div>
   </div>
+
+  {# Modal for creating enrichment category #}
+  <div class="modal hide fade" id="modal-staff-new">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3>Add Zookeeper</h3>
+    </div>
+    <div class="modal-body">
+      {# Info messages #}
+      <div class="alert alert-error" data-bind="visible: newStaffError">
+        <button class="close" data-bind="click: function() { newStaffError(null) }">×</button>
+        <strong>Error!</strong> <span data-bind="text: newStaffError"></span>
+      </div>
+      <div class="alert alert-success" data-bind="visible: newStaffSuccess">
+        <strong>Success!</strong> <span>Zookeeper added</span>
+      </div>
+
+      {# Input fields #}
+      <form action="#" class="form-horizontal" data-bind="visible: newStaffIsCreating, submit: function() { createStaff(); return false }">
+        <fieldset>
+          <div class="control-group">
+            <label class="control-label" for="input01">First Name</label>
+            <div class="controls">
+              <input type="text" class="input-xlarge" data-bind="value: newStaff.firstName">
+            </div>
+            <label class="control-label" for="input02">Last Name</label>
+            <div class="controls">
+              <input type="text" class="input-xlarge" data-bind="value: newStaff.lastName">
+            </div>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+    <div class="modal-footer" data-bind="visible: newStaffIsCreating">
+      <img data-bind="visible: newStaffAjaxLoad" src="/static/img/ajax-loader.gif"/>
+      <a href="#" class="btn" data-dismiss="modal">Close</a>
+      <a href="#" class="btn btn-primary" data-bind="click: createStaff">Create Category</a>
+    </div>
+  </div>
+
 
 </div>
