@@ -541,6 +541,10 @@ $(document).ready ->
       @newCategoryAjaxLoad = ko.observable false
       @newCategoryIsCreating = ko.observable true
 
+      @newSubcategoryOptions = ko.computed =>
+        return ko.utils.arrayFilter @subcategories(), (subcategory) =>
+          return subcategory.categoryId() == @newEnrichment.category().id()
+
       # Subcategory creation fields.
       @newSubcategory =
         name: ko.observable ''
