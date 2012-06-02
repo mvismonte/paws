@@ -3,6 +3,7 @@
 # Main Views
 # The views in this app contain the main views of the PAWS application.
 
+from django.contrib import messages
 from django.contrib.auth import logout as django_logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
@@ -53,6 +54,7 @@ def staff(request):
 def logout(request):
   # Logout of the application and redirect.
   django_logout(request)
+  messages.info(request, 'Successfully logged out.')
   redirect = request.GET.get('next','/auth/login/')
   return HttpResponseRedirect(redirect)
 
