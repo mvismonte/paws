@@ -25,8 +25,10 @@
         </dt>
         <dd class="row">
           <label class="span2">
+            {% comment %}
             Behavior
             <select data-bind="options: $root.behaviorType, value: behavior, optionsText: 'type', optionsValue: 'id'" class="span2"></select>
+            {% endcomment %}
           </label>
           <label class="span1">
             Indirect Use
@@ -37,8 +39,10 @@
             <input data-bind="value: interaction_time, valueUpdate: 'afterkeydown'" class="span1"></input>
           </label>
           <label class="span7">
+            {% comment %}
             Description
             <input data-bind="value: description, valueUpdate: 'afterkeydown'" class="span7"></textarea>
+            {% endcomment %}
           </label>
         </dd>
       </dl>

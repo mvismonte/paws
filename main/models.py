@@ -24,7 +24,7 @@ class AnimalObservation(models.Model):
   observation = models.ForeignKey('Observation')
   interaction_time = models.PositiveIntegerField(null=True, blank=True)
   observation_time= models.PositiveIntegerField(null=True,blank=True)
-  behavior = models.ForeignKey('Behavior', null=True)
+  behavior = models.ForeignKey('Behavior', null=True, blank=True)
   indirect_use = models.BooleanField(default=False)
   def __unicode__(self):
     return "%s for %s" % (self.observation.enrichment.name, self.animal.name)
