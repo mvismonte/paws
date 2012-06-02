@@ -3,41 +3,71 @@
 {# enrichments.html #}
 
 <div class="container" id="enrichmentListContainer" style="display: none;">
-  <div class="carousel" id="categorySelector">
-    <div class="carousel-scroller">
-      <ul data-bind="foreach: categories">
-        <li data-bind="click: $parent.filterCategory,
-            css: { 'list-active': $parent.categoryFilter() == $data }">
-          <div data-bind="text: name"></div>
-        </li>
-      </ul>
-    </div>
-  </div>
-  <div class="carousel" id="subcategorySelector">
-    <div class="carousel-scroller">
-      <ul data-bind="foreach: subcategoriesFilterCategory">
-        <li data-bind="click: $parent.filterSubcategory,
-            css: { 'list-active': $parent.subcategoryFilter() == $data }">
-          <div data-bind="text: name"></div>
-        </li>
-      </ul>
-    </div>
-  </div>
-  <div class="carousel list-items" id="enrichmentSelector">
-    <div class="carousel-scroller carousel-rows">
-      <ul data-bind="foreach: enrichmentsFilterSubcategory">
-        <li>
-          <div data-bind="text: name"></div>
-          <div data-bind="text: categoryName"></div>
-          <div data-bind="text: subcategoryName"></div>
-        </li>
-      </ul>
-    </div>
-  </div>
 
-<button class="btn btn-primary" data-bind="click: openCreateCategory" data-toggle="modal" data-target="#modal-enrichment-category">New Category</button>
-<button class="btn btn-primary" data-toggle="modal" data-target="#modal-enrichment-subcategory">New Subcategory</button>
-<button class="btn btn-primary" data-toggle="modal" data-target="#modal-enrichment">New Enrichment</button>
+    <div id="addnew" class="btn-group pull-right">
+      <button class="btn btn-primary " data-bind="click: openCreateCategory" data-toggle="modal" data-target="#modal-enrichment-category">New Category</button>
+      <button class="btn btn-primary " data-bind="click: openCreateSubcategory" data-toggle="modal" data-target="#modal-enrichment-subcategory">New Subcategory</button>
+      <button class="btn btn-primary " data-toggle="modal" data-target="#modal-enrichment">New Enrichment</button>
+    </div>
+
+    <div class="row">
+      <div class="span12">
+        <div class="well">
+          <h3>Categories</h3>
+          <div class="carousel" id="categorySelector">
+           
+            <div class="carousel-scroller">
+              <ul data-bind="foreach: categories">
+                <li data-bind="click: $parent.filterCategory,
+                    css: { 'list-active': $parent.categoryFilter() == $data }">
+                  <div data-bind="text: name"></div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <hr>
+
+          <h3>SubCategories</h3>
+          <div class="carousel" id="subcategorySelector">
+            
+            <div class="carousel-scroller">
+              <ul data-bind="foreach: subcategoriesFilterCategory">
+                <li data-bind="click: $parent.filterSubcategory,
+                    css: { 'list-active': $parent.subcategoryFilter() == $data }">
+                  <div data-bind="text: name"></div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <div class="row">
+      <div class="span12">
+        <div class="well">  
+          <h3>Enrichment Items</h3>
+          <div class="carousel list-items" id="enrichmentSelector">             
+            <div class="carousel-scroller carousel-rows">
+              <ul data-bind="foreach: enrichmentsFilterSubcategory">
+                <li>
+                  
+                  <span class="label label-success pull-left" data-bind="text: categoryName"></span>    
+               
+                  <span class="label label-info pull-right" data-bind="text: subcategoryName"></span>
+                  <div style="clear:both;"></div> 
+                  <div style="clear:both;"></div> 
+                  <h4><strong data-bind="text: name"></strong></h4>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
   {# Modal for creating enrichment category #}
   <div class="modal hide fade" id="modal-enrichment-category">
@@ -56,10 +86,16 @@
       </div>
 
       {# Input fields #}
-      <fieldset data-bind="visible: newCategoryIsCreating">
-        Name: 
-        <input type="text" data-bind="value: newCategory.name" class="span3" placeholder="Category name...">
-      </fieldset>
+      <form action="#" class="form-horizontal" data-bind="visible: newCategoryIsCreating, submit: function() { createCategory(); return false }">
+        <fieldset>
+          <div class="control-group">
+            <label class="control-label" for="input01">Name</label>
+            <div class="controls">
+              <input type="text" class="input-xlarge" data-bind="value: newCategory.name">
+            </div>
+          </div>
+        </fieldset>
+      </form>
     </div>
     <div class="modal-footer" data-bind="visible: newCategoryIsCreating">
       <img data-bind="visible: newCategoryAjaxLoad" src="/static/img/ajax-loader.gif"/>
@@ -72,13 +108,37 @@
   <div class="modal hide fade" id="modal-enrichment-subcategory">
     <div class="modal-header">
       <button class="close" data-dismiss="modal">×</button>
-      <h3></h3>
+      <h3>Create Subcategory</h3>
     </div>
     <div class="modal-body">
-      <select data-bind="options: categories, value: newSubcategory.categoryId, optionsText: 'name'"></select>
-      <input type="text" data-bind="value: newSubcategory.name" class="span3" placeholder="Subcategory name...">
+      {# Info messages #}
+      <div class="alert alert-error" data-bind="visible: newSubcategoryNameErrorMessage">
+        <button class="close" data-bind="click: function() { newSubcategoryNameErrorMessage(false) }">×</button>
+        <strong>Error!</strong> <span data-bind="text: newSubcategoryNameMessageBody"></span>
+      </div>
+      <div class="alert alert-success" data-bind="visible: newSubcategoryNameSuccessMessage">
+        <strong>Success!</strong> <span>Subcategory created</span>
+      </div>
+
+      <form action="#" class="form-horizontal" data-bind="visible: newSubcategoryIsCreating, submit: function() { createSubcategory(); return false }">
+        <fieldset>
+          <div class="control-group">
+            <label class="control-label" for="select01">Category</label>
+            <div class="controls">
+              <select data-bind="options: categories, value: newSubcategory.category, optionsText: 'name'"></select>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="input01">Name</label>
+            <div class="controls">
+              <input type="text" class="input-xlarge" data-bind="value: newSubcategory.name">
+            </div>
+          </div>
+        </fieldset>
+      </form>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer" data-bind="visible: newSubcategoryIsCreating">
+      <img data-bind="visible: newSubcategoryAjaxLoad" src="/static/img/ajax-loader.gif"/>
       <a href="#" class="btn" data-dismiss="modal">Close</a>
       <a href="#" class="btn btn-primary" data-bind="click: createSubcategory">Create Subcategory</a>
     </div>
@@ -88,7 +148,7 @@
   <div class="modal hide fade" id="modal-enrichment">
     <div class="modal-header">
       <button class="close" data-dismiss="modal">×</button>
-      <h3></h3>
+      <h3>New Enrichment Item</h3>
     </div>
     <div class="modal-body">
 
