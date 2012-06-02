@@ -50,13 +50,20 @@ $(document).ready ->
         return new HousingGroup item
       @fullName = ko.computed =>
         return 'Exhibit ' + @code()
+      @numOwned = ko.computed =>
+        num = 0
+        $.each @housingGroups(), (index, val) =>
+          num++ if val.isInStaff()
+        return num
 
   class HousingGroup
     constructor: (data) ->
       @name = ko.observable data.name
-      @staff = ko.observable data.staff
+      @staff = ko.observableArray data.staff
       @animals = ko.observableArray $.map data.animals, (item) ->
         return new Animal item
+      @isInStaff = ko.computed =>
+        return (@staff.indexOf('/api/v1/staff/' + window.userId + '/') != -1)
 
   class Category
     constructor: (data={}) ->
@@ -144,6 +151,14 @@ $(document).ready ->
       @currentSpecies = ko.observable ''
       @currentEnrichment = ko.observable null
 
+      # If viewing all keeper's animals or just yours
+      @viewAll = ko.observable false
+      @viewText = ko.computed =>
+        if @viewAll()
+          return 'All Animals'
+        else
+          return 'Your Animals'
+
       # Compute the filtered lists
       @filterAnimalsBySpecies = ko.computed =>
         species = @currentSpecies()
@@ -175,8 +190,6 @@ $(document).ready ->
       # Observation stuff
       @observation = ko.observable new Observation()
 
-      # Filtered lists
-
       # Current Filters
       @categoryFilter = ko.observable ''
       @subcategoryFilter = ko.observable ''
@@ -187,7 +200,6 @@ $(document).ready ->
         { id: 0, type: 'N/A'}
         { id: 1, type: 'Positive'}
       ]
-
 
       @subcategoriesFilterCategory = ko.computed =>
         category = @categoryFilter()
@@ -210,6 +222,9 @@ $(document).ready ->
         return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
           return enrichment.subcategoryId() == subcategory.id()
 
+    # Toggle viewAll
+    toggleViewAll: () =>
+      @viewAll !@viewAll()
 
     # Apply filters
     filterCategory: (category) =>
