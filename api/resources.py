@@ -19,7 +19,7 @@ from paws.main import models
 from tastypie.resources import fields
 from tastypie.resources import ModelResource
 from tastypie.authentication import BasicAuthentication
-from tastypie.authorization import Authorization
+from tastypie.authorization import DjangoAuthorization
 from tastypie.utils import trailing_slash
 from tastypie.exceptions import BadRequest
 from tastypie.http import HttpApplicationError
@@ -30,9 +30,9 @@ import datetime
 import json
 
 # Custom Authentication
-class customAuthentication(BasicAuthentication):
+class CustomAuthentication(BasicAuthentication):
   def __init__(self,*args,**kwargs):
-    super(customAuthentication,self).__init__(*args,**kwargs)
+    super(CustomAuthentication,self).__init__(*args,**kwargs)
 
   def is_authenticated(self, request, **kwargs):
     return request.user.is_authenticated()
@@ -47,8 +47,8 @@ class AnimalObservationResource(ModelResource):
 
   class Meta:
     # authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.AnimalObservation.objects.all()
     resource_name = 'animalObservation'
     # allowed actions towards database
@@ -364,12 +364,14 @@ class AnimalResource(ModelResource):
       'objects': objects,
     }
     return self.create_response(request, object_list)
+
+
 # Category Resource.
 class CategoryResource(ModelResource):
   class Meta:
     # authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.Category.objects.all()
     resource_name = 'category'
     # allowed actions towards database
@@ -401,8 +403,8 @@ class EnrichmentNoteResource(ModelResource):
 
   class Meta:
     # authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.EnrichmentNote.objects.all()
     resource_name = 'enrichmentNote'
     # allowed actions towards database
@@ -463,8 +465,8 @@ class EnrichmentResource(ModelResource):
 
   class Meta:
     # authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.Enrichment.objects.all()
     resource_name = 'enrichment'
     # allowed actions towards database
@@ -603,8 +605,8 @@ class ObservationResource(ModelResource):
 
   class Meta:
     # authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.Observation.objects.all()
     resource_name = 'observation'
     # allowed actions towards database
@@ -658,8 +660,8 @@ class ExhibitResource(ModelResource):
   housing_groups = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
   class Meta:
     # authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.Exhibit.objects.all()
     resource_name = 'exhibit'
     # allowed actions towards database
@@ -685,8 +687,8 @@ class ExhibitResource(ModelResource):
 class SpeciesResource(ModelResource):
   class Meta:
     # authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.Species.objects.all()
     resource_name = 'species'
     # allowed actions towards database
@@ -716,8 +718,8 @@ class HousingGroupResource(ModelResource):
   animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal_set', full=True)
   class Meta:
     # authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.HousingGroup.objects.all()
     resource_name = 'housingGroup'
     # allowed actions towards database
@@ -768,8 +770,8 @@ class StaffResource(ModelResource):
   # housing_group = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
   class Meta:
     # authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.Staff.objects.all()
     resource_name = 'staff'
     # allowed actions towards database
@@ -867,8 +869,8 @@ class SubcategoryResource(ModelResource):
 
   class Meta:
     # authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.Subcategory.objects.all()
     resource_name = 'subcategory'
     # allowed actions towards database
@@ -905,8 +907,8 @@ class SubcategoryResource(ModelResource):
 class UserResource(ModelResource):
   class Meta:
     # authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = User.objects.all()
     resource_name = 'user'
     excludes = ['email','password']
