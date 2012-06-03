@@ -36,7 +36,7 @@ $(document).ready ->
         @observation_time = ko.observable data.observation_time
         #@behavior = ko.observable data.behavior
         #@description = ko.observable data.description
-        @indirect_use = ko.observable data.indirectUse
+        @indirect_use = ko.observable data.indirect_use
 
         @interaction_time.subscribe (value) =>
           console.log "change interaction_time"
@@ -1080,6 +1080,7 @@ $(document).ready ->
     $('.carousel-scroller').each ->
       if $(this).hasClass 'carousel-rows'
         numRows = Math.min Math.floor(($(window).height()-$(this).parent().offset().top)/$(this).find('li:first').outerHeight(true)), MAX_SCROLLER_ROWS
+        console.log "numrows: #{numRows}"
         resized = resizeCarousel this, numRows, false
       else
         resized = resizeCarousel this, 1, false
