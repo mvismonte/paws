@@ -124,9 +124,8 @@ $(document).ready ->
       if data?
         @id = data.id
         @enrichment = ko.observable data.enrichment # not using .name for now
-        animalObs = $.map data.animal_observations, (item) ->
+        @animal_observations = ko.observableArray $.map data.animal_observations, (item) ->
           return new AnimalObservation item
-        @animal_observations = ko.observableArray animalObs
         @date_created = ko.observable data.date_created
         @date_finished = ko.observable data.date_finished
       else
@@ -454,6 +453,7 @@ $(document).ready ->
       newObservation =
         enrichment: '/api/v1/enrichment/' + @currentEnrichment().id() + '/'
         staff: '/api/v1/enrichment/' + window.userId + '/'
+        date_created: new Date().toISOString().split('.')[0]
 
       # Make sure we are not in the middle of loading.
       if (@newObservationAjaxLoad())
@@ -487,6 +487,15 @@ $(document).ready ->
         console.log newObservation
 
         @createAnimalObservation(newObservation.id)
+
+        @newObservationAjaxLoad false
+
+        $.each @selectedAnimals(), (index, animal) =>
+          animal.active false
+        @currentEnrichment null
+
+        # (optional) redirect
+        window.location = "/observe"
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Observation not created!"
@@ -964,8 +973,8 @@ $(document).ready ->
     empty: () =>  
       @observations []
 
-    prettyDate: (data) =>
-      d = new Date Date.parse data
+    prettyDate: (date) =>
+      d = new Date Date.parse date
       return d.toString()
 
 
