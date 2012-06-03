@@ -5,25 +5,20 @@
 # database.
 
 from paws.main import models
+from django.core.exceptions import ObjectDoesNotExist
 
 # A function that takes in a file name and tries to import the database.
 # Example usage:
 # >> from main.utilities import bulk_import
 # >> bulk_import.importEnrichments('/home/mark/paws/main/utilities/list_enrichments.csv')
 # TODO(Mark): Change this function so that it takes in a string instead.
-def importEnrichments(file):
-  try:
-    f = open(file, 'r+')
-  except IOError:
-    # Return false if the file does not exist.
-    print "File does not exist: %s" % (file)
-    return False
-
-  # Iterate through the file and add populate the database.
+def importEnrichments(data):
+  enrichment_list=[]
+  # Iterate through the data array and tries to import to database.
   # Lines are in the following format:
   #   <Unique ID>, <Common Name>, <Scientific Name>, <Category>,
   #   <Sub Category>, <Enrichment Item>, <Limitations>, <Presentation>
-  for line in f:
+  for line in data:
     fields = line.split(',')
 
     # Make sure that the line is properly formatted.
@@ -52,46 +47,122 @@ def importEnrichments(file):
       enrichment_note, create =  models.EnrichmentNote.objects.get_or_create(
         species=species, limitations=enrichment_limitations,
         enrichment=enrichment, instructions=enrichment_presentation)
-
-  # Don't forget to close the file!
-  f.close()
-  return True
+    enrichment_list.append(enrichment)
+  return enrichment_list
 
 # A function that takes in a file name and tries to import the database.
 # Example usage:
 # >> from main.utilities import bulk_import
 # >> bulk_import.importEnrichments('/home/mark/paws/main/utilities/list_enrichments.csv')
 def importAnimals(data):
+  animal_list=[]
   # The data should be a list of strings where each string a line of the csv.
-
-  lastExhibit = None
-  lastGroup = None
+  # <unique_id>, <common_name>, <scientific_name>
+  # <exhibit>, <house_group>, <house_name>, <count>
   for line in data:
     fields = line.split(',')
 
+    if (len(fields) != 7):
+      continue
+
     # Extract fields.
-    scientific_name = fields[0]
+    id=fields[0]
     common_name = fields[1]
-    house_name = fields[2]
-    new_group = fields[3] != ''
-    exhibit_code = fields[4]
+    scientific_name = fields[2]
+    exhibit_code = fields[3]
+    group_name = fields[4] != ''
+    house_name = fields[5]
+    count=fields[6]
 
     # Use get_or_create to create all models from the one line of the csv.
     species, create = models.Species.objects.get_or_create(
         common_name=common_name, scientific_name=scientific_name)
     exhibit, create = models.Exhibit.objects.get_or_create(code=exhibit_code)
+    housing_group, create = models.HousingGroup.objects.get_or_create(
+      exhibit=exhibit, name=group_name)
 
-    housing_group = None
-    if (new_group):
-      housing_group, create = models.HousingGroup.objects.get_or_create(
-          exhibit=exhibit, name='')
-    else:
-      housing_group = lastGroup
+    animal, create = models.Animal.objects.get_or_create(id=id,
+        name=house_name, species=species, housing_group=housing_group, count=count)
+    animal_list.append(animal)
+  return animal_list
 
-    animal, create = models.Animal.objects.get_or_create(
-        name=house_name, species=species, housing_group=housing_group)
+# Add a single user
+def addUser(first_name, last_name, password, is_superuser):
+  # Make sure that first and last name are not blank
+  if first_name == "" or last_name == "":
+    return None
+  
+  # Capatalize first and last name
+  first_name = first_name.capitalize()
+  last_name = last_name.capitalize()
 
-    lastGroup = housing_group
-    lastExhibit = exhibit
+  # Make username based on first and last name of user 
+  username = first_name[0] + last_name
+  username = username.lower()
+  count = 0    
 
+  original_username = username
+
+  # Check if the username is already in the database
+  unique = False
+
+  # While User is still in the database
+  while not unique:
+    # Try to get the User with username username
+    try:
+      user = models.User.objects.get(username=username)
+
+      # Append a number to the username if it already exists
+      count += 1
+      username = original_username + str(count)
+
+    except ObjectDoesNotExist:
+      # Username has not been used before, create new user
+      user = models.User.objects.create_user(
+          username=username,
+          password=password,
+          email=' ' )
+      user.is_superuser = is_superuser
+      user.first_name = first_name
+      user.last_name = last_name
+      user.save()
+
+      # Add associated staff to user
+      staff = models.Staff.objects.create(user=user)
+      staff.save()
+
+      # Now the user is unique
+      unique = True
+
+  return user
+
+# Add a bulk of users
+def importUsers(array):
+  user_list = []
+
+  # Gets an array of user data
+  # Formatted as <first_name>, <first_name>, <password>, <is_superuser>
+  for line in array:
+    # The fields are divided by comma
+    fields = line.split(',')
+
+    # Check the line for proper format
+    if len(fields) != 4:
+      continue
+
+    first_name = fields[0]
+    last_name = fields[1]
+    password = fields[2]
+    is_superuser = fields[3]
+    
+    user = addUser(
+        first_name=first_name,
+        last_name=last_name,
+        password=password,
+        is_superuser=(is_superuser=="1"))
+
+    if user:
+      user_list.append(user)
+
+  return user_list
 

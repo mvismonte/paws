@@ -19,8 +19,10 @@ from tastypie.authentication import BasicAuthentication
 from tastypie.authorization import Authorization
 from tastypie.utils import trailing_slash
 from tastypie.exceptions import BadRequest
+from tastypie.http import HttpApplicationError
 from haystack.query import SearchQuerySet
 from haystack.query import EmptySearchQuerySet
+from paws.main.utilities import bulk_import
 import datetime
 import json
 
@@ -55,11 +57,11 @@ class AnimalObservationResource(ModelResource):
 
   #creating new animalObservation into database
   def obj_create(self, bundle, request=None, **kwargs):
-    return super(SpeciesResource, self).obj_create(bundle, request, **kwargs)
+    return super(AnimalObservationResource, self).obj_create(bundle, request, **kwargs)
     
   #update animalObservation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
-    return super(SpeciesResource, self).obj_update(bundle, request, **kwargs)
+    return super(AnimalObservationResource, self).obj_update(bundle, request, **kwargs)
 
   #delete animalObervation from the database
   def obj_delete(self, request=None, **kwargs):
@@ -103,7 +105,9 @@ class AnimalObservationResource(ModelResource):
   #override the url for a specific url path of searching
   def override_urls(self):
     return [
-      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/stats%s$"%(self._meta.resource_name, trailing_slash()), self.wrap_view('get_stats'), name="api_get_stats"),  
+      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/stats%s$"%
+            (self._meta.resource_name, trailing_slash()), 
+            self.wrap_view('get_stats'), name="api_get_stats"),  
     ]
 
   #determine the format of the returning results in json or xml  
@@ -252,7 +256,12 @@ class AnimalResource(ModelResource):
   #override the url for a specific url path of searching
   def override_urls(self):
     return [
-      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
+      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % 
+            (self._meta.resource_name, trailing_slash()), 
+            self.wrap_view('get_search'), name="api_get_search"),
+      url(r"^(?P<resource_name>%s)/bulk%s$" % 
+            (self._meta.resource_name, trailing_slash()), 
+            self.wrap_view('bulk_add'), name="api_bulk_add"),
     ]
 
   #determine the format of the returning results in json or xml  
@@ -323,7 +332,35 @@ class AnimalResource(ModelResource):
     except ObjectDoesNotExist:
       pass
     return q_set
+  # Bulk add view.
+  def bulk_add(self, request, **kwargs):
+    self.method_check(request, allowed=['post'])
+    self.is_authenticated(request)
+    self.throttle_check(request)
 
+    # try to load the json file
+    try:
+      animal_list = json.loads(request.raw_post_data)
+    except ValueError, e:
+      raise ValueError('Bad JSON: %s' % e)
+    print animal_list
+    #import the data into the database
+    import_animal= bulk_import.importAnimals(animal_list)
+    #build imported animals bundles
+    objects = []
+    for result in import_animal:
+      #create bundle that stores the result object
+      bundle = self.build_bundle(obj = result, request = request)
+      #reformating the bundle
+      bundle = self.full_dehydrate(bundle)
+      #adding the bundle into a list of objects
+      objects.append(bundle)
+    
+    #Specifiy the format of json output
+    object_list = {
+      'objects': objects,
+    }
+    return self.create_response(request, object_list)
 # Category Resource.
 class CategoryResource(ModelResource):
   class Meta:
@@ -449,7 +486,12 @@ class EnrichmentResource(ModelResource):
   #override the url for a specific url path of searching
   def override_urls(self):
     return [
-      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
+      url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % 
+            (self._meta.resource_name, trailing_slash()),
+            self.wrap_view('get_search'), name="api_get_search"),
+      url(r"^(?P<resource_name>%s)/bulk%s$" % 
+            (self._meta.resource_name, trailing_slash()), 
+            self.wrap_view('bulk_add'), name="api_bulk_add"),
     ]
 
   #determine the format of the returning results in json or xml  
@@ -516,6 +558,36 @@ class EnrichmentResource(ModelResource):
       pass
     return q_set
 
+  # Bulk add view.
+  def bulk_add(self, request, **kwargs):
+    self.method_check(request, allowed=['post'])
+    self.is_authenticated(request)
+    self.throttle_check(request)
+
+    # try loading the json
+    try:
+      enrichment_list = json.loads(request.raw_post_data)
+    except ValueError, e:
+      raise ValueError('Bad JSON: %s' % e)
+    print enrichment_list
+    # importing the new enrichment into the database
+    import_enrichment=bulk_import.importEnrichments(enrichment_list)
+    # build new enrichments bundles
+    objects = []
+    for result in import_enrichment:
+      #create bundle that stores the result object
+      bundle = self.build_bundle(obj = result, request = request)
+      #reformating the bundle
+      bundle = self.full_dehydrate(bundle)
+      #adding the bundle into a list of objects
+      objects.append(bundle)
+    
+    #Specifiy the format of json output
+    object_list = {
+      'objects': objects,
+    }
+    return self.create_response(request, object_list)
+
 # Observation Resource.
 class ObservationResource(ModelResource):
   # Define foreign keys.
@@ -553,9 +625,14 @@ class ObservationResource(ModelResource):
 
   # Redefine get_object_list to filter for enrichment_id and staff_id.
   def get_object_list(self, request):
+    show_completed = request.GET.get('show_completed', None)
     staff_id = request.GET.get('staff_id', None)
     enrichment_id = request.GET.get('enrichment_id', None)
     q_set = super(ObservationResource, self).get_object_list(request)
+
+    # Filter completed observations
+    if not show_completed:
+      q_set = q_set.filter(date_finished__isnull=True)
 
     # Try filtering by staff_id if it exists.
     try:
@@ -685,7 +762,7 @@ class HousingGroupResource(ModelResource):
 class StaffResource(ModelResource):
   user = fields.ToOneField(
       'paws.api.resources.UserResource', 'user', full=True)
-  housing_group = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
+  #housing_group = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
   class Meta:
     #authenticate the user
     authentication = customAuthentication()
@@ -842,6 +919,9 @@ class UserResource(ModelResource):
         url(r"^(?P<resource_name>%s)/bulk%s$" % 
             (self._meta.resource_name, trailing_slash()), 
             self.wrap_view('bulk_add'), name="api_bulk_add"),
+		url(r"^(?P<resource_name>%s)/add_user%s$" %
+		    (self._meta.resource_name, trailing_slash()),
+			self.wrap_view('add_user'), name="api_add_user"),
     ]
 
   # Adding new user into the database
@@ -868,13 +948,50 @@ class UserResource(ModelResource):
   def obj_delete(self, request=None, **kwargs):
     return super(UserResource, self).obj_delete( request, **kwargs)
 
+  def add_user(self, request, **kwargs):
+    self.method_check(request, allowed=['post'])
+    self.is_authenticated(request)
+    self.throttle_check(request)
+
+    try:
+      user = json.loads(request.raw_post_data)
+      print user
+      import_user = bulk_import.addUser(
+          first_name = user["first_name"], 
+          last_name = user["last_name"],
+          password = user["password"],
+          is_superuser = user["is_superuser"])
+      object = self.build_bundle(obj=import_user, request=request)
+      object = self.full_dehydrate(object)
+      ret_user = {
+        'object': object,
+      }
+	  
+      return self.create_response(request, ret_user)
+    except ValueError:
+      return self.create_response(request, "Invalid JSON", response_class=HttpApplicationError)
+	
   # Bulk add view.
   def bulk_add(self, request, **kwargs):
     self.method_check(request, allowed=['post'])
     self.is_authenticated(request)
     self.throttle_check(request)
+ 
+    # Try making a new user
+    try:
+      user_list = json.loads(request.raw_post_data)
+      print user_list
+      import_users = bulk_import.importUsers(user_list)
+      objects = []
+      for result in import_users:
+        bundle = self.build_bundle(obj=result, request=request)
+        bundle = self.full_dehydrate(bundle)
+        objects.append(bundle)
 
-    # Somebody should surround this in a try I think?
-    user_list = json.loads(request.raw_post_data)
+      object_list = {
+        'objects': objects,
+      }
 
-    return self.create_response(request, {})
+      return self.create_response(request, object_list)
+    except ValueError:
+      return self.create_response(request, "Invalid JSON", response_class=HttpApplicationError)

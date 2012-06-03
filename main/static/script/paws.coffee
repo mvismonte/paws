@@ -1,9 +1,17 @@
 $(document).ready ->
-
+  unless Date::toISOString
+    pad = (number) ->
+      r = String(number)
+      r = "0" + r  if r.length is 1
+      r
+    Date::toISOString = ->
+      @getUTCFullYear() + "-" + pad(@getUTCMonth() + 1) + "-"
+      + pad(@getUTCDate()) + "T" + pad(@getUTCHours()) + ":"
+      + pad(@getUTCMinutes()) + ":" + pad(@getUTCSeconds()) + "."
+      + String((@getUTCMilliseconds() / 1000).toFixed(3)).slice(2, 5) + "Z"
 
   # Knockout
   # ###############
-
 
   # Models
   # ----------------
@@ -41,13 +49,20 @@ $(document).ready ->
         return new HousingGroup item
       @fullName = ko.computed =>
         return 'Exhibit ' + @code()
+      @numOwned = ko.computed =>
+        num = 0
+        $.each @housingGroups(), (index, val) =>
+          num++ if val.isInStaff()
+        return num
 
   class HousingGroup
     constructor: (data) ->
       @name = ko.observable data.name
-      @staff = ko.observable data.staff
+      @staff = ko.observableArray data.staff
       @animals = ko.observableArray $.map data.animals, (item) ->
         return new Animal item
+      @isInStaff = ko.computed =>
+        return (@staff.indexOf('/api/v1/staff/' + window.userId + '/') != -1)
 
   class Category
     constructor: (data={}) ->
@@ -100,6 +115,18 @@ $(document).ready ->
       @username = ko.observable data.user.username
       @full_name = ko.computed =>
         return @first_name() + ' ' + @last_name()
+      @housingGroups = ko.observableArray []
+      @loading = ko.observable false
+    loadInfo: () ->
+      if @housingGroups().length != 0
+        return
+      # Get housing groups
+      @loading true
+      $.getJSON '/api/v1/housingGroup/?format=json&staff_id=' + @id(), (data) =>
+        mapped = $.map data.objects, (item) ->
+          return new HousingGroup item
+        @housingGroups mapped
+        @loading false
 
   class Species
     constructor: (data) ->
@@ -135,6 +162,27 @@ $(document).ready ->
       @currentSpecies = ko.observable ''
       @currentEnrichment = ko.observable null
 
+      # Making new
+      @newObservationAjaxLoad = ko.observable false
+      @newObservationError = ko.observable null
+      @newObservationIsCreating = ko.observable false
+      @newObservationSuccess = ko.observable false
+
+      # Making new
+      @newAnimalObservationAjaxLoad = ko.observable false
+      @newAnimalObservationError = ko.observable null
+      @newAnimalObservationIsCreating = ko.observable false
+      @newAnimalObservationSuccess = ko.observable false
+
+
+      # If viewing all keeper's animals or just yours
+      @viewAll = ko.observable false
+      @viewText = ko.computed =>
+        if @viewAll()
+          return 'All Animals'
+        else
+          return 'Your Animals'
+
       # Compute the filtered lists
       @filterAnimalsBySpecies = ko.computed =>
         species = @currentSpecies()
@@ -166,8 +214,6 @@ $(document).ready ->
       # Observation stuff
       @observation = ko.observable new Observation()
 
-      # Filtered lists
-
       # Current Filters
       @categoryFilter = ko.observable ''
       @subcategoryFilter = ko.observable ''
@@ -178,7 +224,6 @@ $(document).ready ->
         { id: 0, type: 'N/A'}
         { id: 1, type: 'Positive'}
       ]
-
 
       @subcategoriesFilterCategory = ko.computed =>
         category = @categoryFilter()
@@ -298,6 +343,10 @@ $(document).ready ->
       @uploadAnimals []
       @uploadAnimalsPreview []
 
+    # Toggle viewAll
+    toggleViewAll: () =>
+      @viewAll !@viewAll()
+
     # Apply filters
     filterCategory: (category) =>
       if category == @categoryFilter()
@@ -400,11 +449,6 @@ $(document).ready ->
           return false # break
       return retval
 
-    gotoStep2: () =>
-      if @currentEnrichment()?
-        $('#modal-observe-1').modal('hide')
-        $('#modal-observe-2').modal('show')
-
     # Load enrichments based on the species that are selected
     loadEnrichments: () =>
       # Build the species set
@@ -453,6 +497,94 @@ $(document).ready ->
             return 1
 
         resizeAllCarousels()
+
+    createObservation: () =>
+      newObservation =
+        enrichment: '/api/v1/enrichment/' + @currentEnrichment().id() + '/'
+        staff: '/api/v1/enrichment/' + window.userId + '/'
+
+      # Make sure we are not in the middle of loading.
+      if (@newObservationAjaxLoad())
+        console.log "We are already trying to send something"
+        return false
+
+      # Validate fields before continuing.
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/observation/?format=json'
+        data: JSON.stringify newObservation
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "Observation successfully created!"
+        console.log jqXHR.getResponseHeader 'Location'
+
+        # Extract the category id from the Location response header.
+        locationsURL = jqXHR.getResponseHeader 'Location'
+        pieces = locationsURL.split "/"
+        newObservation.id = pieces[pieces.length - 2]
+
+        # Show success message and remove extra weight.
+        @newObservationIsCreating false
+        @newObservationSuccess true
+        @newObservationError null
+
+        console.log newObservation
+
+        @createAnimalObservation(newObservation.id)
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Observation not created!"
+        @newObservationNameErrorMessage true
+        @newObservationAjaxLoad false
+        @newObservationNameMessageBody 'An unexpected error occured'
+
+      # Make the ajax call.
+      @newObservationAjaxLoad true
+      $.ajax settings    
+
+    createAnimalObservation: (observationId) =>
+      for animal in @selectedAnimals()
+        newAnimalObservation =
+          animal: '/api/v1/animal/' + animal.id() + '/'
+          observation: '/api/v1/observation/' + observationId + '/'
+
+        # Validate fields before continuing.
+
+        settings =
+          type: 'POST'
+          url: '/api/v1/animalObservation/?format=json'
+          data: JSON.stringify newAnimalObservation
+          dataType: "json",
+          processData:  false,
+          contentType: "application/json"
+
+        settings.success = (data, textStatus, jqXHR) =>
+          console.log "Animalobservation successfully created!"
+
+          # Extract the category id from the Location response header.
+          locationsURL = jqXHR.getResponseHeader 'Location'
+          pieces = locationsURL.split "/"
+          newAnimalObservation.id = pieces[pieces.length - 2]
+
+          # Show success message and remove extra weight.
+          @newAnimalObservationIsCreating false
+          @newAnimalObservationSuccess true
+          @newAnimalObservationError null
+
+          console.log newAnimalObservation
+
+        settings.error = (jqXHR, textStatus, errorThrown) =>
+          console.log "Animalobservation not created!"
+          @newAnimalObservationNameErrorMessage true
+          @newAnimalObservationNameMessageBody 'An unexpected error occured'
+
+        # Make the ajax call.
+        $.ajax settings    
+
 
     # Clear everything out
     empty: () =>
@@ -711,7 +843,6 @@ $(document).ready ->
       @newSubcategoryAjaxLoad true
       $.ajax settings
 
-
   class ObservationListViewModel
     constructor: () ->
       # Arrays for holding data
@@ -722,25 +853,43 @@ $(document).ready ->
         { id: 0, type: 'N/A'}
         { id: 1, type: 'Positive'}
       ]
+      @activeObservation = ko.observable null
 
-    save: () =>
-      $.ajax "/api/v1/observation/", { #BAD, will overwrite
-        data: ko.toJSON { objects: self.observations }
+    finishObservation: () =>
+      try
+        console.log "finishing observation: "+@activeObservation().id
+      catch TypeError
+        return
+      obs = {}
+      obs.date_finished = new Date().toISOString().split('.')[0]
+      console.log obs
+      $.ajax "/api/v1/observation/"+@activeObservation().id+"/?format=json", {
+        data: JSON.stringify obs
+        dataType: "json"
         type: "PUT"
         contentType: "application/json"
-        success: (result) -> 
-          alert(result)
+        processDate: false
+        success: (result) => 
+          console.log "finished observation"
+          @observations.remove @activeObservation()
+          @activeObservation null
+        error: (result) =>
+          console.log result
       }
 
     load: () =>
       # Get data from API
-      $.getJSON '/api/v1/observation/?format=json', (data) =>
+      $.getJSON '/api/v1/observation/?format=json&staff_id'+window.userId, (data) =>
         #mapped = $.map data.objects, (item) ->
         #  return new Observation item
         @observations data.objects
 
     empty: () =>
-      @observations null
+      @observations []
+
+    prettyDate: (date) =>
+      d = new Date Date.parse date
+      return d.toString()
 
   class StaffListViewModel
     constructor: () ->
@@ -752,73 +901,24 @@ $(document).ready ->
       @newStaffSuccess = ko.observable false
       @newStaffIsCreating = ko.observable true
       @newStaffAjaxLoad = ko.observable false
+
       @newStaff =
         first_name: ko.observable ''
         last_name: ko.observable ''
 
-    createStaff: () =>
-      newStaff =
-        first_name: @newStaff.first_name()
-        last_name: @newStaff.last_name()
+      @currentStaff = ko.observable
+        full_name: ''
+        housingGroups: []
+        loading: false
 
-      # Make sure we are not in the middle of loading.
-      if (@newStaffAjaxLoad())
-        console.log "We are already trying to send something"
-        return false
-
-      # Validate fields before continuing.
-      if (newStaff.first_name.length == 0 || newStaff.last_name.length == 0)
-        @newStaffError 'Names must not be blank'
-        return
-
-      if (newStaff.first_name.length > 100 || newStaff.last_name.length > 100)
-        @newStaffError 'Names must not exceed 100 characters'
-        return
-
-      settings =
-        type: 'POST'
-        url: '/api/v1/staff/?format=json'
-        data: JSON.stringify newStaff
-        dataType: "json",
-        processData:  false,
-        contentType: "application/json"
-
-      settings.success = (data, textStatus, jqXHR) =>
-        console.log "Staff successfully created!"
-
-        # Extract the category id from the Location response header.
-        locationsURL = jqXHR.getResponseHeader 'Location'
-        pieces = locationsURL.split "/"
-        newStaff.id = pieces[pieces.length - 2]
-
-        # Show success message and remove extra weight.
-        @newStaffIsCreating false
-        @newStaffSuccess true
-        @newStaffError null
-
-        console.log newStaff
-
-        # Add new category to @categories and refresh.
-        @staff.push {
-          name: ko.observable newStaff.name
-          id: ko.observable newStaff.id
-        }
-        resizeAllCarousels()
-
-      settings.error = (jqXHR, textStatus, errorThrown) =>
-        console.log "Staff not created!"
-        @newStaffNameErrorMessage true
-        @newStaffAjaxLoad false
-        @newStaffNameMessageBody 'An unexpected error occured'
-
-      # Make the ajax call.
-      @newStaffAjaxLoad true
-      $.ajax settings    
-
+    viewInfo: (staff) =>
+      staff.loadInfo()
+      $('#modal-staff-info').modal('show')
+      @currentStaff staff
 
     load: () ->
       # Get data from API
-      $.getJSON '/api/v1/staff/?format=json&staff_id='+'', (data) =>
+      $.getJSON '/api/v1/staff/?format=json', (data) =>
         console.log data
         mapped = $.map data.objects, (item) ->
           return new Staff item
@@ -838,8 +938,7 @@ $(document).ready ->
   PawsViewModel.ObservationListVM.observations.subscribe (value) ->
     console.log this
     console.log value
-    console.log "hi"
-
+    console.log "observation array changed"
 
   # Sammy
   # ################
@@ -952,4 +1051,3 @@ $(document).ready ->
 
   # Enable dismissal of an alert via javascript:
   $(".alert").alert()
-
