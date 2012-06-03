@@ -33,6 +33,7 @@ $(document).ready ->
         @animal = ko.observable new Animal data.animal
         @observation_id = ko.observable data.observation.id
         @interaction_time = ko.observable data.interaction_time
+        @observation_time = ko.observable data.observation_time
         #@behavior = ko.observable data.behavior
         #@description = ko.observable data.description
         @indirect_use = ko.observable data.indirectUse
@@ -44,7 +45,15 @@ $(document).ready ->
             value: value
             type: "interaction_time"
           console.log d
-          updateAnimalObservation.notifySubscribers d, "interaction_time"
+          updateAnimalObservation.notifySubscribers d, "saveAnimalObservation"
+        @observation_time.subscribe (value) =>
+          console.log "change observation_time"
+          d =
+            id: @id
+            value: value
+            type: "observation_time"
+          console.log d
+          updateAnimalObservation.notifySubscribers d, "saveAnimalObservation"
         @indirect_use.subscribe (value) =>
           console.log "change indirect_use"
           d =
@@ -52,12 +61,13 @@ $(document).ready ->
             value: value
             type: "indirect_use"
           console.log d
-          updateAnimalObservation.notifySubscribers d, "indirect_use"
+          updateAnimalObservation.notifySubscribers d, "saveAnimalObservation"
       else
         @id = ko.observable null
         @animal = ko.observable null
         @observation_id = ko.observable null
         @interaction_time = ko.observable null
+        @observation_time = ko.observable null
         #@behavior = ko.observable null
         #@description = ko.observable null
         @indirect_use = ko.observable null
@@ -884,11 +894,7 @@ $(document).ready ->
       updateAnimalObservation.subscribe (data) =>
           console.log "saving indirect_use"
           @saveAnimalObservation data
-        , @, "indirect_use"
-      updateAnimalObservation.subscribe (data) =>
-          console.log "saving interaction_time"
-          @saveAnimalObservation data
-        , @, "interaction_time"
+        , @, "saveAnimalObservation"
 
     finishObservation: () =>
       try
