@@ -70,7 +70,7 @@ def importAnimals(data):
     common_name = fields[1]
     scientific_name = fields[2]
     exhibit_code = fields[3]
-    group_name = fields[4] != ''
+    group_name = fields[4]
     house_name = fields[5]
     count=fields[6]
 
@@ -81,8 +81,13 @@ def importAnimals(data):
     housing_group, create = models.HousingGroup.objects.get_or_create(
       exhibit=exhibit, name=group_name)
 
-    animal, create = models.Animal.objects.get_or_create(id=id,
-        name=house_name, species=species, housing_group=housing_group, count=count)
+    # Dangerous, but desired behavior. Override any animal that already has this ID.
+    animal, create = models.Animal.objects.get_or_create(id=id)
+    animal.name = house_name
+    animal.species = species
+    animal.housing_group = housing_group
+    animal.count = count
+    animal.save()
     animal_list.append(animal)
   return animal_list
 

@@ -249,7 +249,7 @@ $(document).ready ->
       # Bulk upload fields
       @uploadDisableSubmit = ko.observable true
       @uploadEnablePreview = ko.observable false
-      @uploadAnimals = ko.observableArray []
+      @uploadAnimals = []
       @uploadAnimalsPreview = ko.observableArray []
       @uploadErrorMessageBody = ko.observable ''
       @uploadErrorMessageEnable = ko.observable false
@@ -257,7 +257,7 @@ $(document).ready ->
       @uploadWarningMessageEnable = ko.observable false
       @uploadAjaxInProgress = ko.observable false
       @uploadUploadSuccess = ko.observable false
-      @uploadIncludeFirstLine = ko.observable false
+      @uploadIncludeFirstLine = ko.observable true
 
       # Must bind this to self because we need to access @files[0] within the
       # callback function.
@@ -280,7 +280,7 @@ $(document).ready ->
 
           # Split the lines up and reset the arrays.
           lines = ev.target.result.split /[\n|\r]/
-          self.uploadAnimals []
+          self.uploadAnimals = []
           self.uploadAnimalsPreview []
           # Line format:
           # ID,CommonName,ScientificName,Exhibit,HouseGroupName,HouseName,Count
@@ -298,7 +298,23 @@ $(document).ready ->
               if (not self.uploadWarningMessageEnable())
                 self.uploadWarningMessageEnable true
                 self.uploadWarningMessageBody(
-                    "Line #{i + 1} has #{fields.length} fields")
+                    "Line #{i + 1}: has #{fields.length} fields")
+              continue
+
+            # Make sure there's an integer in this field.
+            if (not parseInt fields[0])
+              if (not self.uploadWarningMessageEnable())
+                self.uploadWarningMessageEnable true
+                self.uploadWarningMessageBody(
+                    "Line #{i + 1}: ID must be an integer (\"#{fields[0]}\")")
+              continue
+
+            # Make sure there's an integer in this field too.
+            if (not parseInt fields[6])
+              if (not self.uploadWarningMessageEnable())
+                self.uploadWarningMessageEnable true
+                self.uploadWarningMessageBody(
+                    "Line #{i + 1}: Count must be an integer (\"#{fields[6]}\")")
               continue
 
             # Make sure fields are all good.
@@ -317,7 +333,7 @@ $(document).ready ->
               continue
 
             # Add line to URL.
-            self.uploadAnimals.push fields
+            self.uploadAnimals.push line
             self.uploadAnimalsPreview.push {
               id: fields[0]
               speciesCommonName: fields[1]
@@ -328,9 +344,14 @@ $(document).ready ->
               count: fields[6]
             }
 
-          # Show table.
-          self.uploadDisableSubmit false
-          self.uploadEnablePreview true
+          if (self.uploadAnimals.length > 0)
+            # Show table.
+            self.uploadDisableSubmit false
+            self.uploadEnablePreview true
+          else
+            self.uploadWarningMessageEnable false
+            self.uploadErrorMessageEnable true
+            self.uploadErrorMessageBody "#{file.name} contained no valid lines"
         
         # Initiate the reader.
         reader.readAsText(file)
@@ -340,8 +361,43 @@ $(document).ready ->
       $('#file_upload').val('');
       @uploadDisableSubmit true
       @uploadEnablePreview false
-      @uploadAnimals []
+      @uploadAnimals = []
       @uploadAnimalsPreview []
+      @uploadErrorMessageEnable false
+      @uploadWarningMessageEnable false
+      @uploadAjaxInProgress false
+      @uploadUploadSuccess false
+      @uploadIncludeFirstLine true
+
+    sendBulkUpload: () ->
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/animal/bulk/?format=json'
+        data: JSON.stringify @uploadAnimals
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "Batch animals created"
+        console.log data
+        console.log textStatus
+
+        @uploadUploadSuccess true
+        @uploadErrorMessageEnable false
+        @uploadWarningMessageEnable false
+
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Batch animals error"
+        @uploadErrorMessageEnable true
+        @uploadWarningMessageEnable false
+        @uploadErrorMessageBody 'An unexpected error occured'
+
+      # Make the ajax call.
+      @uploadAjaxInProgress true
+      $.ajax settings
 
     # Toggle viewAll
     toggleViewAll: () =>
@@ -435,7 +491,7 @@ $(document).ready ->
     # Load exhibits and animals
     load: () =>
       # Get data from API
-      $.getJSON '/api/v1/exhibit/?format=json', (data) =>
+      $.getJSON '/api/v1/exhibit/?format=json&limit=0', (data) =>
         mappedExhibits = $.map data.objects, (item) ->
           return new Exhibit item
         @exhibits mappedExhibits
@@ -583,7 +639,7 @@ $(document).ready ->
           @newAnimalObservationNameMessageBody 'An unexpected error occured'
 
         # Make the ajax call.
-        $.ajax settings    
+        $.ajax settings
 
 
     # Clear everything out
@@ -863,7 +919,7 @@ $(document).ready ->
       obs = {}
       obs.date_finished = new Date().toISOString().split('.')[0]
       console.log obs
-      $.ajax "/api/v1/observation/"+@activeObservation().id+"/?format=json", {
+      $.ajax "/api/v1/observation/#{@activeObservation().id}/?format=json", {
         data: JSON.stringify obs
         dataType: "json"
         type: "PUT"
