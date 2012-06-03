@@ -350,7 +350,22 @@ $(document).ready ->
       if selectAnimals.length > 0
         $.each selectAnimals, (index, animal) =>
           @selectAnimal(animal)
-      else
+      else # Deselect all animals in exhibit if already fully selected
+        $.each deselectAnimals, (index, animal) =>
+          @deselectAnimal(animal)
+
+    selectHousingGroup: (housingGroup) =>
+      selectAnimals = []
+      deselectAnimals = []
+      $.each housingGroup.animals(), (index, animal) =>
+        if !@isSelected(animal)
+          selectAnimals.push animal
+        else
+          deselectAnimals.push animal
+      if selectAnimals.length > 0
+        $.each selectAnimals, (index, animal) =>
+          @selectAnimal(animal)
+      else # Deselect all animals in exhibit if already fully selected
         $.each deselectAnimals, (index, animal) =>
           @deselectAnimal(animal)
 

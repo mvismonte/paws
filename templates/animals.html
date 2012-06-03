@@ -13,7 +13,7 @@
             </div>
             <div class="span6 btn-toolbar">
               <div class="btn-group">
-                <button class="btn" data-toggle="modal" data-target="#modal-animal" data-bind="css: {'disabled': selectedAnimals().length == 0}">View Selected</button>
+                <button class="btn" data-toggle="modal" data-target="#modal-animal" data-bind="css: {'disabled': selectedAnimals().length != 1}">View Selected</button>
                 <button class="btn" data-toggle="modal" data-target="#modal-animal-upload">Bulk Add</button>
               </div>
 
@@ -30,13 +30,13 @@
     <div class="row list-items" id="animalSelector" data-bind="foreach: exhibits">
 
       <div class="span12" data-bind="visible: $root.viewAll() || $data.numOwned() > 0">
-        <h2><span data-bind="text: fullName"></span> <button data-bind="click: $parent.selectExhibit" class="btn">Select all</button></h2>
+        <h2><span data-bind="text: fullName"></span> <button data-bind="click: $root.selectExhibit" class="btn">Select all</button></h2>
       </div>
 
       <!-- ko foreach: housingGroups -->
       <div data-bind="visible: $root.viewAll() || $data.isInStaff()">
         <div class="span12">
-          <h3 data-bind="text: name"></h3>
+          <h3><span data-bind="text: name"></span> <button data-bind="click: $root.selectHousingGroup" class="btn">Select all</button></h3>
         </div>
 
           <!-- ko foreach: animals -->
