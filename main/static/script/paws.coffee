@@ -201,6 +201,102 @@ $(document).ready ->
         return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
           return enrichment.subcategoryId() == subcategory.id()
 
+      # Bulk upload fields
+      @uploadDisableSubmit = ko.observable true
+      @uploadEnablePreview = ko.observable false
+      @uploadAnimals = ko.observableArray []
+      @uploadAnimalsPreview = ko.observableArray []
+      @uploadErrorMessageBody = ko.observable ''
+      @uploadErrorMessageEnable = ko.observable false
+      @uploadWarningMessageBody = ko.observable ''
+      @uploadWarningMessageEnable = ko.observable false
+      @uploadAjaxInProgress = ko.observable false
+      @uploadUploadSuccess = ko.observable false
+      @uploadIncludeFirstLine = ko.observable false
+
+      # Must bind this to self because we need to access @files[0] within the
+      # callback function.
+      self = this
+      document.getElementById('file_upload').onchange = ->
+        file = @files[0]
+        console.log file
+        self.uploadDisableSubmit true
+        self.uploadEnablePreview false
+        self.uploadErrorMessageEnable false
+        self.uploadWarningMessageEnable false
+        reader = new FileReader()
+        console.log reader
+        reader.onload = (ev) ->
+
+          if (ev.target.result == "")
+            self.uploadErrorMessageEnable true
+            self.uploadErrorMessageBody 'The file is empty'
+            return
+
+          # Split the lines up and reset the arrays.
+          lines = ev.target.result.split /[\n|\r]/
+          self.uploadAnimals []
+          self.uploadAnimalsPreview []
+          # Line format:
+          # ID,CommonName,ScientificName,Exhibit,HouseGroupName,HouseName,Count
+          for line, i in lines
+            fields = line.split(',')
+            console.log i
+            console.log fields
+
+            if (fields.length == 0)
+              console.log "The line is empty"
+              continue
+
+            # Make sure there are only 7 fields
+            if (fields.length != 7)
+              if (not self.uploadWarningMessageEnable())
+                self.uploadWarningMessageEnable true
+                self.uploadWarningMessageBody(
+                    "Line #{i + 1} has #{fields.length} fields")
+              continue
+
+            # Make sure fields are all good.
+            hasBlankField = false
+            for field in fields
+              if (field == "")
+                console.log "field is bad!"
+                hasBlankField = true
+                break
+
+            if (hasBlankField)
+              if (not self.uploadWarningMessageEnable())
+                self.uploadWarningMessageEnable true
+                self.uploadWarningMessageBody(
+                    "Line #{i + 1} has blank fields and has been excluded.")
+              continue
+
+            # Add line to URL.
+            self.uploadAnimals.push fields
+            self.uploadAnimalsPreview.push {
+              id: fields[0]
+              speciesCommonName: fields[1]
+              speciesScientificName: fields[2]
+              exhibit: fields[3]
+              houseGroupName: fields[4]
+              houseName: fields[5]
+              count: fields[6]
+            }
+
+          # Show table.
+          self.uploadDisableSubmit false
+          self.uploadEnablePreview true
+        
+        # Initiate the reader.
+        reader.readAsText(file)
+
+    # Open bulk upload.
+    openBulkUpload: () ->
+      $('#file_upload').val('');
+      @uploadDisableSubmit true
+      @uploadEnablePreview false
+      @uploadAnimals []
+      @uploadAnimalsPreview []
 
     # Apply filters
     filterCategory: (category) =>
@@ -629,11 +725,11 @@ $(document).ready ->
 
     save: () =>
       $.ajax "/api/v1/observation/", { #BAD, will overwrite
-          data: ko.toJSON { objects: self.observations }
-          type: "PUT"
-          contentType: "application/json"
-          success: (result) -> 
-            alert(result)
+        data: ko.toJSON { objects: self.observations }
+        type: "PUT"
+        contentType: "application/json"
+        success: (result) -> 
+          alert(result)
       }
 
     load: () =>
@@ -822,23 +918,23 @@ $(document).ready ->
           value.refresh()
 
   scrollers.categorySelector = new iScroll 'categorySelector', {
-      vScroll: false
-      momentum: true
-      bounce: true
-      hScrollbar: false
-    }
+    vScroll: false
+    momentum: true
+    bounce: true
+    hScrollbar: false
+  }
   scrollers.subcategorySelector = new iScroll 'subcategorySelector', {
-      vScroll: false
-      momentum: true
-      bounce: true
-      hScrollbar: false
-    }
+    vScroll: false
+    momentum: true
+    bounce: true
+    hScrollbar: false
+  }
   scrollers.enrichmentSelector = new iScroll 'enrichmentSelector', {
-      vScroll: false
-      momentum: true
-      bounce: true
-      hScrollbar: false
-    }
+    vScroll: false
+    momentum: true
+    bounce: true
+    hScrollbar: false
+  }
   scrollers.observationEnrichments = new iScroll 'observationEnrichments', {
     vScroll: true
     hScroll: false
