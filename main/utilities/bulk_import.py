@@ -82,7 +82,10 @@ def importAnimals(data):
       exhibit=exhibit, name=group_name)
 
     # Dangerous, but desired behavior. Override any animal that already has this ID.
-    animal, create = models.Animal.objects.get_or_create(id=id)
+    try:
+      animal = models.Animal.objects.get(id=id)
+    except ObjectDoesNotExist:
+      animal = models.Animal(id=id)
     animal.name = house_name
     animal.species = species
     animal.housing_group = housing_group

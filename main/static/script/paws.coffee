@@ -351,7 +351,8 @@ $(document).ready ->
           else
             self.uploadWarningMessageEnable false
             self.uploadErrorMessageEnable true
-            self.uploadErrorMessageBody "#{file.name} contained no valid lines"
+            self.uploadErrorMessageBody(
+                "#{file.name} is not in the proper format")
         
         # Initiate the reader.
         reader.readAsText(file)
@@ -370,11 +371,16 @@ $(document).ready ->
       @uploadIncludeFirstLine true
 
     sendBulkUpload: () ->
+      uploadAnimals = @uploadAnimals
+
+      # Don't include the first line if the user doesn't want us to.
+      if (not @uploadIncludeFirstLine())
+        uploadAnimals = uploadAnimals.slice 1, uploadAnimals.length
 
       settings =
         type: 'POST'
         url: '/api/v1/animal/bulk/?format=json'
-        data: JSON.stringify @uploadAnimals
+        data: JSON.stringify uploadAnimals
         dataType: "json",
         processData:  false,
         contentType: "application/json"
@@ -384,9 +390,13 @@ $(document).ready ->
         console.log data
         console.log textStatus
 
+        # Show success message.
         @uploadUploadSuccess true
         @uploadErrorMessageEnable false
         @uploadWarningMessageEnable false
+
+        # Reload to ensure that we have all animals added.
+        @load()
 
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
@@ -394,6 +404,7 @@ $(document).ready ->
         @uploadErrorMessageEnable true
         @uploadWarningMessageEnable false
         @uploadErrorMessageBody 'An unexpected error occured'
+        @uploadAjaxInProgress false
 
       # Make the ajax call.
       @uploadAjaxInProgress true
