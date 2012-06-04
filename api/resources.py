@@ -73,6 +73,9 @@ class AnimalObservationResource(ModelResource):
 
   # creating new animalObservation into database
   def obj_create(self, bundle, request=None, **kwargs):
+    # TODO(): Make it so that only the user of an observation is allowed to
+    # create new animal observations.
+    # How do we get the observation from here?
     return super(AnimalObservationResource, self).obj_create(bundle, request, **kwargs)
     
   # update animalObservation's information in the database
@@ -91,7 +94,7 @@ class AnimalObservationResource(ModelResource):
     observation_id = int(kwargs.pop('pk', None))
     if not self.can_modify_observation(request, observation_id):
       raise ImmediateHttpResponse(
-          HttpUnauthorized("Cannot delet other users' animal observations")
+          HttpUnauthorized("Cannot delete other users' animal observations")
       )
     return super(AnimalObservationResource, self).obj_delete( request, **kwargs)
 
@@ -366,6 +369,12 @@ class AnimalResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
+    # Make user is superuser.
+    if not request.user.is_superuser:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot edit other users' observations")
+      )
+
     # try to load the json file
     try:
       animal_list = json.loads(request.raw_post_data)
@@ -593,6 +602,12 @@ class EnrichmentResource(ModelResource):
     self.method_check(request, allowed=['post'])
     self.is_authenticated(request)
     self.throttle_check(request)
+
+    # Make user is superuser.
+    if not request.user.is_superuser:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot bulk add")
+      )
 
     # try loading the json
     try:
@@ -1007,6 +1022,12 @@ class UserResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
+    # Make user is superuser.
+    if not request.user.is_superuser:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot add user")
+      )
+
     try:
       user = json.loads(request.raw_post_data)
       print user
@@ -1030,6 +1051,12 @@ class UserResource(ModelResource):
     self.method_check(request, allowed=['post'])
     self.is_authenticated(request)
     self.throttle_check(request)
+
+    # Make user is superuser.
+    if not request.user.is_superuser:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot bulk add")
+      )
  
     # Try making a new user
     try:
