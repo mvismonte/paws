@@ -73,9 +73,14 @@ class AnimalObservationResource(ModelResource):
 
   # creating new animalObservation into database
   def obj_create(self, bundle, request=None, **kwargs):
-    # TODO(): Make it so that only the user of an observation is allowed to
-    # create new animal observations.
-    # How do we get the observation from here?
+    # Get the user of the observation by fully hydrating the bundle and then
+    # check if the user is allowed to add to this observation.
+    user = self.full_hydrate(bundle).obj.observation.staff.user
+    if not request.user.is_superuser and user != request.user:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot add other users' animal observations")
+      )
+
     return super(AnimalObservationResource, self).obj_create(bundle, request, **kwargs)
     
   # update animalObservation's information in the database
