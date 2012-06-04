@@ -8,11 +8,12 @@
       <div class="page-header">
         <div class="row">
           <div class="span6">
-            <h1>Zookeepers</h1>
+            <h1>Staff Members</h1>
           </div>
           <div class="span6">
             <div class="btn-group pull-right">
-              <button class="btn btn-primary" data-bind="" data-toggle="modal" data-target="#modal-staff-new">Add Zookeeper</button>
+              <button class="btn" data-bind="" data-toggle="modal" data-target="#modal-staff-bulk">Bulk Add</button>
+              <button class="btn btn-primary" data-bind="" data-toggle="modal" data-target="#modal-staff-new">Add Staff Member</button>
             </div>
           </div>
         </div>
@@ -26,45 +27,6 @@
         <strong data-bind="text: full_name"></strong>
         <small data-bind="text: username"></small>
       </div>
-    </div>
-  </div>
-
-  {# Modal for creating enrichment category #}
-  <div class="modal hide fade" id="modal-staff-new">
-    <div class="modal-header">
-      <button class="close" data-dismiss="modal">×</button>
-      <h3>Add Zookeeper</h3>
-    </div>
-    <div class="modal-body">
-      {# Info messages #}
-      <div class="alert alert-error" data-bind="visible: newStaffError">
-        <button class="close" data-bind="click: function() { newStaffError(null) }">×</button>
-        <strong>Error!</strong> <span data-bind="text: newStaffError"></span>
-      </div>
-      <div class="alert alert-success" data-bind="visible: newStaffSuccess">
-        <strong>Success!</strong> <span>Zookeeper added</span>
-      </div>
-
-      {# Input fields #}
-      <form action="#" class="form-horizontal" data-bind="visible: newStaffIsCreating, submit: function() {return false }">
-        <fieldset>
-          <div class="control-group">
-            <label class="control-label" for="input01">First Name</label>
-            <div class="controls">
-              <input type="text" class="input-xlarge" data-bind="value: newStaff.firstName">
-            </div>
-            <label class="control-label" for="input02">Last Name</label>
-            <div class="controls">
-              <input type="text" class="input-xlarge" data-bind="value: newStaff.lastName">
-            </div>
-          </div>
-        </fieldset>
-      </form>
-    </div>
-    <div class="modal-footer" data-bind="visible: newStaffIsCreating">
-      <img data-bind="visible: newStaffAjaxLoad" src="/static/img/ajax-loader.gif"/>
-      <a href="#" class="btn" data-dismiss="modal">Close</a>
-      <a href="#" class="btn btn-primary" data-bind="">Create Category</a>
     </div>
   </div>
 
@@ -88,6 +50,73 @@
       <img data-bind="visible: loading" src="/static/img/ajax-loader.gif"/>
       <a href="#" class="btn" data-dismiss="modal">Close</a>
       <a href="#" class="btn btn-primary" data-bind="">Create Category</a>
+    </div>
+  </div>
+
+
+  {# Modal for creating staff #}
+  <div class="modal hide fade" id="modal-staff-new">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3>Add Staff Member</h3>
+    </div>
+    <div class="modal-body">
+      {# Info messages #}
+      <div class="alert alert-error" data-bind="visible: newStaffError">
+        <button class="close" data-bind="click: function() { newStaffError(null) }">×</button>
+        <strong>Error!</strong> <span data-bind="text: newStaffError"></span>
+      </div>
+      <div class="alert alert-success" data-bind="visible: newStaffSuccess">
+        <strong>Success!</strong> <span data-bind="text: newStaffSuccess"></span>
+      </div>
+
+      {# Input fields #}
+      <form action="#" class="form-horizontal" data-bind="visible: newStaffIsCreating, submit: function() {return false }">
+        <fieldset>
+          <div class="control-group">
+            <label class="control-label">First Name</label>
+            <div class="controls">
+              <input type="text" class="input-xlarge" data-bind="value: newStaff.firstName">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Last Name</label>
+            <div class="controls">
+              <input type="text" class="input-xlarge" data-bind="value: newStaff.lastName">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Password</label>
+            <div class="controls">
+              <input type="password" class="input-xlarge" data-bind="value: newStaff.password1">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Password (re-enter)</label>
+            <div class="controls">
+              <input type="password" class="input-xlarge" data-bind="value: newStaff.password2">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Superuser</label>
+            <div class="controls">
+              <label class="checkbox">
+                <input type="checkbox" data-bind="checked: newStaff.isSuperuser">
+                Enable this if you want this new user to be a super user
+              </label>
+              <div class="alert" data-bind="visible: newStaff.isSuperuser">
+                <strong>Warning!</strong>
+                <span>Superusers have permissions to modify anything in the system!</span>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+    <div class="modal-footer" data-bind="visible: newStaffIsCreating">
+      <img data-bind="visible: newStaffAjaxLoad" src="/static/img/ajax-loader.gif"/>
+      <a href="#" class="btn" data-dismiss="modal">Close</a>
+      <a href="#" class="btn btn-primary" data-bind="click: createStaff">Create Staff Member</a>
     </div>
   </div>
 

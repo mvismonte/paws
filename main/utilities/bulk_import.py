@@ -70,7 +70,7 @@ def importAnimals(data):
     common_name = fields[1]
     scientific_name = fields[2]
     exhibit_code = fields[3]
-    group_name = fields[4] != ''
+    group_name = fields[4]
     house_name = fields[5]
     count=fields[6]
 
@@ -81,63 +81,97 @@ def importAnimals(data):
     housing_group, create = models.HousingGroup.objects.get_or_create(
       exhibit=exhibit, name=group_name)
 
-    animal, create = models.Animal.objects.get_or_create(id=id,
-        name=house_name, species=species, housing_group=housing_group, count=count)
+    # Dangerous, but desired behavior. Override any animal that already has this ID.
+    try:
+      animal = models.Animal.objects.get(id=id)
+    except ObjectDoesNotExist:
+      animal = models.Animal(id=id)
+    animal.name = house_name
+    animal.species = species
+    animal.housing_group = housing_group
+    animal.count = count
+    animal.save()
     animal_list.append(animal)
   return animal_list
 
+# Add a single user
+def addUser(first_name, last_name, password, is_superuser):
+  # Make sure that first and last name are not blank
+  if first_name == "" or last_name == "":
+    return None
+  
+  # Capatalize first and last name
+  first_name = first_name.capitalize()
+  last_name = last_name.capitalize()
 
+  # Make username based on first and last name of user 
+  username = first_name[0] + last_name
+  username = username.lower()
+  count = 0    
 
+  original_username = username
+
+  # Check if the username is already in the database
+  unique = False
+
+  # While User is still in the database
+  while not unique:
+    # Try to get the User with username username
+    try:
+      user = models.User.objects.get(username=username)
+
+      # Append a number to the username if it already exists
+      count += 1
+      username = original_username + str(count)
+
+    except ObjectDoesNotExist:
+      # Username has not been used before, create new user
+      user = models.User.objects.create_user(
+          username=username,
+          password=password,
+          email=' ' )
+      user.is_superuser = is_superuser
+      user.is_staff = is_superuser
+      user.first_name = first_name
+      user.last_name = last_name
+      user.save()
+
+      # Add associated staff to user
+      staff = models.Staff.objects.create(user=user)
+      staff.save()
+
+      # Now the user is unique
+      unique = True
+
+  return user
+
+# Add a bulk of users
 def importUsers(array):
   user_list = []
 
   # Gets an array of user data
   # Formatted as <first_name>, <first_name>, <password>, <is_superuser>
   for line in array:
-    print "Beginning of loop"
     # The fields are divided by comma
     fields = line.split(',')
-    
+
     # Check the line for proper format
     if len(fields) != 4:
-      print "len < 4"
       continue
 
     first_name = fields[0]
     last_name = fields[1]
     password = fields[2]
     is_superuser = fields[3]
- 
-    username = first_name[0] + last_name
-    username = username.lower()
-    count = 0    
-
-    original_username = username
-    # Check if the username is already in the database
-    unique = False
-    # While User is still in the database
-    while not unique:
-      # Try to get the User with username username
-      try:
-        user = models.User.objects.get(username=username)
-        count += 1
-        # Append a number to the username if it already exists
-        username = original_username + str(count)
-      except ObjectDoesNotExist:
-        # Username has not been used before, create new user
-        user = models.User.objects.create_user(
-            username=username,
-            password=password,
-            email=' ' )
-        user.is_superuser = is_superuser=="1"
-        user.first_name = first_name
-        user.last_name = last_name
-        user.save()
-        staff = models.Staff.objects.create(user=user)
-        staff.save()
-        user_list.append(user);
-        # Now the user is unique
-        unique = True
     
+    user = addUser(
+        first_name=first_name,
+        last_name=last_name,
+        password=password,
+        is_superuser=(is_superuser=="1"))
+
+    if user:
+      user_list.append(user)
 
   return user_list
+

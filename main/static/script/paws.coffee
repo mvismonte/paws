@@ -279,6 +279,170 @@ $(document).ready ->
         return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
           return enrichment.subcategoryId() == subcategory.id()
 
+      # Bulk upload fields
+      @uploadDisableSubmit = ko.observable true
+      @uploadEnablePreview = ko.observable false
+      @uploadAnimals = []
+      @uploadAnimalsPreview = ko.observableArray []
+      @uploadErrorMessageBody = ko.observable ''
+      @uploadErrorMessageEnable = ko.observable false
+      @uploadWarningMessageBody = ko.observable ''
+      @uploadWarningMessageEnable = ko.observable false
+      @uploadAjaxInProgress = ko.observable false
+      @uploadUploadSuccess = ko.observable false
+      @uploadIncludeFirstLine = ko.observable true
+
+      # Must bind this to self because we need to access @files[0] within the
+      # callback function.
+      self = this
+      document.getElementById('file_upload').onchange = ->
+        file = @files[0]
+        console.log file
+        self.uploadDisableSubmit true
+        self.uploadEnablePreview false
+        self.uploadErrorMessageEnable false
+        self.uploadWarningMessageEnable false
+        reader = new FileReader()
+        console.log reader
+        reader.onload = (ev) ->
+
+          if (ev.target.result == "")
+            self.uploadErrorMessageEnable true
+            self.uploadErrorMessageBody 'The file is empty'
+            return
+
+          # Split the lines up and reset the arrays.
+          lines = ev.target.result.split /[\n|\r]/
+          self.uploadAnimals = []
+          self.uploadAnimalsPreview []
+          # Line format:
+          # ID,CommonName,ScientificName,Exhibit,HouseGroupName,HouseName,Count
+          for line, i in lines
+            fields = line.split(',')
+            console.log i
+            console.log fields
+
+            if (fields.length == 0)
+              console.log "The line is empty"
+              continue
+
+            # Make sure there are only 7 fields
+            if (fields.length != 7)
+              if (not self.uploadWarningMessageEnable())
+                self.uploadWarningMessageEnable true
+                self.uploadWarningMessageBody(
+                    "Line #{i + 1}: has #{fields.length} fields")
+              continue
+
+            # Make sure there's an integer in this field.
+            if (not parseInt fields[0])
+              if (not self.uploadWarningMessageEnable())
+                self.uploadWarningMessageEnable true
+                self.uploadWarningMessageBody(
+                    "Line #{i + 1}: ID must be an integer (\"#{fields[0]}\")")
+              continue
+
+            # Make sure there's an integer in this field too.
+            if (not parseInt fields[6])
+              if (not self.uploadWarningMessageEnable())
+                self.uploadWarningMessageEnable true
+                self.uploadWarningMessageBody(
+                    "Line #{i + 1}: Count must be an integer (\"#{fields[6]}\")")
+              continue
+
+            # Make sure fields are all good.
+            hasBlankField = false
+            for field in fields
+              if (field == "")
+                console.log "field is bad!"
+                hasBlankField = true
+                break
+
+            if (hasBlankField)
+              if (not self.uploadWarningMessageEnable())
+                self.uploadWarningMessageEnable true
+                self.uploadWarningMessageBody(
+                    "Line #{i + 1} has blank fields and has been excluded.")
+              continue
+
+            # Add line to URL.
+            self.uploadAnimals.push line
+            self.uploadAnimalsPreview.push {
+              id: fields[0]
+              speciesCommonName: fields[1]
+              speciesScientificName: fields[2]
+              exhibit: fields[3]
+              houseGroupName: fields[4]
+              houseName: fields[5]
+              count: fields[6]
+            }
+
+          if (self.uploadAnimals.length > 0)
+            # Show table.
+            self.uploadDisableSubmit false
+            self.uploadEnablePreview true
+          else
+            self.uploadWarningMessageEnable false
+            self.uploadErrorMessageEnable true
+            self.uploadErrorMessageBody(
+                "#{file.name} is not in the proper format")
+        
+        # Initiate the reader.
+        reader.readAsText(file)
+
+    # Open bulk upload.
+    openBulkUpload: () ->
+      $('#file_upload').val('');
+      @uploadDisableSubmit true
+      @uploadEnablePreview false
+      @uploadAnimals = []
+      @uploadAnimalsPreview []
+      @uploadErrorMessageEnable false
+      @uploadWarningMessageEnable false
+      @uploadAjaxInProgress false
+      @uploadUploadSuccess false
+      @uploadIncludeFirstLine true
+
+    sendBulkUpload: () ->
+      uploadAnimals = @uploadAnimals
+
+      # Don't include the first line if the user doesn't want us to.
+      if (not @uploadIncludeFirstLine())
+        uploadAnimals = uploadAnimals.slice 1, uploadAnimals.length
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/animal/bulk/?format=json'
+        data: JSON.stringify uploadAnimals
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "Batch animals created"
+        console.log data
+        console.log textStatus
+
+        # Show success message.
+        @uploadUploadSuccess true
+        @uploadErrorMessageEnable false
+        @uploadWarningMessageEnable false
+
+        # Reload to ensure that we have all animals added.
+        @load()
+
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Batch animals error"
+        @uploadErrorMessageEnable true
+        @uploadWarningMessageEnable false
+        @uploadErrorMessageBody 'An unexpected error occured'
+        @uploadAjaxInProgress false
+
+      # Make the ajax call.
+      @uploadAjaxInProgress true
+      $.ajax settings
+
     # Toggle viewAll
     toggleViewAll: () =>
       @viewAll !@viewAll()
@@ -386,7 +550,7 @@ $(document).ready ->
     # Load exhibits and animals
     load: () =>
       # Get data from API
-      $.getJSON '/api/v1/exhibit/?format=json', (data) =>
+      $.getJSON '/api/v1/exhibit/?format=json&limit=0', (data) =>
         mappedExhibits = $.map data.objects, (item) ->
           return new Exhibit item
         @exhibits mappedExhibits
@@ -544,7 +708,7 @@ $(document).ready ->
           @newAnimalObservationNameMessageBody 'An unexpected error occured'
 
         # Make the ajax call.
-        $.ajax settings    
+        $.ajax settings
 
 
     # Clear everything out
@@ -986,19 +1150,89 @@ $(document).ready ->
       @staff = ko.observableArray []
 
       # New staff modal stuff
+      @newStaff =
+        firstName: ko.observable ''
+        lastName: ko.observable ''
+        password1: ko.observable ''
+        password2: ko.observable ''
+        isSuperuser: ko.observable false
       @newStaffError = ko.observable null
+      @newStaffWarning = ko.observable null
       @newStaffSuccess = ko.observable false
       @newStaffIsCreating = ko.observable true
       @newStaffAjaxLoad = ko.observable false
-
-      @newStaff =
-        first_name: ko.observable ''
-        last_name: ko.observable ''
 
       @currentStaff = ko.observable
         full_name: ''
         housingGroups: []
         loading: false
+
+    openStaffCreate: () ->
+      @newStaff.firstName ''
+      @newStaff.lastName ''
+      @newStaff.password1 ''
+      @newStaff.password2 ''
+      @newStaff.isSuperuser false
+      @newStaffError null
+      @newStaffWarning null
+      @newStaffSuccess false
+      @newStaffIsCreating true
+      @newStaffAjaxLoad false
+
+    createStaff: () ->
+      newStaff =
+        first_name: @newStaff.firstName()
+        last_name: @newStaff.lastName()
+        is_superuser: @newStaff.isSuperuser()
+        password: @newStaff.password1()
+
+      # Perform error checking first.
+      if (newStaff.first_name == '')
+        @newStaffError 'First name cannot be empty'
+        return
+      if (newStaff.last_name == '')
+        @newStaffError 'Last name cannot be empty'
+        return
+      if (newStaff.password != @newStaff.password2())
+        @newStaffError 'Passwords do not match'
+        return
+      if (newStaff.password.length < 4)
+        @newStaffError 'Password must be at least 4 characters'
+        return
+
+      # Create ajax settings.
+      settings =
+        type: 'POST'
+        url: '/api/v1/user/add_user/?format=json&always_return_data=true'
+        data: JSON.stringify newStaff
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "Staff successfully created!"
+        staff =
+          user: data.object
+          id: data.object.id
+
+        # TODO(Mark): Fix this laziness.
+        @staff.push new Staff staff
+        resizeAllCarousels()
+
+        # Show success message and remove extra weight.
+        @newStaffIsCreating false
+        @newStaffSuccess "#{staff.user.first_name} #{staff.user.last_name} " +
+            "has been created with the username #{staff.user.username}"
+        @newStaffError false
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Staff not created!"
+        @newStaffAjaxLoad false
+        @newStaffError 'An unexpected error occured'
+
+      # Make AJAX call.
+      @newStaffAjaxLoad true
+      $.ajax settings
 
     viewInfo: (staff) =>
       staff.loadInfo()
@@ -1114,23 +1348,23 @@ $(document).ready ->
           value.refresh()
 
   scrollers.categorySelector = new iScroll 'categorySelector', {
-      vScroll: false
-      momentum: true
-      bounce: true
-      hScrollbar: false
-    }
+    vScroll: false
+    momentum: true
+    bounce: true
+    hScrollbar: false
+  }
   scrollers.subcategorySelector = new iScroll 'subcategorySelector', {
-      vScroll: false
-      momentum: true
-      bounce: true
-      hScrollbar: false
-    }
+    vScroll: false
+    momentum: true
+    bounce: true
+    hScrollbar: false
+  }
   scrollers.enrichmentSelector = new iScroll 'enrichmentSelector', {
-      vScroll: false
-      momentum: true
-      bounce: true
-      hScrollbar: false
-    }
+    vScroll: false
+    momentum: true
+    bounce: true
+    hScrollbar: false
+  }
   scrollers.observationEnrichments = new iScroll 'observationEnrichments', {
     vScroll: true
     hScroll: false

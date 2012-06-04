@@ -4,6 +4,9 @@
 # This file contains the resources for the RESTful API using the
 # django-tastypie.
 
+# TODO(Diana): Reorganize imports so that all froms are in alphabetical order
+# and all imports are in alphabetical order.
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
@@ -16,19 +19,20 @@ from paws.main import models
 from tastypie.resources import fields
 from tastypie.resources import ModelResource
 from tastypie.authentication import BasicAuthentication
-from tastypie.authorization import Authorization
+from tastypie.authorization import Authorization, DjangoAuthorization
 from tastypie.utils import trailing_slash
-from tastypie.exceptions import BadRequest
+from tastypie.exceptions import BadRequest, ImmediateHttpResponse
+from tastypie.http import HttpApplicationError, HttpUnauthorized
 from haystack.query import SearchQuerySet
 from haystack.query import EmptySearchQuerySet
 from paws.main.utilities import bulk_import
 import datetime
 import json
 
-#Custom Authentication
-class customAuthentication(BasicAuthentication):
+# Custom Authentication
+class CustomAuthentication(BasicAuthentication):
   def __init__(self,*args,**kwargs):
-    super(customAuthentication,self).__init__(*args,**kwargs)
+    super(CustomAuthentication,self).__init__(*args,**kwargs)
 
   def is_authenticated(self, request, **kwargs):
     return request.user.is_authenticated()
@@ -42,28 +46,53 @@ class AnimalObservationResource(ModelResource):
       'paws.api.resources.ObservationResource', 'observation')
 
   class Meta:
-    #authenticate the user
-    authentication = customAuthentication()
+    # authenticate the user
+    authentication = CustomAuthentication()
     authorization = Authorization()
     queryset = models.AnimalObservation.objects.all()
     resource_name = 'animalObservation'
-    #allowed actions towards database
-    #get = getting animalObservation's information from the database
-    #post = adding new animalObservation into the database
-    #put = updating animalObservation's information in the database
-    #delete = delete animalObservation from the database
+    # allowed actions towards database
+    # get = getting animalObservation's information from the database
+    # post = adding new animalObservation into the database
+    # put = updating animalObservation's information in the database
+    # delete = delete animalObservation from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  #creating new animalObservation into database
+  # A check to see if staff can modify this observation.
+  def can_modify_observation(self, request, animalObservation_id):
+    # Any superuser can modify an observation.
+    if (request.user.is_superuser):
+      return True
+
+    try:
+      observation = models.AnimalObservation.objects.get(
+          id=animalObservation_id).observation
+      return observation.staff.user == request.user
+    except ObjectDoesNotExist:
+      return True
+
+  # creating new animalObservation into database
   def obj_create(self, bundle, request=None, **kwargs):
     return super(AnimalObservationResource, self).obj_create(bundle, request, **kwargs)
     
-  #update animalObservation's information in the database
+  # update animalObservation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
+    # Make sure that the user can modifty.
+    ao_id = int(kwargs.pop('pk', None))
+    if not self.can_modify_observation(request, ao_id):
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot edit other users' animal observations")
+      )
     return super(AnimalObservationResource, self).obj_update(bundle, request, **kwargs)
 
-  #delete animalObervation from the database
+  # delete animalObervation from the database
   def obj_delete(self, request=None, **kwargs):
+    # Make sure that the user can modifty.
+    observation_id = int(kwargs.pop('pk', None))
+    if not self.can_modify_observation(request, observation_id):
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot delet other users' animal observations")
+      )
     return super(AnimalObservationResource, self).obj_delete( request, **kwargs)
 
   # Redefine get_object_list to filter for observation_id and animal_id.
@@ -90,18 +119,18 @@ class AnimalObservationResource(ModelResource):
 
   # Add useful numerical numbers for animal observation    
   def dehydrate(self, bundle):
-    #If there is no observation, set the rate equals to 0 
+    # If there is no observation, set the rate equals to 0 
     rate = 0
     if bundle.obj.interaction_time is not None and bundle.obj.observation_time is not None and bundle.obj.indirect_use is False and bundle.obj.observation_time != 0:
-      #Add the rate of the interaction vs. total observation time
-      #The rate = interaction time is divided by the total observation time
+      # Add the rate of the interaction vs. total observation time
+      # The rate = interaction time is divided by the total observation time
       rate = bundle.obj.interaction_time/float(bundle.obj.observation_time)
 
-    #Add the rate into the API results
+    # Add the rate into the API results
     bundle.data['rate'] = rate
     return bundle
 
-  #override the url for a specific url path of searching
+  # override the url for a specific url path of searching
   def override_urls(self):
     return [
       url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/stats%s$"%
@@ -109,13 +138,13 @@ class AnimalObservationResource(ModelResource):
             self.wrap_view('get_stats'), name="api_get_stats"),  
     ]
 
-  #determine the format of the returning results in json or xml  
+  # determine the format of the returning results in json or xml  
   def determine_format(self, request):
     if (hasattr(request,'format') and request.format in self._meta.serializer.formats):
       return self._meta.serializer.get_mime_for_format(request.format)
     return super(AnimalObservationResource, self).determine_format(request)
 
-  #wraps the method 'get_seach' so that it can be called in a more functional way
+  # wraps the method 'get_seach' so that it can be called in a more functional way
   def wrap_view(self, view):
     def wrapper(request, *args, **kwargs):
       request.format = kwargs.pop('format', None)
@@ -124,42 +153,42 @@ class AnimalObservationResource(ModelResource):
     return wrapper
 
 
-  #Calculate interaction rate between one given enrichment with other given enrichments
+  # Calculate interaction rate between one given enrichment with other given enrichments
   def get_stats(self, request, **kwargs):
-    #get the animal_id from url
+    # get the animal_id from url
     animal_id= request.GET.get('animal_id', None)
     animal= models.Animal.objects.get (id=animal_id)
     q_set= self.get_object_list(request)
-    #filter by animal_id if exists
+    # filter by animal_id if exists
     try:
       q_set.filter(animal=animal)
     except ObjectDoesNotExist:
       pass
 
-    #list of different enrichment given to animal with id=animal_id
+    # list of different enrichment given to animal with id=animal_id
     enrichment_list=[]
     total_interaction=0.0
     for result in q_set:
-      #updating the interaction time
+      # updating the interaction time
       total_interaction +=result.interaction_time
       observation= models.Observation.objects.get(id=result.observation_id)
-      #Make unique enrichment list
+      # Make unique enrichment list
       if observation.enrichment in enrichment_list:
         pass
       else:
         enrichment_list.append(observation.enrichment)
 
     percent=[]
-    #calculate the percentage of each enrichment's interaction time
-    #over the total interaction time of animal with id=animal_id
+    # calculate the percentage of each enrichment's interaction time
+    # over the total interaction time of animal with id=animal_id
     for e in enrichment_list:
       total_eachInteraction=0.0
-      #behavior occurance
+      # behavior occurance
       positive=0
       NA=0
       negative=0
       avoid=0
-      #total time of each occurance
+      # total time of each occurance
       pos_interaction=0.0
       na_interaction=0.0
       neg_interaction=0.0
@@ -181,7 +210,7 @@ class AnimalObservationResource(ModelResource):
             avoid_interaction+=result.interaction_time
         else:
           pass
-      #Return 0 if the animal has never interacted with any enrichment
+      # Return 0 if the animal has never interacted with any enrichment
       if total_interaction == 0.0:
         percentage=0.0
         pos_percentage=0.0
@@ -194,13 +223,13 @@ class AnimalObservationResource(ModelResource):
         na_percentage= na_interaction/total_eachInteraction
         neg_percentage= neg_interaction/total_eachInteraction
         avoid_percentage= avoid_interaction/total_eachInteraction
-      #create bundle that stores the result object
+      # create bundle that stores the result object
       bundle = self.build_bundle(obj = e, request = request)
-      #reformating the bundle
-      #adding the enrichment name into the bundle
+      # reformating the bundle
+      # adding the enrichment name into the bundle
       bundle.data['Enrichment'] = e
       bundle.data['id']= e.id
-      #adding the percentage into the bundle
+      # adding the percentage into the bundle
       bundle.data['overall_percentage']=percentage
       bundle.data['positive_occurance']=positive
       bundle.data['positive_percentage']=pos_percentage
@@ -210,16 +239,16 @@ class AnimalObservationResource(ModelResource):
       bundle.data['neg_occurance']=neg_percentage
       bundle.data['avoid_occuranve']=avoid
       bundle.data['avoid_percentage']=avoid_percentage
-      #append the bundle into the list
+      # append the bundle into the list
       percent.append(bundle)
 
 
-    #Specifiy the format of json output
+    # Specifiy the format of json output
     object_list = {
       'objects': percent,
     }
 
-    #Return the search results in json format
+    # Return the search results in json format
     return self.create_response(request, object_list)
 
 # Animal Resource.
@@ -229,30 +258,30 @@ class AnimalResource(ModelResource):
       'paws.api.resources.SpeciesResource', 'species', full=True)
 
   class Meta:
-    #authenticate the user
+    # authenticate the user
     queryset = models.Animal.objects.all()
     resource_name = 'animal'
-    #allowed actions towards database
-    #get = getting animal's information from the database
-    #post = adding new animal into the database
-    #put = updating animal's information in the database
-    #delete = delete animal from the database
+    # allowed actions towards database
+    # get = getting animal's information from the database
+    # post = adding new animal into the database
+    # put = updating animal's information in the database
+    # delete = delete animal from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  #creating new animal into database
+  # creating new animal into database
   def obj_create(self, bundle, request=None, **kwargs):
     if self._meta.authorization.is_authorized(request):
       return super(AnimalResource, self).obj_create(bundle, request, **kwargs)
     
-  #update animal's information in the database
+  # update animal's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
     return super(AnimalResource, self).obj_update(bundle, request, **kwargs)
 
-  #delete animal from the database
+  # delete animal from the database
   def obj_delete(self, request=None, **kwargs):
     return super(AnimalResource, self).obj_delete( request, **kwargs)
 
-  #override the url for a specific url path of searching
+  # override the url for a specific url path of searching
   def override_urls(self):
     return [
       url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % 
@@ -263,13 +292,13 @@ class AnimalResource(ModelResource):
             self.wrap_view('bulk_add'), name="api_bulk_add"),
     ]
 
-  #determine the format of the returning results in json or xml  
+  # determine the format of the returning results in json or xml  
   def determine_format(self, request):
     if (hasattr(request,'format') and request.format in self._meta.serializer.formats):
       return self._meta.serializer.get_mime_for_format(request.format)
     return super(AnimalResource, self).determine_format(request)
 
-  #wraps the method 'get_seach' so that it can be called in a more functional way
+  # wraps the method 'get_seach' so that it can be called in a more functional way
   def wrap_view(self, view):
     def wrapper(request, *args, **kwargs):
       request.format = kwargs.pop('format', None)
@@ -277,16 +306,16 @@ class AnimalResource(ModelResource):
       return wrapped_view(request, *args, **kwargs)
     return wrapper
 
-  #main function for searching
+  # main function for searching
   def get_search(self, request, **kwargs):
-    #checking user inputs' method
+    # checking user inputs' method
     self.method_check(request, allowed=['get'])
-    #checking if the user is authenticated
+    # checking if the user is authenticated
     self.is_authenticated(request)
-    #checking if the user should be throttled 
+    # checking if the user should be throttled 
     self.throttle_check(request)
 
-    #Provide the results for a search query
+    # Provide the results for a search query
     sqs = SearchQuerySet().models(models.Animal).load_all().auto_query(request.GET.get('q', ''))
     paginator = Paginator(sqs, 20)
     try:
@@ -294,23 +323,23 @@ class AnimalResource(ModelResource):
     except InvalidPage:
       raise Http404("Sorry, no results on that page.")
 
-    #Create a list of objects that contains the search results
+    # Create a list of objects that contains the search results
     objects = []
     for result in page.object_list:
-      #create bundle that stores the result object
+      # create bundle that stores the result object
       bundle = self.build_bundle(obj = result.object, request = request)
-      #reformating the bundle
+      # reformating the bundle
       bundle = self.full_dehydrate(bundle)
-      #adding the bundle into a list of objects
+      # adding the bundle into a list of objects
       objects.append(bundle)
     
-    #Specifiy the format of json output
+    # Specifiy the format of json output
     object_list = {
       'objects': objects,
     }
-    #Handle the recording of the user's access for throttling purposes.
+    # Handle the recording of the user's access for throttling purposes.
     self.log_throttled_access(request)
-    #Return the search results in json format
+    # Return the search results in json format
     return self.create_response(request, object_list)
 
   # Redefine get_object_list to filter for species_id and/or housingGroup_id
@@ -343,47 +372,49 @@ class AnimalResource(ModelResource):
     except ValueError, e:
       raise ValueError('Bad JSON: %s' % e)
     print animal_list
-    #import the data into the database
+    # import the data into the database
     import_animal= bulk_import.importAnimals(animal_list)
-    #build imported animals bundles
+    # build imported animals bundles
     objects = []
     for result in import_animal:
-      #create bundle that stores the result object
+      # create bundle that stores the result object
       bundle = self.build_bundle(obj = result, request = request)
-      #reformating the bundle
+      # reformating the bundle
       bundle = self.full_dehydrate(bundle)
-      #adding the bundle into a list of objects
+      # adding the bundle into a list of objects
       objects.append(bundle)
     
-    #Specifiy the format of json output
+    # Specifiy the format of json output
     object_list = {
       'objects': objects,
     }
     return self.create_response(request, object_list)
+
+
 # Category Resource.
 class CategoryResource(ModelResource):
   class Meta:
-    #authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.Category.objects.all()
     resource_name = 'category'
-    #allowed actions towards database
-    #get = getting category's information from the database
-    #post = adding new category into the database
-    #put = updating category's information in the database
-    #delete = delete category from the database
+    # allowed actions towards database
+    # get = getting category's information from the database
+    # post = adding new category into the database
+    # put = updating category's information in the database
+    # delete = delete category from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  #creating new category into database
+  # creating new category into database
   def obj_create(self, bundle, request=None, **kwargs):
     return super(CategoryResource, self).obj_create(bundle, request, **kwargs)
     
-  #update category's information in the database
+  # update category's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
     return super(CategoryResource, self).obj_update(bundle, request, **kwargs)
 
-  #delete category from the database
+  # delete category from the database
   def obj_delete(self, request=None, **kwargs):
     return super(CategoryResource, self).obj_delete( request, **kwargs)
 
@@ -396,27 +427,27 @@ class EnrichmentNoteResource(ModelResource):
       'paws.api.resources.EnrichmentResource','enrichment', full=True)
 
   class Meta:
-    #authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.EnrichmentNote.objects.all()
     resource_name = 'enrichmentNote'
-    #allowed actions towards database
-    #get = getting enrichmentNote's information from the database
-    #post = adding new enrichmentNote into the database
-    #put = updating enrichmentNote's information in the database
-    #delete = delete enrichmentNote from the database
+    # allowed actions towards database
+    # get = getting enrichmentNote's information from the database
+    # post = adding new enrichmentNote into the database
+    # put = updating enrichmentNote's information in the database
+    # delete = delete enrichmentNote from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  #creating new enrichmentNote into database
+  # creating new enrichmentNote into database
   def obj_create(self, bundle, request=None, **kwargs):
     return super(EnrichmentNoteResource, self).obj_create(bundle, request, **kwargs)
     
-  #update enrichmentNote's information in the database
+  # update enrichmentNote's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
     return super(EnrichmentNoteResource, self).obj_update(bundle, request, **kwargs)
 
-  #delete enrichmentNote from the database
+  # delete enrichmentNote from the database
   def obj_delete(self, request=None, **kwargs):
     return super(EnrichmentNoteResource, self).obj_delete( request, **kwargs)
 
@@ -458,31 +489,31 @@ class EnrichmentResource(ModelResource):
     'paws.api.resources.SubcategoryResource','subcategory', full=True)
 
   class Meta:
-    #authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.Enrichment.objects.all()
     resource_name = 'enrichment'
-    #allowed actions towards database
-    #get = getting enrichment's information from the database
-    #post = adding new enrichment into the database
-    #put = updating enrichment's information in the database
-    #delete = delete enrichment from the database
+    # allowed actions towards database
+    # get = getting enrichment's information from the database
+    # post = adding new enrichment into the database
+    # put = updating enrichment's information in the database
+    # delete = delete enrichment from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  #creating new enrichment into database
+  # creating new enrichment into database
   def obj_create(self, bundle, request=None, **kwargs):
     return super(EnrichmentResource, self).obj_create(bundle, request, **kwargs)
     
-  #update enrichment's information in the database
+  # update enrichment's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
     return super(EnrichmentResource, self).obj_update(bundle, request, **kwargs)
 
-  #delete enrichment from the database
+  # delete enrichment from the database
   def obj_delete(self, request=None, **kwargs):
     return super(EnrichmentResource, self).obj_delete( request, **kwargs)
 
-  #override the url for a specific url path of searching
+  # override the url for a specific url path of searching
   def override_urls(self):
     return [
       url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % 
@@ -493,13 +524,13 @@ class EnrichmentResource(ModelResource):
             self.wrap_view('bulk_add'), name="api_bulk_add"),
     ]
 
-  #determine the format of the returning results in json or xml  
+  # determine the format of the returning results in json or xml  
   def determine_format(self, request):
     if (hasattr(request,'format') and request.format in self._meta.serializer.formats):
       return self._meta.serializer.get_mime_for_format(request.format)
     return super(EnrichmentResource, self).determine_format(request)
 
-  #wraps the method 'get_seach' so that it can be called in a more functional way
+  # wraps the method 'get_seach' so that it can be called in a more functional way
   def wrap_view(self, view):
     def wrapper(request, *args, **kwargs):
       request.format = kwargs.pop('format', None)
@@ -507,16 +538,16 @@ class EnrichmentResource(ModelResource):
       return wrapped_view(request, *args, **kwargs)
     return wrapper
 
-  #main function for searching
+  # main function for searching
   def get_search(self, request, **kwargs):
-    #checking user inputs' method
+    # checking user inputs' method
     self.method_check(request, allowed=['get'])
-    #checking if the user is authenticated
+    # checking if the user is authenticated
     self.is_authenticated(request)  
-    #checking if the user should be throttled 
+    # checking if the user should be throttled 
     self.throttle_check(request)
 
-    #Provide the results for a search query
+    # Provide the results for a search query
     sqs = SearchQuerySet().models(models.Enrichment).load_all().auto_query(request.GET.get('q', ''))
     paginator = Paginator(sqs, 20)
     try:
@@ -524,24 +555,24 @@ class EnrichmentResource(ModelResource):
     except InvalidPage:
       raise Http404("Sorry, no results on that page.")
 
-    #Create a list of objects that contains the search results
+    # Create a list of objects that contains the search results
     objects = []
     for result in page.object_list:
-      #create bundle that stores the result object
+      # create bundle that stores the result object
       bundle = self.build_bundle(obj = result.object, request = request)
-      #reformating the bundle
+      # reformating the bundle
       bundle = self.full_dehydrate(bundle)
-      #adding the bundle into a list of objects
+      # adding the bundle into a list of objects
       objects.append(bundle)
     
-    #Specifiy the format of json output
+    # Specifiy the format of json output
     object_list = {
       'objects': objects,
     }
 
-    #Handle the recording of the user's access for throttling purposes.
+    # Handle the recording of the user's access for throttling purposes.
     self.log_throttled_access(request)
-    #Return the search results in json format
+    # Return the search results in json format
     return self.create_response(request, object_list)
 
   # Redefine get_object_list to filter for subcategory_id.
@@ -574,18 +605,99 @@ class EnrichmentResource(ModelResource):
     # build new enrichments bundles
     objects = []
     for result in import_enrichment:
-      #create bundle that stores the result object
+      # create bundle that stores the result object
       bundle = self.build_bundle(obj = result, request = request)
-      #reformating the bundle
+      # reformating the bundle
       bundle = self.full_dehydrate(bundle)
-      #adding the bundle into a list of objects
+      # adding the bundle into a list of objects
       objects.append(bundle)
     
-    #Specifiy the format of json output
+    # Specifiy the format of json output
     object_list = {
       'objects': objects,
     }
     return self.create_response(request, object_list)
+
+# Exhibit Resource.
+class ExhibitResource(ModelResource):
+  housing_groups = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
+  class Meta:
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
+    queryset = models.Exhibit.objects.all()
+    resource_name = 'exhibit'
+    # allowed actions towards database
+    # get = getting exhibit's information from the database
+    # post = adding new exhibit into the database
+    # put = updating exhibit' information in the database
+    # delete = delete exhibit from the database
+    list_allowed_methods = ['get','post','put','delete']
+
+  # creating new species into database
+  def obj_create(self, bundle, request=None, **kwargs):
+    return super(ExhibitResource, self).obj_create(bundle, request, **kwargs)
+    
+  # update exhibit's information in the database
+  def obj_update(self, bundle, request=None, **kwargs):
+    return super(ExhibitResource, self).obj_update(bundle, request, **kwargs)
+
+  # delete exhibit from the database
+  def obj_delete(self, request=None, **kwargs):
+    return super(ExhibitResource, self).obj_delete(request, **kwargs)
+
+# HousingGroup Resource
+class HousingGroupResource(ModelResource):
+  # exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
+  staff = fields.ToManyField(
+      'paws.api.resources.StaffResource', 'staff', related_name = 'housingGroup')
+  animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal_set', full=True)
+  class Meta:
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
+    queryset = models.HousingGroup.objects.all()
+    resource_name = 'housingGroup'
+    # allowed actions towards database
+    # get = getting HousingGroup's information from the database
+    # post = adding new HousingGroup into the database
+    # put = updating HousingGroup's information in the database
+    # delete = delete HousingGroup from the database
+    list_allowed_methods = ['get','post','put','delete']
+
+  # creating new HousingGroup into database
+  def obj_create(self, bundle, request=None, **kwargs):
+    return super(HousingGroupResource, self).obj_create(bundle, request, **kwargs)
+    
+  # update HousingGroup's information in the database
+  def obj_update(self, bundle, request=None, **kwargs):
+    return super(HousingGroupResource, self).obj_update(bundle, request, **kwargs)
+
+  # delete HousingGroup from the database
+  def obj_delete(self, request=None, **kwargs):
+    return super(HousingGroupResource, self).obj_delete( request, **kwargs)
+
+  # Redefine get_object_list to filter for exhibit_id and staff_id.
+  def get_object_list(self, request):
+    staff_id = request.GET.get('staff_id', None)
+    exhibit_id = request.GET.get('exhibit_id', None)
+    q_set = super(HousingGroupResource, self).get_object_list(request)
+
+    # Try filtering by staff_id if it exists.
+    try:
+      staff = models.Staff.objects.get(id=staff_id)
+      q_set = q_set.filter(staff=staff)
+    except ObjectDoesNotExist:
+      pass
+
+    # Try filtering by exhibit if it exists.
+    try:
+      exhibit = models.Exhibit.objects.get(id=exhibit_id)
+      q_set = q_set.filter(exhibit=exhibit)
+    except ObjectDoesNotExist:
+      pass
+
+    return q_set
 
 # Observation Resource.
 class ObservationResource(ModelResource):
@@ -598,29 +710,53 @@ class ObservationResource(ModelResource):
       'paws.api.resources.StaffResource','staff')
 
   class Meta:
-    #authenticate the user
-    authentication = customAuthentication()
+    # authenticate the user
+    authentication = CustomAuthentication()
     authorization = Authorization()
     queryset = models.Observation.objects.all()
     resource_name = 'observation'
-    #allowed actions towards database
-    #get = getting observation's information from the database
-    #post = adding new observation into the database
-    #put = updating observation's information in the database
-    #delete = delete observation from the database
+    # allowed actions towards database
+    # get = getting observation's information from the database
+    # post = adding new observation into the database
+    # put = updating observation's information in the database
+    # delete = delete observation from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  #creating new observation into database
+  # A check to see if staff can modify this observation.
+  def can_modify_observation(self, request, observation_id):
+    # Any superuser can modify an observation.
+    if (request.user.is_superuser):
+      return True
+
+    try:
+      observation = models.Observation.objects.get(id=observation_id)
+      return observation.staff.user == request.user
+    except ObjectDoesNotExist:
+      return True
+
+  # creating new observation into database
   def obj_create(self, bundle, request=None, **kwargs):
     return super(ObservationResource, self).obj_create(bundle, request, **kwargs)
     
-  #update observation's information in the database
+  # update observation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
+    # Make sure that the user can modifty.
+    observation_id = int(kwargs.pop('pk', None))
+    if not self.can_modify_observation(request, observation_id):
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot edit other users' observations")
+      )
     return super(ObservationResource, self).obj_update(bundle, request, **kwargs)
 
-  #delete observation from the database
+  # delete observation from the database
   def obj_delete(self, request=None, **kwargs):
-    return super(ObservationResource, self).obj_delete( request, **kwargs)
+    # Make sure that the user can modifty.
+    observation_id = int(kwargs.pop('pk', None))
+    if not self.can_modify_observation(request, observation_id):
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot edit other users' observations")
+      )
+    return super(ObservationResource, self).obj_delete(request, **kwargs)
 
   # Redefine get_object_list to filter for enrichment_id and staff_id.
   def get_object_list(self, request):
@@ -649,157 +785,76 @@ class ObservationResource(ModelResource):
 
     return q_set
 
-# Exhibit Resource.
-class ExhibitResource(ModelResource):
-  housing_groups = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
-  class Meta:
-    #authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
-    queryset = models.Exhibit.objects.all()
-    resource_name = 'exhibit'
-    #allowed actions towards database
-    #get = getting exhibit's information from the database
-    #post = adding new exhibit into the database
-    #put = updating exhibit' information in the database
-    #delete = delete exhibit from the database
-    list_allowed_methods = ['get','post','put','delete']
-
-  #creating new species into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(ExhibitResource, self).obj_create(bundle, request, **kwargs)
-    
-  #update exhibit's information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(ExhibitResource, self).obj_update(bundle, request, **kwargs)
-
-  #delete exhibit from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(ExhibitResource, self).obj_delete(request, **kwargs)
-
 # Species Resource.
 class SpeciesResource(ModelResource):
   class Meta:
-    #authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.Species.objects.all()
     resource_name = 'species'
-    #allowed actions towards database
-    #get = getting species' information from the database
-    #post = adding new species into the database
-    #put = updating species' information in the database
-    #delete = delete species from the database
+    # allowed actions towards database
+    # get = getting species' information from the database
+    # post = adding new species into the database
+    # put = updating species' information in the database
+    # delete = delete species from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  #creating new species into database
+  # creating new species into database
   def obj_create(self, bundle, request=None, **kwargs):
     return super(SpeciesResource, self).obj_create(bundle, request, **kwargs)
     
-  #update species' information in the database
+  # update species' information in the database
   def obj_update(self, bundle, request=None, **kwargs):
     return super(SpeciesResource, self).obj_update(bundle, request, **kwargs)
 
-  #delete species from the database
+  # delete species from the database
   def obj_delete(self, request=None, **kwargs):
     return super(SpeciesResource, self).obj_delete(request, **kwargs)
-
-#housingGroup Resource
-class HousingGroupResource(ModelResource):
-  #exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
-  staff = fields.ToManyField(
-      'paws.api.resources.StaffResource', 'staff', related_name = 'housingGroup')
-  animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal_set', full=True)
-  class Meta:
-    #authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
-    queryset = models.HousingGroup.objects.all()
-    resource_name = 'housingGroup'
-    #allowed actions towards database
-    #get = getting HousingGroup's information from the database
-    #post = adding new HousingGroup into the database
-    #put = updating HousingGroup's information in the database
-    #delete = delete HousingGroup from the database
-    list_allowed_methods = ['get','post','put','delete']
-
-  #creating new HousingGroup into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(HousingGroupResource, self).obj_create(bundle, request, **kwargs)
-    
-  #update HousingGroup's information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(HousingGroupResource, self).obj_update(bundle, request, **kwargs)
-
-  #delete HousingGroup from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(HousingGroupResource, self).obj_delete( request, **kwargs)
-
-  # Redefine get_object_list to filter for exhibit_id and staff_id.
-  def get_object_list(self, request):
-    staff_id = request.GET.get('staff_id', None)
-    exhibit_id = request.GET.get('exhibit_id', None)
-    q_set = super(HousingGroupResource, self).get_object_list(request)
-
-    # Try filtering by staff_id if it exists.
-    try:
-      staff = models.Staff.objects.get(id=staff_id)
-      q_set = q_set.filter(staff=staff)
-    except ObjectDoesNotExist:
-      pass
-
-    # Try filtering by exhibit if it exists.
-    try:
-      exhibit = models.Exhibit.objects.get(id=exhibit_id)
-      q_set = q_set.filter(exhibit=exhibit)
-    except ObjectDoesNotExist:
-      pass
-
-    return q_set
 
 # Staff Resource.
 class StaffResource(ModelResource):
   user = fields.ToOneField(
       'paws.api.resources.UserResource', 'user', full=True)
-  #housing_group = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
+  # housing_group = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
   class Meta:
-    #authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.Staff.objects.all()
     resource_name = 'staff'
-    #allowed actions towards database
-    #get = getting staff's information from the database
-    #post = adding new staff into the database
-    #put = updating staff's information in the database
-    #delete = delete staff from the database
+    # allowed actions towards database
+    # get = getting staff's information from the database
+    # post = adding new staff into the database
+    # put = updating staff's information in the database
+    # delete = delete staff from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  #creating new staff into database
+  # creating new staff into database
   def obj_create(self, bundle, request=None, **kwargs):
     return super(StaffResource, self).obj_create(bundle, request, **kwargs)
     
-  #update staff's information in the database
+  # update staff's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
     return super(StaffResource, self).obj_update(bundle, request, **kwargs)
 
-  #delete staff from the database
+  # delete staff from the database
   def obj_delete(self, request=None, **kwargs):
     return super(StaffResource, self).obj_delete( request, **kwargs)
 
-  #override the url for a specific url path of searching
+  # override the url for a specific url path of searching
   def override_urls(self):
     return [
       url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
     ]
 
-  #determine the format of the returning results in json or xml  
+  # determine the format of the returning results in json or xml  
   def determine_format(self, request):
     if (hasattr(request,'format') and request.format in self._meta.serializer.formats):
       return self._meta.serializer.get_mime_for_format(request.format)
     return super(StaffResource, self).determine_format(request)
   
-  #wraps the method 'get_seach' so that it can be called in a more functional way
+  # wraps the method 'get_seach' so that it can be called in a more functional way
   def wrap_view(self, view):
     def wrapper(request, *args, **kwargs):
       request.format = kwargs.pop('format', None)
@@ -807,16 +862,16 @@ class StaffResource(ModelResource):
       return wrapped_view(request, *args, **kwargs)
     return wrapper
 
-  #main function for searching
+  # main function for searching
   def get_search(self, request, **kwargs):
-    #checking user inputs' method
+    # checking user inputs' method
     self.method_check(request, allowed=['get'])
-    #checking if the user is authenticated
+    # checking if the user is authenticated
     self.is_authenticated(request)  
-    #checking if the user should be throttled 
+    # checking if the user should be throttled 
     self.throttle_check(request)
 
-    #Provide the results for a search query
+    # Provide the results for a search query
     sqs = SearchQuerySet().models(models.Staff).load_all().auto_query(request.GET.get('q', ''))
     paginator = Paginator(sqs, 20)
     try:
@@ -824,24 +879,24 @@ class StaffResource(ModelResource):
     except InvalidPage:
       raise Http404("Sorry, no results on that page.")
 
-    #Create a list of objects that contains the search results
+    # Create a list of objects that contains the search results
     objects = []
     for result in page.object_list:
-      #create bundle that stores the result object
+      # create bundle that stores the result object
       bundle = self.build_bundle(obj = result.object, request = request)
-      #reformating the bundle
+      # reformating the bundle
       bundle = self.full_dehydrate(bundle)
-      #adding the bundle into a list of objects
+      # adding the bundle into a list of objects
       objects.append(bundle)
     
-    #Specifiy the format of json output
+    # Specifiy the format of json output
     object_list = {
       'objects': objects,
     }
 
-    #Handle the recording of the user's access for throttling purposes.
+    # Handle the recording of the user's access for throttling purposes.
     self.log_throttled_access(request)
-    #Return the search results in json format
+    # Return the search results in json format
     return self.create_response(request, object_list)
 
   # Redefine get_object_list to filter for animal_id.
@@ -862,27 +917,27 @@ class SubcategoryResource(ModelResource):
       'paws.api.resources.CategoryResource', 'category', full=True)
 
   class Meta:
-    #authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = models.Subcategory.objects.all()
     resource_name = 'subcategory'
-    #allowed actions towards database
-    #get = getting subcategory information from the database
-    #post = adding new subcategory into the database
-    #put = update subcategory's information in the database
-    #delete = delete subcategory from the database
+    # allowed actions towards database
+    # get = getting subcategory information from the database
+    # post = adding new subcategory into the database
+    # put = update subcategory's information in the database
+    # delete = delete subcategory from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  #creating new subcategory into database
+  # creating new subcategory into database
   def obj_create(self, bundle, request=None, **kwargs):
     return super(SubcategoryResource, self).obj_create(bundle, request, **kwargs)
     
-  #update subcategory's information in the database
+  # update subcategory's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
     return super(SubcategoryResource, self).obj_update(bundle, request, **kwargs)
 
-  #delete subcategory from the database
+  # delete subcategory from the database
   def obj_delete(self, request=None, **kwargs):
     return super(SubcategoryResource, self).obj_delete( request, **kwargs)
 
@@ -900,13 +955,13 @@ class SubcategoryResource(ModelResource):
 # User Resource.
 class UserResource(ModelResource):
   class Meta:
-    #authenticate the user
-    authentication = customAuthentication()
-    authorization = Authorization()
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     queryset = User.objects.all()
     resource_name = 'user'
     excludes = ['email','password']
-    #list of allowed actions towards the database
+    # list of allowed actions towards the database
     # get = get the user from the database
     # post = adding new user into the database
     # put = updating user's information in the database
@@ -918,6 +973,9 @@ class UserResource(ModelResource):
         url(r"^(?P<resource_name>%s)/bulk%s$" % 
             (self._meta.resource_name, trailing_slash()), 
             self.wrap_view('bulk_add'), name="api_bulk_add"),
+		url(r"^(?P<resource_name>%s)/add_user%s$" %
+		    (self._meta.resource_name, trailing_slash()),
+			self.wrap_view('add_user'), name="api_add_user"),
     ]
 
   # Adding new user into the database
@@ -944,23 +1002,50 @@ class UserResource(ModelResource):
   def obj_delete(self, request=None, **kwargs):
     return super(UserResource, self).obj_delete( request, **kwargs)
 
+  def add_user(self, request, **kwargs):
+    self.method_check(request, allowed=['post'])
+    self.is_authenticated(request)
+    self.throttle_check(request)
+
+    try:
+      user = json.loads(request.raw_post_data)
+      print user
+      import_user = bulk_import.addUser(
+          first_name = user["first_name"], 
+          last_name = user["last_name"],
+          password = user["password"],
+          is_superuser = user["is_superuser"])
+      object = self.build_bundle(obj=import_user, request=request)
+      object = self.full_dehydrate(object)
+      ret_user = {
+        'object': object,
+      }
+	  
+      return self.create_response(request, ret_user)
+    except ValueError:
+      return self.create_response(request, "Invalid JSON", response_class=HttpApplicationError)
+	
   # Bulk add view.
   def bulk_add(self, request, **kwargs):
     self.method_check(request, allowed=['post'])
     self.is_authenticated(request)
     self.throttle_check(request)
  
-    # Somebody should surround this in a try I think?
-    user_list = json.loads(request.raw_post_data)
-    print user_list
-    import_users = bulk_import.importUsers(user_list)
-    objects = []
-    for result in import_users:
-      bundle = self.build_bundle(obj=result, request=request)
-      bundle = self.full_dehydrate(bundle)
-      objects.append(bundle)
+    # Try making a new user
+    try:
+      user_list = json.loads(request.raw_post_data)
+      print user_list
+      import_users = bulk_import.importUsers(user_list)
+      objects = []
+      for result in import_users:
+        bundle = self.build_bundle(obj=result, request=request)
+        bundle = self.full_dehydrate(bundle)
+        objects.append(bundle)
 
-    object_list = {
-      'objects': objects,
-    }
-    return self.create_response(request, object_list)
+      object_list = {
+        'objects': objects,
+      }
+
+      return self.create_response(request, object_list)
+    except ValueError:
+      return self.create_response(request, "Invalid JSON", response_class=HttpApplicationError)
