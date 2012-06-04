@@ -48,7 +48,7 @@ class AnimalObservationResource(ModelResource):
   class Meta:
     # authenticate the user
     authentication = CustomAuthentication()
-    authorization = DjangoAuthorization()
+    authorization = Authorization()
     queryset = models.AnimalObservation.objects.all()
     resource_name = 'animalObservation'
     # allowed actions towards database
