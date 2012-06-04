@@ -19,10 +19,10 @@ from paws.main import models
 from tastypie.resources import fields
 from tastypie.resources import ModelResource
 from tastypie.authentication import BasicAuthentication
-from tastypie.authorization import DjangoAuthorization
+from tastypie.authorization import Authorization, DjangoAuthorization
 from tastypie.utils import trailing_slash
-from tastypie.exceptions import BadRequest
-from tastypie.http import HttpApplicationError
+from tastypie.exceptions import BadRequest, ImmediateHttpResponse
+from tastypie.http import HttpApplicationError, HttpUnauthorized
 from haystack.query import SearchQuerySet
 from haystack.query import EmptySearchQuerySet
 from paws.main.utilities import bulk_import
@@ -58,16 +58,41 @@ class AnimalObservationResource(ModelResource):
     # delete = delete animalObservation from the database
     list_allowed_methods = ['get','post','put','delete']
 
+  # A check to see if staff can modify this observation.
+  def can_modify_observation(self, request, animalObservation_id):
+    # Any superuser can modify an observation.
+    if (request.user.is_superuser):
+      return True
+
+    try:
+      observation = models.AnimalObservation.objects.get(
+          id=animalObservation_id).observation
+      return observation.staff.user == request.user
+    except ObjectDoesNotExist:
+      return True
+
   # creating new animalObservation into database
   def obj_create(self, bundle, request=None, **kwargs):
     return super(AnimalObservationResource, self).obj_create(bundle, request, **kwargs)
     
   # update animalObservation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
+    # Make sure that the user can modifty.
+    ao_id = int(kwargs.pop('pk', None))
+    if not self.can_modify_observation(request, ao_id):
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot edit other users' animal observations")
+      )
     return super(AnimalObservationResource, self).obj_update(bundle, request, **kwargs)
 
   # delete animalObervation from the database
   def obj_delete(self, request=None, **kwargs):
+    # Make sure that the user can modifty.
+    observation_id = int(kwargs.pop('pk', None))
+    if not self.can_modify_observation(request, observation_id):
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot delet other users' animal observations")
+      )
     return super(AnimalObservationResource, self).obj_delete( request, **kwargs)
 
   # Redefine get_object_list to filter for observation_id and animal_id.
@@ -593,6 +618,34 @@ class EnrichmentResource(ModelResource):
     }
     return self.create_response(request, object_list)
 
+# Exhibit Resource.
+class ExhibitResource(ModelResource):
+  housing_groups = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
+  class Meta:
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
+    queryset = models.Exhibit.objects.all()
+    resource_name = 'exhibit'
+    # allowed actions towards database
+    # get = getting exhibit's information from the database
+    # post = adding new exhibit into the database
+    # put = updating exhibit' information in the database
+    # delete = delete exhibit from the database
+    list_allowed_methods = ['get','post','put','delete']
+
+  # creating new species into database
+  def obj_create(self, bundle, request=None, **kwargs):
+    return super(ExhibitResource, self).obj_create(bundle, request, **kwargs)
+    
+  # update exhibit's information in the database
+  def obj_update(self, bundle, request=None, **kwargs):
+    return super(ExhibitResource, self).obj_update(bundle, request, **kwargs)
+
+  # delete exhibit from the database
+  def obj_delete(self, request=None, **kwargs):
+    return super(ExhibitResource, self).obj_delete(request, **kwargs)
+
 # HousingGroup Resource
 class HousingGroupResource(ModelResource):
   # exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
@@ -659,7 +712,7 @@ class ObservationResource(ModelResource):
   class Meta:
     # authenticate the user
     authentication = CustomAuthentication()
-    authorization = DjangoAuthorization()
+    authorization = Authorization()
     queryset = models.Observation.objects.all()
     resource_name = 'observation'
     # allowed actions towards database
@@ -669,17 +722,41 @@ class ObservationResource(ModelResource):
     # delete = delete observation from the database
     list_allowed_methods = ['get','post','put','delete']
 
+  # A check to see if staff can modify this observation.
+  def can_modify_observation(self, request, observation_id):
+    # Any superuser can modify an observation.
+    if (request.user.is_superuser):
+      return True
+
+    try:
+      observation = models.Observation.objects.get(id=observation_id)
+      return observation.staff.user == request.user
+    except ObjectDoesNotExist:
+      return True
+
   # creating new observation into database
   def obj_create(self, bundle, request=None, **kwargs):
     return super(ObservationResource, self).obj_create(bundle, request, **kwargs)
     
   # update observation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
+    # Make sure that the user can modifty.
+    observation_id = int(kwargs.pop('pk', None))
+    if not self.can_modify_observation(request, observation_id):
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot edit other users' observations")
+      )
     return super(ObservationResource, self).obj_update(bundle, request, **kwargs)
 
   # delete observation from the database
   def obj_delete(self, request=None, **kwargs):
-    return super(ObservationResource, self).obj_delete( request, **kwargs)
+    # Make sure that the user can modifty.
+    observation_id = int(kwargs.pop('pk', None))
+    if not self.can_modify_observation(request, observation_id):
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot edit other users' observations")
+      )
+    return super(ObservationResource, self).obj_delete(request, **kwargs)
 
   # Redefine get_object_list to filter for enrichment_id and staff_id.
   def get_object_list(self, request):
@@ -707,34 +784,6 @@ class ObservationResource(ModelResource):
       pass
 
     return q_set
-
-# Exhibit Resource.
-class ExhibitResource(ModelResource):
-  housing_groups = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
-  class Meta:
-    # authenticate the user
-    authentication = CustomAuthentication()
-    authorization = DjangoAuthorization()
-    queryset = models.Exhibit.objects.all()
-    resource_name = 'exhibit'
-    # allowed actions towards database
-    # get = getting exhibit's information from the database
-    # post = adding new exhibit into the database
-    # put = updating exhibit' information in the database
-    # delete = delete exhibit from the database
-    list_allowed_methods = ['get','post','put','delete']
-
-  # creating new species into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(ExhibitResource, self).obj_create(bundle, request, **kwargs)
-    
-  # update exhibit's information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(ExhibitResource, self).obj_update(bundle, request, **kwargs)
-
-  # delete exhibit from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(ExhibitResource, self).obj_delete(request, **kwargs)
 
 # Species Resource.
 class SpeciesResource(ModelResource):
