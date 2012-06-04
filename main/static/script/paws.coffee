@@ -964,19 +964,89 @@ $(document).ready ->
       @staff = ko.observableArray []
 
       # New staff modal stuff
+      @newStaff =
+        firstName: ko.observable ''
+        lastName: ko.observable ''
+        password1: ko.observable ''
+        password2: ko.observable ''
+        isSuperuser: ko.observable false
       @newStaffError = ko.observable null
+      @newStaffWarning = ko.observable null
       @newStaffSuccess = ko.observable false
       @newStaffIsCreating = ko.observable true
       @newStaffAjaxLoad = ko.observable false
-
-      @newStaff =
-        first_name: ko.observable ''
-        last_name: ko.observable ''
 
       @currentStaff = ko.observable
         full_name: ''
         housingGroups: []
         loading: false
+
+    openStaffCreate: () ->
+      @newStaff.firstName ''
+      @newStaff.lastName ''
+      @newStaff.password1 ''
+      @newStaff.password2 ''
+      @newStaff.isSuperuser false
+      @newStaffError null
+      @newStaffWarning null
+      @newStaffSuccess false
+      @newStaffIsCreating true
+      @newStaffAjaxLoad false
+
+    createStaff: () ->
+      newStaff =
+        first_name: @newStaff.firstName()
+        last_name: @newStaff.lastName()
+        is_superuser: @newStaff.isSuperuser()
+        password: @newStaff.password1()
+
+      # Perform error checking first.
+      if (newStaff.first_name == '')
+        @newStaffError 'First name cannot be empty'
+        return
+      if (newStaff.last_name == '')
+        @newStaffError 'Last name cannot be empty'
+        return
+      if (newStaff.password != @newStaff.password2())
+        @newStaffError 'Passwords do not match'
+        return
+      if (newStaff.password.length < 4)
+        @newStaffError 'Password must be at least 4 characters'
+        return
+
+      # Create ajax settings.
+      settings =
+        type: 'POST'
+        url: '/api/v1/user/add_user/?format=json&always_return_data=true'
+        data: JSON.stringify newStaff
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "Staff successfully created!"
+        staff =
+          user: data.object
+          id: data.object.id
+
+        # TODO(Mark): Fix this laziness.
+        @staff.push new Staff staff
+        resizeAllCarousels()
+
+        # Show success message and remove extra weight.
+        @newStaffIsCreating false
+        @newStaffSuccess "#{staff.user.first_name} #{staff.user.last_name} " +
+            "has been created with the username #{staff.user.username}"
+        @newStaffError false
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Staff not created!"
+        @newStaffAjaxLoad false
+        @newStaffError 'An unexpected error occured'
+
+      # Make AJAX call.
+      @newStaffAjaxLoad true
+      $.ajax settings
 
     viewInfo: (staff) =>
       staff.loadInfo()

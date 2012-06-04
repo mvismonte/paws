@@ -131,6 +131,7 @@ def addUser(first_name, last_name, password, is_superuser):
           password=password,
           email=' ' )
       user.is_superuser = is_superuser
+      user.is_staff = is_superuser
       user.first_name = first_name
       user.last_name = last_name
       user.save()
