@@ -12,6 +12,7 @@ $(document).ready ->
 
   # Knockout
   # ###############
+  updateAnimalObservation = new ko.subscribable()
 
   # Models
   # ----------------
@@ -28,19 +29,48 @@ $(document).ready ->
   class AnimalObservation
     constructor: (data=null) ->
       if data?
+        @id = data.id
         @animal = ko.observable new Animal data.animal
-        @observationId = ko.observable data.observation.id
-        @interactionTime = ko.observable data.interaction_time
-        @behavior = ko.observable data.behavior
-        @description = ko.observable data.description
-        @indirectUse = ko.observable data.indirectUse
+        @observation_id = ko.observable data.observation.id
+        @interaction_time = ko.observable data.interaction_time
+        @observation_time = ko.observable data.observation_time
+        #@behavior = ko.observable data.behavior
+        #@description = ko.observable data.description
+        @indirect_use = ko.observable data.indirect_use
+
+        @interaction_time.subscribe (value) =>
+          console.log "change interaction_time"
+          d =
+            id: @id
+            value: value
+            type: "interaction_time"
+          console.log d
+          updateAnimalObservation.notifySubscribers d, "saveAnimalObservation"
+        @observation_time.subscribe (value) =>
+          console.log "change observation_time"
+          d =
+            id: @id
+            value: value
+            type: "observation_time"
+          console.log d
+          updateAnimalObservation.notifySubscribers d, "saveAnimalObservation"
+        @indirect_use.subscribe (value) =>
+          console.log "change indirect_use"
+          d =
+            id: @id
+            value: value
+            type: "indirect_use"
+          console.log d
+          updateAnimalObservation.notifySubscribers d, "saveAnimalObservation"
       else
+        @id = ko.observable null
         @animal = ko.observable null
-        @observationId = ko.observable null
-        @interactionTime = ko.observable null
-        @behavior = ko.observable null
-        @description = ko.observable null
-        @indirectUse = ko.observable null
+        @observation_id = ko.observable null
+        @interaction_time = ko.observable null
+        @observation_time = ko.observable null
+        #@behavior = ko.observable null
+        #@description = ko.observable null
+        @indirect_use = ko.observable null
 
   class Exhibit
     constructor: (data) ->
@@ -92,15 +122,18 @@ $(document).ready ->
   class Observation
     constructor: (data=null) ->
       if data?
+        @id = data.id
         @enrichment = ko.observable data.enrichment # not using .name for now
-        @animal_observations = ko.observable data.animal_observations # not using camel case to reflect JSON
-        @dateCreated = ko.observable data.date_created
-        @dateFinished = ko.observable data.date_finished
+        @animal_observations = ko.observableArray $.map data.animal_observations, (item) ->
+          return new AnimalObservation item
+        @date_created = ko.observable data.date_created
+        @date_finished = ko.observable data.date_finished
       else
+        @id = null
         @enrichment = ko.observable null
         @animal_observations = ko.observableArray []
-        @behavior = ko.observable null
-        @dateCreated = ko.observable null
+        @date_created = ko.observable null
+        @date_finished = ko.observable null
     modalTitle: () ->
       length = @animal_observations().length
       pluralized = if length > 1 then ' animals' else ' animal'
@@ -480,7 +513,22 @@ $(document).ready ->
       if selectAnimals.length > 0
         $.each selectAnimals, (index, animal) =>
           @selectAnimal(animal)
-      else
+      else # Deselect all animals in exhibit if already fully selected
+        $.each deselectAnimals, (index, animal) =>
+          @deselectAnimal(animal)
+
+    selectHousingGroup: (housingGroup) =>
+      selectAnimals = []
+      deselectAnimals = []
+      $.each housingGroup.animals(), (index, animal) =>
+        if !@isSelected(animal)
+          selectAnimals.push animal
+        else
+          deselectAnimals.push animal
+      if selectAnimals.length > 0
+        $.each selectAnimals, (index, animal) =>
+          @selectAnimal(animal)
+      else # Deselect all animals in exhibit if already fully selected
         $.each deselectAnimals, (index, animal) =>
           @deselectAnimal(animal)
 
@@ -569,6 +617,7 @@ $(document).ready ->
       newObservation =
         enrichment: '/api/v1/enrichment/' + @currentEnrichment().id() + '/'
         staff: '/api/v1/enrichment/' + window.userId + '/'
+        date_created: new Date().toISOString().split('.')[0]
 
       # Make sure we are not in the middle of loading.
       if (@newObservationAjaxLoad())
@@ -602,6 +651,15 @@ $(document).ready ->
         console.log newObservation
 
         @createAnimalObservation(newObservation.id)
+
+        @newObservationAjaxLoad false
+
+        $.each @selectedAnimals(), (index, animal) =>
+          animal.active false
+        @currentEnrichment null
+
+        # (optional) redirect
+        window.location = "/observe"
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Observation not created!"
@@ -705,6 +763,12 @@ $(document).ready ->
       @newCategoryAjaxLoad = ko.observable false
       @newCategoryIsCreating = ko.observable true
 
+      # When making a new enrichment, display only subcategories that fit category
+      @newSubcategoryOptions = ko.computed =>
+        return ko.utils.arrayFilter @subcategories(), (subcategory) =>
+          return subcategory.categoryId() == @newEnrichment.category().id()
+
+      # Subcategory creation fields.
       @newSubcategory =
         name: ko.observable ''
         category: ko.observable ''
@@ -713,6 +777,17 @@ $(document).ready ->
       @newSubcategoryNameMessageBody = ko.observable ''
       @newSubcategoryAjaxLoad = ko.observable false
       @newSubcategoryIsCreating = ko.observable true
+
+      # Enrichment creation fields.
+      @newEnrichment =
+        name: ko.observable ''
+        category: ko.observable ''
+        subcategory: ko.observable ''
+      @newEnrichmentNameErrorMessage = ko.observable false
+      @newEnrichmentNameSuccessMessage = ko.observable false
+      @newEnrichmentNameMessageBody = ko.observable ''
+      @newEnrichmentAjaxLoad = ko.observable false
+      @newEnrichmentIsCreating = ko.observable true
 
     # Apply filters
     filterCategory: (category) =>
@@ -785,6 +860,15 @@ $(document).ready ->
       @newSubcategoryNameMessageBody ''
       @newSubcategoryAjaxLoad false
       @newSubcategoryIsCreating true
+
+    openCreateEnrichment: () =>
+      @newEnrichment.name ''
+      @newEnrichment.subcategory ''
+      @newEnrichmentNameErrorMessage false
+      @newEnrichmentNameSuccessMessage false
+      @newEnrichmentNameMessageBody ''
+      @newEnrichmentAjaxLoad false
+      @newEnrichmentIsCreating true
 
     createCategory: () =>
       newCategory =
@@ -910,6 +994,80 @@ $(document).ready ->
       @newSubcategoryAjaxLoad true
       $.ajax settings
 
+    createEnrichment: () =>
+        category = @newEnrichment.category()
+        subcategory = @newEnrichment.subcategory()
+        newEnrichment =
+          name: @newEnrichment.name()
+          subcategory: "/api/v1/category/#{subcategory.id()}/"
+
+        console.log newEnrichment
+
+          # Make sure we are not in the middle of loading.
+        if (@newEnrichmentAjaxLoad())
+          console.log "We are already trying to send something"
+          return
+
+        # Validate fields before continuing.
+        if (newEnrichment.name.length == 0)
+          @newEnrichmentNameErrorMessage true
+          @newEnrichmentNameMessageBody 'Enrichment name cannot be blank'
+          return
+
+        if (newEnrichment.name.length > 100)
+          @newEnrichmentNameErrorMessage true
+          @newEnrichmentNameMessageBody 'Enrichment name is too long'
+          return
+
+        settings =
+          type: 'POST'
+          url: '/api/v1/enrichment/?format=json'
+          data: JSON.stringify newEnrichment
+          success: @enrichmentCreated
+          dataType: "json",
+          processData:  false,
+          contentType: "application/json"
+
+        settings.success = (data, textStatus, jqXHR) =>
+          console.log "Enrichment successfully created!"
+
+          # Extract the category id from the Location response header.
+          locationsURL = jqXHR.getResponseHeader 'Location'
+          pieces = locationsURL.split "/"
+          newEnrichment.id = pieces[pieces.length - 2]
+
+          # Show success message and remove extra weight.
+          @newEnrichmentIsCreating false
+          @newEnrichmentNameSuccessMessage true
+          @newEnrichmentNameErrorMessage false
+
+          # Add new enrichment to @subcategories and refresh.
+          @enrichments.push {
+            name: ko.observable newEnrichment.name
+            id: ko.observable newEnrichment.id
+            subcategoryId: ko.observable subcategory.id()
+            ###
+            @id = ko.observable data.id
+            @name = ko.observable data.name # non-observable is fine
+            @categoryId = ko.observable data.subcategory.category.id
+            @categoryName = ko.observable data.subcategory.category.name
+            @subcategoryId = ko.observable data.subcategory.id
+            @subcategoryName = ko.observable data.subcategory.name###
+            count: ko.observable 0
+            disabled: false
+          }
+          resizeAllCarousels()
+
+        settings.error = (jqXHR, textStatus, errorThrown) =>
+          console.log "Enrichment not created!"
+          @newEnrichmentNameErrorMessage true
+          @newEnrichmentAjaxLoad false
+          @newEnrichmentNameMessageBody 'An unexpected error occured'
+
+        # Make the ajax call.
+        @newEnrichmentAjaxLoad true
+        $.ajax settings
+
   class ObservationListViewModel
     constructor: () ->
       # Arrays for holding data
@@ -921,6 +1079,10 @@ $(document).ready ->
         { id: 1, type: 'Positive'}
       ]
       @activeObservation = ko.observable null
+      updateAnimalObservation.subscribe (data) =>
+          console.log "saving indirect_use"
+          @saveAnimalObservation data
+        , @, "saveAnimalObservation"
 
     finishObservation: () =>
       try
@@ -935,7 +1097,7 @@ $(document).ready ->
         dataType: "json"
         type: "PUT"
         contentType: "application/json"
-        processDate: false
+        processData: false
         success: (result) => 
           console.log "finished observation"
           @observations.remove @activeObservation()
@@ -946,17 +1108,41 @@ $(document).ready ->
 
     load: () =>
       # Get data from API
-      $.getJSON '/api/v1/observation/?format=json&staff_id'+window.userId, (data) =>
-        #mapped = $.map data.objects, (item) ->
-        #  return new Observation item
-        @observations data.objects
+      $.getJSON '/api/v1/observation/?format=json&staff_id='+window.userId, (data) =>
+        mapped = $.map data.objects, (item) ->
+          return new Observation item
+        @observations mapped
+        @observations.subscribe (value) ->
+          console.log(value)
+          console.log "observation change"
 
-    empty: () =>
+    saveAnimalObservation: (data) =>
+      console.log "here"
+      obs = {}
+      obs[data.type] = data.value
+      console.log JSON.stringify obs
+      $.ajax "/api/v1/animalObservation/#{data.id}/?format=json", {
+        data: JSON.stringify obs
+        dataType: "json"
+        type: "PUT"
+        contentType: "application/json"
+        processData: false
+        success: (result) => 
+          console.log result
+        error: (result) =>
+          console.log result
+      }
+      return
+
+    empty: () =>  
       @observations []
 
     prettyDate: (date) =>
       d = new Date Date.parse date
       return d.toString()
+
+
+
 
   class StaffListViewModel
     constructor: () ->
@@ -1002,10 +1188,6 @@ $(document).ready ->
   ko.applyBindings PawsViewModel.ObservationListVM, document.getElementById 'observationsContainer'
   ko.applyBindings PawsViewModel.StaffListVM, document.getElementById 'staffContainer'
 
-  PawsViewModel.ObservationListVM.observations.subscribe (value) ->
-    console.log this
-    console.log value
-    console.log "observation array changed"
 
   # Sammy
   # ################
@@ -1035,6 +1217,7 @@ $(document).ready ->
       PawsViewModel.ObservationListVM.load()
       $('#observationsContainer').show()
       resizeAllCarousels()
+
     context.get '/staff', () =>
       $('#main > div:not(#staffContainer)').hide()
       PawsViewModel.AnimalListVM.empty()
@@ -1046,7 +1229,17 @@ $(document).ready ->
       window.location = '/auth/logout' 
   sammy.run()
 
-
+  ###
+  console.log PawsViewModel.ObservationListVM.observations
+  console.log PawsViewModel.ObservationListVM.observations()
+  $.each PawsViewModel.ObservationListVM.observations(), (obs) ->
+    console.log "in"
+    console.log obs
+    obs.animal_observations.indirectUse.subscribe (value) ->
+      console.log this
+      console.log value 
+      console.log "observation array changed"
+      ###
   # UI
   # ################
   
@@ -1075,6 +1268,7 @@ $(document).ready ->
     $('.carousel-scroller').each ->
       if $(this).hasClass 'carousel-rows'
         numRows = Math.min Math.floor(($(window).height()-$(this).parent().offset().top)/$(this).find('li:first').outerHeight(true)), MAX_SCROLLER_ROWS
+        console.log "numrows: #{numRows}"
         resized = resizeCarousel this, numRows, false
       else
         resized = resizeCarousel this, 1, false
