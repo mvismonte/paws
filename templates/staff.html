@@ -33,26 +33,68 @@
   </div>
 
   {# Modal for viewing staff #}
-  <div class="modal hide fade" id="modal-staff-info" data-bind="with: currentStaff">
+  <div class="modal hide fade" id="modal-staff-info">
     <div class="modal-header">
       <button class="close" data-dismiss="modal">×</button>
-      <h3 data-bind="text: full_name"></h3>
+      <h3 data-bind="text: currentStaff().animal_title"></h3>
     </div>
+
     <div class="modal-body">
-      <h4>Housing Groups</h4>
+      <div class="clearfix">
+        <h3>Add a new Housing Group</h3>
+        <div class="alert alert-error" data-bind="visible: newHousingGroupError">
+          <button class="close" data-bind="click: function() { newHousingGroupError(null) }">×</button>
+          <strong>Error!</strong> <span data-bind="text: newHousingGroupError"></span>
+        </div>
+        <div class="alert alert-success" data-bind="visible: newHousingGroupSuccess">
+          <strong>Success!</strong> <span>Enrichment created</span>
+        </div>
+
+        <form action="#" class="form-horizontal" data-bind="visible: newHousingGroupIsCreating, submit: function() { addHousingGroup(); return false }">
+          <fieldset>
+            <div class="control-group">
+              <label class="control-label" for="select01">Exhibit</label>
+              <div class="controls">
+                <select data-bind="options: exhibits, value: newHousingGroup.exhibit, optionsText: 'code'"></select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="select01">Housing Group</label>
+              <div class="controls">
+                <select data-bind="options: newHousingGroupOptions, value: newHousingGroup.housingGroup, optionsText: 'name'"></select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Animals</label>
+              <div class="controls" data-bind="foreach: newHousingGroupAnimals">
+                <span data-bind="text: name"></span>,
+              </div>
+            </div>
+          </fieldset>
+        </form>
+        <button class="btn btn-primary pull-right" data-bind="click: addHousingGroup">Add Housing Group</button>
+      </div>
+
+      <hr>
+
+      <h3>Current Housing Groups</h3>
+      <!-- ko with: currentStaff -->
       <ul data-bind="foreach: housingGroups">
-        <li  >
+        <li>
+          <strong data-bind="text: name"></strong>
+          <button class="btn btn-mini btn-danger">Remove</button>
           <ul data-bind="foreach: animals">
             <li data-bind="text: name"></li>
           </ul>
         </li>
       </ul>
+      <!-- /ko -->
     </div>
+
     <div class="modal-footer" data-bind="visible: $root.newStaffIsCreating">
-      <img data-bind="visible: loading" src="/static/img/ajax-loader.gif"/>
       <a href="#" class="btn" data-dismiss="modal">Close</a>
-      <a href="#" class="btn btn-primary" data-bind="">Create Category</a>
     </div>
+
   </div>
 
 
