@@ -24,7 +24,7 @@
                 </ul>
               </div>
               {% endif %}
-              <div class="btn-group">
+              <div class="btn-group pull-right">
                 <button class="btn" data-toggle="modal" data-target="#modal-animal" data-bind="css: {'disabled': selectedAnimals().length == 0}">View Selected</button>
                 <button class="btn btn-primary" data-toggle="modal" data-target="#modal-observe-1" data-bind="click: newObservation, css: {'disabled': selectedAnimals().length == 0}">Observe Selected</button>
               </div>
@@ -91,40 +91,41 @@
         <h3 data-bind="text: modalTitleEnrichment()"></h3>
       </div>
       <div class="modal-body">
-
-        <h4>Category</h4>
-        <div class="carousel">
-          <div class="carousel-scroller">
-            <ul data-bind="foreach: categories">
-              <li data-bind="click: $parent.filterCategory,
-            css: { 'list-active': $parent.categoryFilter() == $data }" class="list-entry">
-                <span data-bind="text: name"></span>
-              </li>
-            </ul>
+        <div class="row">
+          <div class="span2 well">
+            <h4>Category</h4>
+            <div class="list-vertical">
+              <ul data-bind="foreach: categories" class="list-items-a clearfix">
+                <li data-bind="click: $parent.filterCategory,
+              css: { 'list-active': $parent.categoryFilter() == $data }" class="list-entry">
+                  <span data-bind="text: name"></span>
+                </li>
+              </ul>
+            </div>
           </div>
-        </div>
-
-        <h4>Subcategory</h4>
-        <div class="carousel">
-          <div class="carousel-scroller">
-            <ul data-bind="foreach: subcategoriesFilterCategory">
-              <li data-bind="click: $parent.filterSubcategory,
-                  css: { 'list-active': $parent.subcategoryFilter() == $data }" class="list-item">
-                <span data-bind="text: name"></span>
-              </li>
-            </ul>
+          <div class="span2 well">
+            <h4>Subcategory</h4>
+              <div class="list-vertical">
+                <ul data-bind="foreach: subcategoriesFilterCategory" class="list-items-a clearfix" >
+                  <li data-bind="click: $parent.filterSubcategory,
+                      css: { 'list-active': $parent.subcategoryFilter() == $data }" class="list-entry">
+                    <span data-bind="text: name"></span>
+                  </li>
+                </ul>
+              </div>
           </div>
-        </div>
-
-        <h4>Enrichment</h4>
-        <div class="list-vertical" id="observationEnrichments">
-          <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items clearfix">
-            <li class="list-entry"
-              data-bind="click: $root.selectEnrichment,
-                css: {'list-active': $root.currentEnrichment() == $data }">
-              <span data-bind="text: name"></span>
-            </li>
-          </ul>
+          <div class="span2 well">
+            <h4>Enrichment</h4>
+            <div class="list-vertical" id="observationEnrichments">
+              <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items-a clearfix">
+                <li class="list-entry"
+                  data-bind="click: $root.selectEnrichment,
+                    css: {'list-active': $root.currentEnrichment() == $data }">
+                  <span data-bind="text: name"></span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
 
       </div>

@@ -87,6 +87,7 @@ $(document).ready ->
 
   class HousingGroup
     constructor: (data) ->
+      @id = ko.observable data.id
       @name = ko.observable data.name
       @staff = ko.observableArray data.staff
       @animals = ko.observableArray $.map data.animals, (item) ->
@@ -147,6 +148,8 @@ $(document).ready ->
       @username = ko.observable data.user.username
       @full_name = ko.computed =>
         return @first_name() + ' ' + @last_name()
+      @animal_title = ko.computed =>
+        return @full_name() + '\'s animals'
       @housingGroups = ko.observableArray []
       @loading = ko.observable false
       @is_superuser = ko.observable data.user.is_superuser
@@ -1148,8 +1151,11 @@ $(document).ready ->
       @staff = ko.observableArray []
       @currentStaff = ko.observable
         full_name: ''
+        animal_title: ''
         housingGroups: []
         loading: false
+      @exhibits = ko.observable null
+      @housingGroups = ko.observable null
 
       # New staff modal stuff
       @newStaff =
@@ -1176,6 +1182,28 @@ $(document).ready ->
       @bulkWarning = ko.observable null
       @bulkSuccess = ko.observable null
       @bulkAjaxInProgress = ko.observable false
+
+      # Add HG to staff modal
+      @newHousingGroup =
+        exhibit: ko.observable null
+        housingGroup: ko.observable null
+      @newHousingGroupError = ko.observable null
+      @newHousingGroupWarning = ko.observable null
+      @newHousingGroupSuccess = ko.observable false
+      @newHousingGroupIsCreating = ko.observable true
+      @newHousingGroupAjaxLoad = ko.observable false
+
+      @newHousingGroupOptions = ko.computed =>
+        if @newHousingGroup.exhibit()?
+          return @newHousingGroup.exhibit().housingGroups()
+        else
+          return []
+
+      @newHousingGroupAnimals = ko.computed =>
+        if @newHousingGroup.housingGroup()?
+          return @newHousingGroup.housingGroup().animals()
+        else
+          return []
 
     openStaffCreate: () ->
       @newStaff.firstName ''
@@ -1363,6 +1391,31 @@ $(document).ready ->
       @newStaffAjaxLoad true
       $.ajax settings
 
+    addHousingGroup: () =>
+      try
+        console.log ("adding HG " + @newHousingGroup.housingGroup().name())
+      catch TypeError
+        return
+      data = {}
+      data.housing_group = ['/api/v1/housingGroup/' + @newHousingGroup.housingGroup().id() + '/']
+      $.each @currentStaff().housingGroups(), (index, value) =>
+        if data.housing_group.indexOf('api/v1/housingGroup/' + value.id() + '/') == -1
+          data.housing_group.push '/api/v1/housingGroup/' + value.id() + '/'
+      console.log JSON.stringify data
+      $.ajax "/api/v1/staff/#{window.userId}/?format=json", {
+        data: JSON.stringify data
+        dataType: "json"
+        type: "PUT"
+        contentType: "application/json"
+        processData: false
+        success: (result) => 
+          console.log "added staff?!"
+          @currentStaff().housingGroups.push @newHousingGroup.housingGroup
+        error: (result) =>
+          console.log result
+      }
+
+
     viewInfo: (staff) =>
       staff.loadInfo()
       $('#modal-staff-info').modal('show')
@@ -1374,6 +1427,10 @@ $(document).ready ->
         mapped = $.map data.objects, (item) ->
           return new Staff item
         @staff mapped
+      $.getJSON '/api/v1/exhibit/?format=json', (data) =>
+        mapped = $.map data.objects, (item) ->
+          return new Exhibit item
+        @exhibits mapped
 
   # The big momma
   PawsViewModel = 
@@ -1474,6 +1531,10 @@ $(document).ready ->
         console.log 'Refreshing carousel'
         $.each scrollers, (key, value) ->
           value.refresh()
+    $('.list-vertical').each ->
+      $.each scrollers, (key, value) ->
+        value.refresh()
+
 
   scrollers.categorySelector = new iScroll 'categorySelector', {
     vScroll: false
@@ -1510,3 +1571,5 @@ $(document).ready ->
 
   # Enable dismissal of an alert via javascript:
   $(".alert").alert()
+
+
