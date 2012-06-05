@@ -681,6 +681,7 @@ class HousingGroupResource(ModelResource):
   def get_object_list(self, request):
     staff_id = request.GET.get('staff_id', None)
     exhibit_id = request.GET.get('exhibit_id', None)
+    animal_id = request.GET.get('animal_id', None)
     q_set = super(HousingGroupResource, self).get_object_list(request)
 
     # Try filtering by staff_id if it exists.
@@ -694,6 +695,14 @@ class HousingGroupResource(ModelResource):
     try:
       exhibit = models.Exhibit.objects.get(id=exhibit_id)
       q_set = q_set.filter(exhibit=exhibit)
+    except ObjectDoesNotExist:
+      pass
+
+    # Try filtering by animal if it exists
+    try:
+      animal = models.Animal.objects.get(id=animal_id)
+      print animal.housing_group
+      q_set = q_set.filter(id=animal.housing_group.id)
     except ObjectDoesNotExist:
       pass
 
