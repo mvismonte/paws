@@ -1148,6 +1148,10 @@ $(document).ready ->
     constructor: () ->
       # Array for staff data
       @staff = ko.observableArray []
+      @currentStaff = ko.observable
+        full_name: ''
+        housingGroups: []
+        loading: false
 
       # New staff modal stuff
       @newStaff =
@@ -1162,10 +1166,13 @@ $(document).ready ->
       @newStaffIsCreating = ko.observable true
       @newStaffAjaxLoad = ko.observable false
 
-      @currentStaff = ko.observable
-        full_name: ''
-        housingGroups: []
-        loading: false
+      # Bulk upload fields.
+      @bulkStaff = ko.observableArray []
+      @bulkError = ko.observable null
+      @bulkWarning = ko.observable null
+      @bulkSuccess = ko.observable null
+      @bulkUploadSuccess = ko.observable false
+      @bulkAjaxInProgress = ko.observable false
 
     openStaffCreate: () ->
       @newStaff.firstName ''
