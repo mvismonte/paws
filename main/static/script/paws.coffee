@@ -148,6 +148,8 @@ $(document).ready ->
       @username = ko.observable data.user.username
       @full_name = ko.computed =>
         return @first_name() + ' ' + @last_name()
+      @animal_title = ko.computed =>
+        return @full_name() + '\'s animals'
       @housingGroups = ko.observableArray []
       @loading = ko.observable false
     loadInfo: () ->
@@ -1164,8 +1166,14 @@ $(document).ready ->
 
       @currentStaff = ko.observable
         full_name: ''
+        animal_title: ''
         housingGroups: []
         loading: false
+
+      @addingNewHousingGroup = ko.observable false
+
+    openHousingGroupAdd: () ->
+      @addingNewHousingGroup true
 
     openStaffCreate: () ->
       @newStaff.firstName ''

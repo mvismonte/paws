@@ -390,7 +390,6 @@ class AnimalResource(ModelResource):
     }
     return self.create_response(request, object_list)
 
-
 # Category Resource.
 class CategoryResource(ModelResource):
   class Meta:
@@ -652,6 +651,7 @@ class HousingGroupResource(ModelResource):
   staff = fields.ToManyField(
       'paws.api.resources.StaffResource', 'staff', related_name = 'housingGroup')
   animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal_set', full=True)
+  exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
   class Meta:
     # authenticate the user
     authentication = CustomAuthentication()
