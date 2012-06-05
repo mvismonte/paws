@@ -13,7 +13,7 @@
           <div class="span6">
 
             <div class="btn-group pull-right">
-              <button class="btn" data-bind="" data-toggle="modal" data-target="#modal-staff-bulk">Bulk Add</button>
+              <button class="btn" data-bind="click: openBulkCreate" data-toggle="modal" data-target="#modal-staff-bulk">Bulk Add</button>
               <button class="btn btn-primary" data-bind="" data-toggle="modal" data-target="#modal-staff-new">Add Staff Member</button>
             </div>
           </div>
@@ -128,57 +128,78 @@
       <h3>Bulk Staff Uploader</h3>
     </div>
     <div class="modal-body">
-      <form action="#" class="form-horizontal" data-bind="">
+      <form action="#" class="form-horizontal" data-bind="visible: !bulkSuccess()">
         <p>Upload a <code>.csv</code> file</p>
         <fieldset>
           <div class="control-group">
             <label class="control-label">Staff List</label>
             <div class="controls">
-              <input type="file" id="staff_bulk_file_upload" accept="text/csv">
+              <input type="file" data-bind="event: { change: fileChanged }" accept="text/csv" />
             </div>
           </div>
         </fieldset>
       </form>
 
       <div class="alert alert-error" data-bind="visible: bulkError">
-        <button class="close" data-bind="">×</button>
+        <button class="close" data-bind="click: function(){ bulkError(null) }">×</button>
         <strong>Error!</strong> <span data-bind="text: bulkError"></span>
       </div>
       <div class="alert alert-success" data-bind="visible: bulkSuccess">
         <strong>Success!</strong> <span data-bind="text: bulkSuccess"></span>
       </div>
-      <div class="alert" data-bind="visible: newStaffWarning">
-        <button class="close" data-bind="">×</button>
-        <strong>Warning!</strong> <span data-bind="text: newStaffWarning"></span>
+      <div class="alert" data-bind="visible: bulkWarning">
+        <button class="close" data-bind="click: function(){ bulkWarning(null) }">×</button>
+        <strong>Warning!</strong> <span data-bind="text: bulkWarning"></span>
       </div>
+      <table class="table table-striped table-condensed" data-bind="if: bulkSuccess">
+        <thead>
+          <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Username</th>
+            <th>Is Superuser</th>
+          </tr>
+        </thead>
+        <tbody data-bind="foreach: bulkStaff">
+            <td data-bind="text: first_name"></td>
+            <td data-bind="text: last_name"></td>
+            <td data-bind="text: username"></td>
+            <td data-bind="text: is_superuser"></td>
+          </tr>
+        </tbody>
+      </table>
 
-      <div data-bind="">
+      <div data-bind="if: bulkStaff().length > 0 && !bulkError() && !bulkSuccess()">
         <h4>Preview</h4>
         <table class="table table-striped table-condensed">
           <thead>
             <tr>
+              <th>Line #</th>
               <th>First Name</th>
               <th>Last Name</th>
               <th>Password</th>
               <th>Is Superuser</th>
+              <th>Create user</th>
             </tr>
           </thead>
 
-          <tbody data-bind="">
-            <tr data-bind="">
-              <td data-bind=""></td>
-              <td data-bind=""></td>
-              <td data-bind=""></td>
-              <td data-bind=""></td>
+          <tbody data-bind="foreach: bulkStaff">
+            <tr data-bind="if: validLine">
+              <td data-bind="text: lineNumber"></td>
+              <td data-bind="text: firstName"></td>
+              <td data-bind="text: lastName"></td>
+              <td data-bind="text: password"></td>
+              <td data-bind="text: isSuperuser"></td>
+              <td><input type="checkbox" data-bind="checked: includeLine"/></td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
-    <div class="modal-footer" data-bind="">
+    <div class="modal-footer" data-bind="visible: !bulkSuccess()">
       <img data-bind="visible: bulkAjaxInProgress" src="/static/img/ajax-loader.gif"/>
       <a href="#" class="btn" data-dismiss="modal">Cancel</a>
-      <a href="#" data-bind="" class="btn btn-primary">Upload</a>
+      <button data-bind="click: bulkCreateStaff, disable: bulkStaff().length == 0" class="btn btn-primary">Upload</button>
     </div>
   </div>
 
