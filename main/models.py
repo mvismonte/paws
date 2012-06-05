@@ -39,6 +39,15 @@ class Behavior(models.Model):
   reaction = models.SmallIntegerField(choices=BEHAVIOR_CHOICES, null=True, blank=True)
   enrichment = models.ForeignKey('Enrichment')
   description = models.TextField(blank=True)
+  def __unicode__(self):
+    name='Positive'
+    if self.reaction == 0 :
+      name='N/A'
+    if self.reaction == -1 :
+      name='Negative'
+    if self.reaction == -2 :
+      name='Avoid'
+    return "%s for %s with description: %s" % (name,self.enrichment, self.description)
 
 # Category Model
 class Category(models.Model):

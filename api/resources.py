@@ -4,30 +4,34 @@
 # This file contains the resources for the RESTful API using the
 # django-tastypie.
 
-# TODO(Diana): Reorganize imports so that all froms are in alphabetical order
-# and all imports are in alphabetical order.
+import datetime
+import json
+from django.conf.urls.defaults import *
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
-from django.conf.urls.defaults import *
-from django.core.paginator import Paginator
 from django.core.paginator import InvalidPage
+from django.core.paginator import Paginator
 from django.http import Http404
 from django.http import HttpResponse
+from haystack.query import EmptySearchQuerySet
+from haystack.query import SearchQuerySet
 from paws.main import models
+from paws.main.utilities import bulk_import
+from tastypie.authentication import BasicAuthentication
+from tastypie.authorization import Authorization
+from tastypie.authorization import DjangoAuthorization
+from tastypie.exceptions import BadRequest
+from tastypie.exceptions import ImmediateHttpResponse
+from tastypie.http import HttpApplicationError
+from tastypie.http import HttpUnauthorized
 from tastypie.resources import fields
 from tastypie.resources import ModelResource
-from tastypie.authentication import BasicAuthentication
-from tastypie.authorization import Authorization, DjangoAuthorization
 from tastypie.utils import trailing_slash
-from tastypie.exceptions import BadRequest, ImmediateHttpResponse
-from tastypie.http import HttpApplicationError, HttpUnauthorized
-from haystack.query import SearchQuerySet
-from haystack.query import EmptySearchQuerySet
-from paws.main.utilities import bulk_import
-import datetime
-import json
+
+
+
 
 # Custom Authentication
 class CustomAuthentication(BasicAuthentication):
@@ -203,23 +207,24 @@ class AnimalObservationResource(ModelResource):
       avoid_interaction=0.0
       for result in q_set:
         if models.Observation.objects.get(id=result.observation_id).enrichment == e:
+          behavior=models.Behavior.objects.get(id=result.behavior_id)
           total_eachInteraction += result.interaction_time
-          if(result.behavior == 1):
+          if(behavior.reaction == 1):
             positive += 1
             pos_interaction+=result.interaction_time
-          if(result.behavior == 0):
+          if(behavior.reaction == 0):
             NA += 1
             na_interaction+=result.interaction_time
-          if(result.behavior == -1):
+          if(behavior.reaction == -1):
             negative += 1
             neg_interaction+=result.interaction_time
-          if(result.behavior == -2):
+          if(behavior.reaction == -2):
             avoid += 1
             avoid_interaction+=result.interaction_time
         else:
           pass
       # Return 0 if the animal has never interacted with any enrichment
-      if total_interaction == 0.0:
+      if total_eachInteraction == 0.0:
         percentage=0.0
         pos_percentage=0.0
         na_percentage=0.0
@@ -403,6 +408,37 @@ class AnimalResource(ModelResource):
       'objects': objects,
     }
     return self.create_response(request, object_list)
+
+#Behavior Resource.
+class BehaviorResource(ModelResource):
+  #define foreign key.
+  enrichment = fields.ForeignKey(
+      'paws.api.resources.EnrichmentResource','enrichment')
+  class Meta:
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = Authorization()
+    queryset = models.Behavior.objects.all()
+    resource_name = 'behavior'
+    # allowed actions towards database
+    # get = getting behavior's information from the database
+    # post = adding new behavior into the database
+    # put = updating behavior's information in the database
+    # delete = delete behavior from the database
+    list_allowed_methods = ['get','post','put','delete']
+
+  # creating new behavior into database
+  def obj_create(self, bundle, request=None, **kwargs):
+    return super(BehaviorResource, self).obj_create(bundle, request, **kwargs)
+    
+  # update behavior's information in the database
+  def obj_update(self, bundle, request=None, **kwargs):
+    return super(BehaviorResource, self).obj_update(bundle, request, **kwargs)
+
+  # delete behavior from the database
+  def obj_delete(self, request=None, **kwargs):
+    return super(BehaviorResource, self).obj_delete( request, **kwargs)
+
 
 # Category Resource.
 class CategoryResource(ModelResource):
