@@ -210,6 +210,8 @@ $(document).ready ->
       @newAnimalObservationIsCreating = ko.observable false
       @newAnimalObservationSuccess = ko.observable false
 
+      # Staff that's in charge of animals
+      @staffs = ko.observableArray []
 
       # If viewing all keeper's animals or just yours
       @viewAll = ko.observable false
@@ -392,6 +394,19 @@ $(document).ready ->
         
         # Initiate the reader.
         reader.readAsText(file)
+
+    # Open info modal
+    openInfo: () ->
+      # Empty out staff array
+      @staffs []
+      $.each @selectedAnimals(), (index, animal) =>
+        # Get data from API
+        $.getJSON "/api/v1/staff/?format=json&animal_id=#{animal.id()}", (data) =>
+          # Push each staff into 
+          $.each data.objects, (index, item) =>
+            @staffs.push (new Staff item)
+      $('#modal-animal-info').modal('show')
+
 
     # Open bulk upload.
     openBulkUpload: () ->
@@ -1270,10 +1285,10 @@ $(document).ready ->
       data = {}
       data.housing_group = ['/api/v1/housingGroup/' + @newHousingGroup.housingGroup().id() + '/']
       $.each @currentStaff().housingGroups(), (index, value) =>
-        if data.housing_group.indexOf('api/v1/housingGroup/' + value.id() + '/') == -1
-          data.housing_group.push '/api/v1/housingGroup/' + value.id() + '/'
+        if data.housing_group.indexOf('api/v1/housingGroup/' + value().id() + '/') == -1
+          data.housing_group.push '/api/v1/housingGroup/' + value().id() + '/'
       console.log JSON.stringify data
-      $.ajax "/api/v1/staff/#{window.userId}/?format=json", {
+      $.ajax "/api/v1/staff/#{@currentStaff().id()}/?format=json", {
         data: JSON.stringify data
         dataType: "json"
         type: "PUT"
