@@ -38,8 +38,39 @@
     </div>
 
     <div class="modal-body">
-      <div>
+      <div class="clearfix">
         <h3>Add a new Housing Group</h3>
+        <div class="alert alert-error" data-bind="visible: newHousingGroupError">
+          <button class="close" data-bind="click: function() { newHousingGroupError(null) }">×</button>
+          <strong>Error!</strong> <span data-bind="text: newHousingGroupError"></span>
+        </div>
+        <div class="alert alert-success" data-bind="visible: newHousingGroupSuccess">
+          <strong>Success!</strong> <span>Enrichment created</span>
+        </div>
+
+        <form action="#" class="form-horizontal" data-bind="visible: newHousingGroupIsCreating, submit: function() { addHousingGroup(); return false }">
+          <fieldset>
+            <div class="control-group">
+              <label class="control-label" for="select01">Exhibit</label>
+              <div class="controls">
+                <select data-bind="options: exhibits, value: newHousingGroup.exhibit, optionsText: 'code'"></select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="select01">Housing Group</label>
+              <div class="controls">
+                <select data-bind="options: newHousingGroupOptions, value: newHousingGroup.housingGroup, optionsText: 'name'"></select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Animals</label>
+              <div class="controls" data-bind="foreach: newHousingGroupAnimals">
+                <span data-bind="text: name"></span>,
+              </div>
+            </div>
+          </fieldset>
+        </form>
+        <button class="btn btn-primary pull-right" data-bind="click: addHousingGroup">Add Housing Group</button>
       </div>
 
       <hr>
