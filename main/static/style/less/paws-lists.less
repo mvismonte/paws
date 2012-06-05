@@ -105,14 +105,18 @@
   box-shadow: inset 0px -2px 0px darken(@backgroundColor, 10%);
   padding: 10px;
   margin-bottom: 10px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
   strong {
     display: block;
     font-size: 22px;
     line-height: 26px;
+    text-align: center;
   }
   small {
-    font-size: 10px;
-    line-height: 10px;
+    font-size: 12px;
+    line-height: 12px;
   }
   .transition(all 0.15s ease-in-out)
 }
@@ -128,17 +132,21 @@
   font-size: 13px;
   margin-top: 3px;
 }
+#addnew{
+  margin-bottom: 20px;
+}
+
 .label{
   text-transform: capitalize;
 }
-#addnew{
-  margin-bottom: 20px;
+.label-info{
+  text-transform: none;
 }
 
 #modal-observe-1 .well{
   padding: 10px;
 }
-.list-items-a li {
+.list-items-modal li {
   margin: 5px;
   width: 140px;
   span {

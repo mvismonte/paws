@@ -39,8 +39,8 @@
           <!-- ko foreach: animals -->
         <div class="span3">
           <div class="list-entry" data-bind="click: $root.toggleAnimal, css: {'list-active': active}">
-            <strong data-bind="text: name"></strong>
             <small data-bind="text: speciesCommonName"></small>
+            <strong data-bind="text: name"></strong>
           </div>
         </div>
           <!-- /ko -->
@@ -84,7 +84,7 @@
           <div class="span2 well">
             <h4>Category</h4>
             <div class="list-vertical">
-              <ul data-bind="foreach: categories" class="list-items-a clearfix">
+              <ul data-bind="foreach: categories" class="list-items-modal clearfix">
                 <li data-bind="click: $parent.filterCategory,
               css: { 'list-active': $parent.categoryFilter() == $data }" class="list-entry">
                   <span data-bind="text: name"></span>
@@ -95,7 +95,7 @@
           <div class="span2 well">
             <h4>Subcategory</h4>
               <div class="list-vertical">
-                <ul data-bind="foreach: subcategoriesFilterCategory" class="list-items-a clearfix" >
+                <ul data-bind="foreach: subcategoriesFilterCategory" class="list-items-modal clearfix" >
                   <li data-bind="click: $parent.filterSubcategory,
                       css: { 'list-active': $parent.subcategoryFilter() == $data }" class="list-entry">
                     <span data-bind="text: name"></span>
@@ -106,7 +106,7 @@
           <div class="span2 well">
             <h4>Enrichment</h4>
             <div class="list-vertical" id="observationEnrichments">
-              <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items-a clearfix">
+              <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items-modal clearfix">
                 <li class="list-entry"
                   data-bind="click: $root.selectEnrichment,
                     css: {'list-active': $root.currentEnrichment() == $data }">
