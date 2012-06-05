@@ -13,9 +13,9 @@
             </div>
             <div class="span6 btn-toolbar">
               {% if user.is_superuser %}
-              <div class="btn-group">
+              <div class="btn-group pull-right">
                 <button class="btn" data-bind="click: openBulkUpload"data-toggle="modal" data-target="#modal-animal-upload">Bulk Add</button>
-                <button class="btn btn-success dropdown-toggle" data-toggle="dropdown">Add <span class="caret"></span></button>
+                <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Add <span class="caret"></span></button>
                 <ul class="dropdown-menu">
                   <li><a href="#">Animal</a></li>
                   <li><a href="#">Species</a></li>
@@ -23,8 +23,9 @@
                   <li><a href="#">Housing Group</a></li>
                 </ul>
               </div>
+              <div class="pull-right" style="width: 10px">&nbsp;</div>
               {% endif %}
-              <div class="btn-group">
+              <div class="btn-group pull-right">
                 <button class="btn" data-toggle="modal" data-target="#modal-animal" data-bind="disable: selectedAnimals().length == 0">View Selected</button>
                 <button class="btn btn-primary" data-toggle="modal" data-target="#modal-observe-1" data-bind="click: newObservation, disable: selectedAnimals().length == 0">Observe Selected</button>
               </div>
@@ -50,8 +51,8 @@
           <!-- ko foreach: animals -->
         <div class="span3">
           <div class="list-entry" data-bind="click: $root.toggleAnimal, css: {'list-active': active}">
-            <strong data-bind="text: name"></strong>
             <small data-bind="text: speciesCommonName"></small>
+            <strong data-bind="text: name"></strong>
           </div>
         </div>
           <!-- /ko -->
@@ -64,26 +65,6 @@
       </div>
     </div>
     
-    {# Modal for viewing one animal #}
-    {% comment %}
-    <div class="modal hide fade" id="modal-animal" data-bind="with: activeAnimal">
-      <div class="modal-header">
-        <button class="close" data-dismiss="modal">×</button>
-        <h3 data-bind="text: name"></h3>
-      </div>
-      <div class="modal-body">
-        <dl class="dl-horizontal">
-          <dt>Species</dt>
-          <dd><span data-bind="text: speciesCommonName"></span> (<span data-bind="text:speciesScientificName"></span>)</dd>
-        </dl>
-      </div>
-      <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a href="#" class="btn btn-primary">Save changes</a>
-      </div>
-    </div>
-    {% endcomment %}
-
     {# Modal for making an observation - picking an enrichment #}
     <div class="modal hide fade" id="modal-observe-1">
       <div class="modal-header">
@@ -95,7 +76,7 @@
           <div class="span2 well">
             <h4>Category</h4>
             <div class="list-vertical">
-              <ul data-bind="foreach: categories" class="list-items-a clearfix">
+              <ul data-bind="foreach: categories" class="list-items-modal clearfix">
                 <li data-bind="click: $parent.filterCategory,
               css: { 'list-active': $parent.categoryFilter() == $data }" class="list-entry">
                   <span data-bind="text: name"></span>
@@ -106,7 +87,7 @@
           <div class="span2 well">
             <h4>Subcategory</h4>
               <div class="list-vertical">
-                <ul data-bind="foreach: subcategoriesFilterCategory" class="list-items-a clearfix" >
+                <ul data-bind="foreach: subcategoriesFilterCategory" class="list-items-modal clearfix" >
                   <li data-bind="click: $parent.filterSubcategory,
                       css: { 'list-active': $parent.subcategoryFilter() == $data }" class="list-entry">
                     <span data-bind="text: name"></span>
@@ -117,7 +98,7 @@
           <div class="span2 well">
             <h4>Enrichment</h4>
             <div class="list-vertical" id="observationEnrichments">
-              <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items-a clearfix">
+              <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items-modal clearfix">
                 <li class="list-entry"
                   data-bind="click: $root.selectEnrichment,
                     css: {'list-active': $root.currentEnrichment() == $data }">
@@ -147,7 +128,10 @@
         <h3 data-bind="text: modalTitleAnimal()"></h3>
       </div>
       <div class="modal-body">
-
+        <h4>Staff responsible for these animals</h4>
+        <div data-bind="foreach: staffs">
+          <span data-bind="text: full_name"></span>,
+        </div>
       </div>
       <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Close</a>

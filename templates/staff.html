@@ -26,8 +26,8 @@
   <div class="row list-items" data-bind="foreach: staff">
     <div class="span3">
       <div class="list-entry" data-bind="click: $root.viewInfo">
+        <span class="label label-info">id : <small data-bind="text: username"></small></span>
         <strong data-bind="text: full_name"></strong>
-        <small data-bind="text: username"></small>
       </div>
     </div>
   </div>
