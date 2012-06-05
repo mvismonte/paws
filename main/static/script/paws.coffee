@@ -400,6 +400,7 @@ $(document).ready ->
       # Empty out staff array
       @staffs []
       $.each @selectedAnimals(), (index, animal) =>
+        console.log animal
         # Get data from API
         $.getJSON "/api/v1/staff/?format=json&animal_id=#{animal.id()}", (data) =>
           # Push each staff into 
