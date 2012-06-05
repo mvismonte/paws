@@ -390,7 +390,6 @@ class AnimalResource(ModelResource):
     }
     return self.create_response(request, object_list)
 
-
 # Category Resource.
 class CategoryResource(ModelResource):
   class Meta:
@@ -650,8 +649,9 @@ class ExhibitResource(ModelResource):
 class HousingGroupResource(ModelResource):
   # exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
   staff = fields.ToManyField(
-      'paws.api.resources.StaffResource', 'staff', related_name = 'housingGroup')
+      'paws.api.resources.StaffResource', 'staff')
   animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal_set', full=True)
+  exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
   class Meta:
     # authenticate the user
     authentication = CustomAuthentication()
@@ -663,7 +663,7 @@ class HousingGroupResource(ModelResource):
     # post = adding new HousingGroup into the database
     # put = updating HousingGroup's information in the database
     # delete = delete HousingGroup from the database
-    list_allowed_methods = ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','patch','delete']
 
   # creating new HousingGroup into database
   def obj_create(self, bundle, request=None, **kwargs):
@@ -816,7 +816,7 @@ class SpeciesResource(ModelResource):
 class StaffResource(ModelResource):
   user = fields.ToOneField(
       'paws.api.resources.UserResource', 'user', full=True)
-  # housing_group = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
+  housing_group = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set')
   class Meta:
     # authenticate the user
     authentication = CustomAuthentication()
@@ -828,7 +828,7 @@ class StaffResource(ModelResource):
     # post = adding new staff into the database
     # put = updating staff's information in the database
     # delete = delete staff from the database
-    list_allowed_methods = ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put','patch','delete']
 
   # creating new staff into database
   def obj_create(self, bundle, request=None, **kwargs):

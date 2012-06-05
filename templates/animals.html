@@ -12,12 +12,9 @@
               <h1><span data-bind="text: viewText"></span> <small>(<a href="#" data-bind="click: toggleViewAll">toggle animals</a>)</small></h1>
             </div>
             <div class="span6 btn-toolbar">
-              <div class="btn-group">
+              <div class="btn-group pull-right">
                 <button class="btn" data-toggle="modal" data-target="#modal-animal" data-bind="css: {'disabled': selectedAnimals().length == 0}">View Selected</button>
                 <button class="btn" data-bind="click: openBulkUpload"data-toggle="modal" data-target="#modal-animal-upload">Bulk Add</button>
-              </div>
-
-              <div class="btn-group">
                 <button class="btn btn-primary" data-toggle="modal" data-target="#modal-observe-1" data-bind="click: newObservation, css: {'disabled': selectedAnimals().length == 0}">Observe Selected</button>
               </div>
             </div>
