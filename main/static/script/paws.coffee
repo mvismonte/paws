@@ -141,7 +141,6 @@ $(document).ready ->
 
   class Staff
     constructor: (data) ->
-      console.log data
       @id = ko.observable data.id
       @first_name = ko.observable data.user.first_name
       @last_name = ko.observable data.user.last_name
@@ -150,6 +149,7 @@ $(document).ready ->
         return @first_name() + ' ' + @last_name()
       @housingGroups = ko.observableArray []
       @loading = ko.observable false
+      @is_superuser = ko.observable data.user.is_superuser
     loadInfo: () ->
       if @housingGroups().length != 0
         return
@@ -1142,12 +1142,14 @@ $(document).ready ->
       return d.toString()
 
 
-
-
   class StaffListViewModel
     constructor: () ->
       # Array for staff data
       @staff = ko.observableArray []
+      @currentStaff = ko.observable
+        full_name: ''
+        housingGroups: []
+        loading: false
 
       # New staff modal stuff
       @newStaff =
@@ -1162,10 +1164,18 @@ $(document).ready ->
       @newStaffIsCreating = ko.observable true
       @newStaffAjaxLoad = ko.observable false
 
-      @currentStaff = ko.observable
-        full_name: ''
-        housingGroups: []
-        loading: false
+      # Bulk upload fields.
+      # The @bulkStaff field is in two different ways in the HTML View.  First,
+      # it is used for previewing the upload lines.  After a successful POST is
+      # sent off and returned, an array of objects is also returned.  The
+      # @bulkStaff field will then be used to populate the second of two tables
+      # and it will contain actual Staff models, as opposed to the temporary
+      # one created in @fileChanged.
+      @bulkStaff = ko.observableArray []
+      @bulkError = ko.observable null
+      @bulkWarning = ko.observable null
+      @bulkSuccess = ko.observable null
+      @bulkAjaxInProgress = ko.observable false
 
     openStaffCreate: () ->
       @newStaff.firstName ''
@@ -1178,6 +1188,125 @@ $(document).ready ->
       @newStaffSuccess false
       @newStaffIsCreating true
       @newStaffAjaxLoad false
+
+    openBulkCreate: () ->
+      $('input[type="file"]').val('')
+      @bulkStaff []
+      @bulkError null
+      @bulkWarning null
+      @bulkSuccess null
+      @bulkAjaxInProgress false
+
+    fileChanged: (viewModel, event) =>
+      # Extract file from event, create FileReader, and empty current staff.
+      file = event.target.files[0]
+      reader = new FileReader()
+      @bulkStaff []
+      @bulkWarning null
+      @bulkError null
+
+      # Set file traversal function.
+      reader.onload = (ev) =>
+        lines = ev.target.result.split /[\n|\r]/
+        anyLinesIncluded = false
+
+        for line, index in lines
+          # Create a staff object and add it to bulkStaff array.
+          index = index + 1
+          staffObj =
+            line: line
+            lineNumber: ko.observable index
+            firstName: ko.observable ''
+            lastName: ko.observable ''
+            password: ko.observable ''
+            isSuperuser: ko.observable 'No'
+            validLine: ko.observable false
+            includeLine: ko.observable false
+          @bulkStaff.push staffObj
+          fields = line.split ','
+
+          # Perform some error checking.
+          if (line == "")
+            if (index != lines.length)
+              @bulkWarning "Line #{index}: Line is empty"
+            continue
+          if (fields.length != 4)
+            @bulkWarning "Line #{index}: Invalid amount of lines"
+            continue
+          if (fields[0] == "")
+            @bulkWarning "Line #{index}: First name is empty"
+            continue
+          if (fields[1] == "")
+            @bulkWarning "Line #{index}: Last name is empty"
+            continue
+          if (fields[2] == "")
+            @bulkWarning "Line #{index}: Password is empty"
+            continue
+
+          # Finally, modify object to assign values.
+          staffObj.firstName fields[0]
+          staffObj.lastName fields[1]
+          staffObj.password fields[2]
+          if (fields[3] == "1")
+            staffObj.isSuperuser 'Yes'
+          staffObj.includeLine true
+          staffObj.validLine true
+          anyLinesIncluded = true
+
+        if (not anyLinesIncluded)
+          @bulkWarning null
+          @bulkError 'This file contains no valid lines'
+          @bulkStaff []
+
+      # Initiate reading.
+      reader.readAsText file
+
+    # bulkCreateStaff
+    bulkCreateStaff: () =>
+      uploadStaff = []
+
+      for staff in @bulkStaff()
+        if (staff.validLine() and staff.includeLine())
+          uploadStaff.push staff.line
+
+      console.log uploadStaff
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/user/bulk/?format=json&always_return_data=true'
+        data: JSON.stringify uploadStaff
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "Batch staff created"
+        console.log data
+        console.log textStatus
+
+        @bulkStaff []
+        @bulkSuccess 'Staff successfully uploaded!'
+        @bulkWarning null
+        @bulkError null
+
+        # Insert all into staff array.
+        for newData in data.objects
+          staffTemp =
+            user: newData
+            id: newData.id
+          staff = new Staff staffTemp
+          console.log staff
+          @staff.push staff
+          @bulkStaff.push staff
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Batch staff error"
+        @bulkWarning null
+        @bulkError 'An unexpected error occured'
+
+      # Make the ajax call.
+      @bulkAjaxInProgress true
+      $.ajax settings
 
     createStaff: () ->
       newStaff =
@@ -1215,7 +1344,7 @@ $(document).ready ->
           user: data.object
           id: data.object.id
 
-        # TODO(Mark): Fix this laziness.
+        # Create a staff members and insert.
         @staff.push new Staff staff
         resizeAllCarousels()
 
@@ -1242,7 +1371,6 @@ $(document).ready ->
     load: () ->
       # Get data from API
       $.getJSON '/api/v1/staff/?format=json', (data) =>
-        console.log data
         mapped = $.map data.objects, (item) ->
           return new Staff item
         @staff mapped
