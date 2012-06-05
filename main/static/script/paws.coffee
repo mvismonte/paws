@@ -1346,6 +1346,10 @@ $(document).ready ->
         console.log 'Refreshing carousel'
         $.each scrollers, (key, value) ->
           value.refresh()
+    $('.list-vertical').each ->
+      $.each scrollers, (key, value) ->
+        value.refresh()
+
 
   scrollers.categorySelector = new iScroll 'categorySelector', {
     vScroll: false
@@ -1382,3 +1386,5 @@ $(document).ready ->
 
   # Enable dismissal of an alert via javascript:
   $(".alert").alert()
+
+
