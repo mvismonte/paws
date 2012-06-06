@@ -55,7 +55,7 @@
         <div class="carousel list-items" id="enrichmentSelector">             
           <div class="carousel-scroller carousel-rows">
             <ul data-bind="foreach: enrichmentsFilterSubcategory">
-              <li>
+              <li data-bind="click: $root.openEnrichmentNote">
                 
                 <span class="label label-success pull-left" data-bind="text: categoryName"></span>    
              
@@ -190,6 +190,82 @@
       <a href="#" class="btn" data-dismiss="modal">Close</a>
       <a href="#" class="btn btn-primary" data-bind="click: createEnrichment">Create Enrichment</a>
     </div>
+  </div>
+
+  {# Modal for viewing enrichment + their notes #}
+  <div class="modal hide fade" id="modal-enrichment-info">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3 data-bind="text: currentEnrichment().name"></h3>
+    </div>
+
+    <div class="modal-body">
+      <div class="clearfix">
+        {% if user.is_superuser %}
+        <h3>Assign new enrichment to a species</h3>
+        <div class="clearfix"></div>
+        <div class="alert alert-error" data-bind="visible: newEnrichmentNoteError">
+          <button class="close" data-bind="click: function() { neweNrichmentNoteError(null) }">×</button>
+          <strong>Error!</strong> <span data-bind="text: newEnrichmentNoteError"></span>
+        </div>
+        <div class="alert alert-success" data-bind="visible: newEnrichmentNoteSuccess">
+          <strong>Success!</strong> <span>Enrichment assigned to species</span>
+        </div>
+
+        <form action="#" class="form-horizontal well" data-bind="visible: newEnrichmentNoteIsCreating, submit: function() { addEnrichmentNote(); return false }">
+          <fieldset>
+            <div class="control-group">
+              <label class="control-label" for="select01">Species:</label>
+              <div class="controls">
+                <select data-bind="options: species, value: newEnrichmentNote.species, optionsText: 'commonName'"></select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Instructions</label>
+              <div class="controls">
+                <input type="text" class="input-xlarge" data-bind="value: newEnrichmentNote.instructions">
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Limitations</label>
+              <div class="controls">
+                <input type="text" class="input-xlarge" data-bind="value: newEnrichmentNote.limitations">
+              </div>
+            </div>
+          </fieldset>
+        </form>
+        <button class="btn btn-primary pull-right" data-bind="click: createEnrichmentNote">Assign</button>
+      </div>
+
+      <hr>
+      {% endif %}
+
+      <h3>Current Assigned Species</h3>
+      <div>
+        <table class="table table-bordered table-striped" >
+          <thead>
+            <tr>
+              <th>Species</th>
+              <th>Limitations</th>
+              <th>Instructions</th>
+            </tr>
+          </thead>
+          <tbody data-bind="foreach: enrichmentNotes">
+            <tr>
+              <td data-bind="text: speciesCommonName"></td>
+              <td data-bind="text: limitations"></td>
+              <td data-bind="text: instructions"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <a href="#" class="btn" data-dismiss="modal">Close</a>
+    </div>
+
   </div>
 
 </div>

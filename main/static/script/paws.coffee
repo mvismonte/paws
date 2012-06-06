@@ -102,23 +102,43 @@ $(document).ready ->
 
   class Enrichment
     constructor: (data) ->
-      @id = ko.observable data.id
-      @name = ko.observable data.name # non-observable is fine
-      @categoryId = ko.observable data.subcategory.category.id
-      @categoryName = ko.observable data.subcategory.category.name
-      @subcategoryId = ko.observable data.subcategory.id
-      @subcategoryName = ko.observable data.subcategory.name
-      @count = ko.observable 0
-      @disabled = false
+      if data?
+        @id = ko.observable data.id
+        @name = ko.observable data.name # non-observable is fine
+        @categoryId = ko.observable data.subcategory.category.id
+        @categoryName = ko.observable data.subcategory.category.name
+        @subcategoryId = ko.observable data.subcategory.id
+        @subcategoryName = ko.observable data.subcategory.name
+        @count = ko.observable 0
+        @disabled = false
+      else
+        @id = ko.observable null
+        @name = ko.observable null
+        @categoryId = ko.observable null
+        @categoryName = ko.observable null
+        @subcategoryId = ko.observable null
+        @subcategoryName = ko.observable null
+        @count = ko.observable 0
+        @disabled = false
 
   class EnrichmentNote
     constructor: (data) ->
-      @enrichmentId = ko.observable data.enrichment.id
-      @speciesCommonName = ko.observable data.species.common_name
-      @speciesId = ko.observable data.species.id
-      @speciesScientificName = ko.observable data.species.scientific_name
-      @limitations = ko.observable data.limitations
-      @instructions = ko.observable data.instructions
+      if data?
+        @enrichmentId = ko.observable data.enrichment.id
+        @speciesCommonName = ko.observable data.species.common_name
+        @speciesId = ko.observable data.species.id
+        @speciesScientificName = ko.observable data.species.scientific_name
+        @species = ko.observable new Species data.species
+        @limitations = ko.observable data.limitations
+        @instructions = ko.observable data.instructions
+      else
+        @enrichmentId = ko.observable null
+        @speciesCommonName = ko.observable null
+        @speciesId = ko.observable null
+        @speciesScientificName = ko.observable null
+        @species = ko.observable new Species null
+        @limitations = ko.observable null
+        @instructions = ko.observable null
 
   class Observation
     constructor: (data=null) ->
@@ -166,9 +186,15 @@ $(document).ready ->
 
   class Species
     constructor: (data) ->
-      @commonName = ko.observable data.common_name
-      @scientificName = ko.observable data.scientific_name
-      @id = ko.observable data.id
+      if data?
+        @commonName = ko.observable data.common_name
+        @scientificName = ko.observable data.scientific_name
+        @id = ko.observable data.id
+      else
+        @commonName = ko.observable null
+        @scientificName = ko.observable null
+        @id = ko.observable null
+
 
   class Subcategory
     constructor: (data) ->
@@ -744,6 +770,7 @@ $(document).ready ->
       @categories = ko.observableArray []
       @subcategories = ko.observableArray []
       @enrichments = ko.observableArray []
+      @species = ko.observableArray []
 
       # Operations
       # Current Filters
@@ -807,6 +834,17 @@ $(document).ready ->
       @newEnrichmentAjaxLoad = ko.observable false
       @newEnrichmentIsCreating = ko.observable true
 
+      # EnrichmentNote creation fields.
+      @newEnrichmentNote = new EnrichmentNote null
+      @newEnrichmentNoteError = ko.observable false
+      @newEnrichmentNoteSuccess = ko.observable false
+      @newEnrichmentNoteAjaxLoad = ko.observable false
+      @newEnrichmentNoteIsCreating = ko.observable true
+
+      # Selected enrichment fields
+      @currentEnrichment = ko.observable new Enrichment null
+      @enrichmentNotes = ko.observableArray []
+
     # Apply filters
     filterCategory: (category) =>
       if category == @categoryFilter()
@@ -853,6 +891,11 @@ $(document).ready ->
           else
             return 1
         resizeAllCarousels()
+      # Get species for enrichmentNote
+      $.getJSON '/api/v1/species/?format=json&limit=0', (data) =>
+        mappedSpecies = $.map data.objects, (item) ->
+          return new Species item
+        @species mappedSpecies
 
     empty: () =>
       @categories null
@@ -887,6 +930,16 @@ $(document).ready ->
       @newEnrichmentNameMessageBody ''
       @newEnrichmentAjaxLoad false
       @newEnrichmentIsCreating true
+
+    openEnrichmentNote: (current) =>
+      @currentEnrichment current
+      console.log current.id()
+      $.getJSON "/api/v1/enrichmentNote/?format=json&enrichment_id=#{current.id()}", (data) =>
+        mappedNotes = $.map data.objects, (item) ->
+          return new EnrichmentNote item
+        @enrichmentNotes mappedNotes
+      $('#modal-enrichment-info').modal('show')
+      console.log @currentEnrichment()
 
     createCategory: () =>
       newCategory =
@@ -1085,6 +1138,65 @@ $(document).ready ->
         # Make the ajax call.
         @newEnrichmentAjaxLoad true
         $.ajax settings
+
+    createEnrichmentNote: () =>
+      newEN = 
+        enrichment: "/api/v1/enrichment/#{@currentEnrichment().id()}/"
+        instructions: @newEnrichmentNote.instructions()
+        limitations: @newEnrichmentNote.limitations()
+        species: "/api/v1/species/#{@newEnrichmentNote.species().id()}/"
+
+      console.log newEN
+
+        # Make sure we are not in the middle of loading.
+      if (@newEnrichmentNoteAjaxLoad())
+        console.log "We are already trying to send something"
+        return
+
+      # Validate fields before continuing.
+      # TODO
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/enrichmentNote/?format=json'
+        data: JSON.stringify newEN
+        success: @enrichmentCreated
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "EnrichmentNote successfully created!"
+
+        # Extract the category id from the Location response header.
+        locationsURL = jqXHR.getResponseHeader 'Location'
+        pieces = locationsURL.split "/"
+
+        # Push new note to table
+        noteToPush =
+          enrichment: {id: @currentEnrichment().id()}
+          instructions: @newEnrichmentNote.instructions()
+          limitations: @newEnrichmentNote.limitations()
+          species: {common_name: @newEnrichmentNote.species().commonName()}
+          id: pieces[pieces.length - 2]
+        console.log noteToPush
+        @enrichmentNotes.push new EnrichmentNote noteToPush
+
+        # Show success message and remove extra weight.
+        @newEnrichmentNoteIsCreating false
+        @newEnrichmentNoteSuccess true
+        @newEnrichmentNoteError false
+
+        # Add new enrichment to @subcategories and refresh.
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Enrichment not created!"
+        @newEnrichmentAjaxLoad false
+        @newEnrichmentNameError 'An unexpected error occured'
+
+      # Make the ajax call.
+      @newEnrichmentAjaxLoad true
+      $.ajax settings
 
   class ObservationListViewModel
     constructor: () ->
