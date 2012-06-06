@@ -79,25 +79,23 @@
       <h3>Current Housing Groups</h3>
       <!-- ko with: currentStaff -->
       <div data-bind="foreach: housingGroups">
-      <table class="table table-bordered table-striped" >
-        <thead>
-          <tr>
-            <th>
-              <strong data-bind="text: name"></strong>
-              <button class="btn btn-mini btn-danger pull-right">Remove</button>
-            </th>
-          </tr>
-        </thead>
-        <tbody data-bind="foreach: animals">
-          <tr>
-            <td>
-              <small data-bind="text: name"></small>
-            </td>
-
-          </tr>
-        </tbody>
-
-      </table>
+        <table class="table table-bordered table-striped" >
+          <thead>
+            <tr>
+              <th>
+                <strong data-bind="text: name"></strong>
+                <button class="btn btn-mini btn-danger pull-right">Remove</button>
+              </th>
+            </tr>
+          </thead>
+          <tbody data-bind="foreach: animals">
+            <tr>
+              <td>
+                <small data-bind="text: name"></small>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <!--
       <ul data-bind="foreach: housingGroups">
