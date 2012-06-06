@@ -4,72 +4,72 @@
 
 <div class="container" id="enrichmentListContainer" style="display: none;">
 
-    {% if user.is_superuser %}
-    <div id="addnew" class="btn-group pull-right">
-      <button class="btn btn-primary " data-bind="click: openCreateCategory" data-toggle="modal" data-target="#modal-enrichment-category">New Category</button>
-      <button class="btn btn-primary " data-bind="click: openCreateSubcategory" data-toggle="modal" data-target="#modal-enrichment-subcategory">New Subcategory</button>
-      <button class="btn btn-primary " data-bind="click: openCreateEnrichment" data-toggle="modal" data-target="#modal-enrichment">New Enrichment</button>
+  {% if user.is_superuser %}
+  <div id="addnew" class="btn-group pull-right">
+    <button class="btn btn-primary " data-bind="click: openCreateCategory" data-toggle="modal" data-target="#modal-enrichment-category">New Category</button>
+    <button class="btn btn-primary " data-bind="click: openCreateSubcategory" data-toggle="modal" data-target="#modal-enrichment-subcategory">New Subcategory</button>
+    <button class="btn btn-primary " data-bind="click: openCreateEnrichment" data-toggle="modal" data-target="#modal-enrichment">New Enrichment</button>
+  </div>
+  {% endif %}
+
+  <div class="row">
+    <div class="span12">
+      <div class="well">
+        <h3>Categories</h3>
+        <div class="carousel" id="categorySelector">
+         
+          <div class="carousel-scroller">
+            <ul data-bind="foreach: categories">
+              <li data-bind="click: $parent.filterCategory,
+                  css: { 'list-active': $parent.categoryFilter() == $data }">
+                <div data-bind="text: name"></div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <hr>
+
+        <h3>SubCategories</h3>
+        <div class="carousel" id="subcategorySelector">
+          
+          <div class="carousel-scroller">
+            <ul data-bind="foreach: subcategoriesFilterCategory">
+              <li data-bind="click: $parent.filterSubcategory,
+                  css: { 'list-active': $parent.subcategoryFilter() == $data }">
+                <div data-bind="text: name"></div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
     </div>
-    {% endif %}
+  </div>
 
-    <div class="row">
-      <div class="span12">
-        <div class="well">
-          <h3>Categories</h3>
-          <div class="carousel" id="categorySelector">
-           
-            <div class="carousel-scroller">
-              <ul data-bind="foreach: categories">
-                <li data-bind="click: $parent.filterCategory,
-                    css: { 'list-active': $parent.categoryFilter() == $data }">
-                  <div data-bind="text: name"></div>
-                </li>
-              </ul>
-            </div>
+
+  <div class="row">
+    <div class="span12">
+      <div class="well">  
+        <h3>Enrichment Items</h3>
+        <div class="carousel list-items" id="enrichmentSelector">             
+          <div class="carousel-scroller carousel-rows">
+            <ul data-bind="foreach: enrichmentsFilterSubcategory">
+              <li>
+                
+                <span class="label label-success pull-left" data-bind="text: categoryName"></span>    
+             
+                <span class="label label-info pull-right" data-bind="text: subcategoryName"></span>
+                <div style="clear:both;"></div> 
+                <div style="clear:both;"></div> 
+                <h4><strong data-bind="text: name"></strong></h4>
+              </li>
+            </ul>
           </div>
-
-          <hr>
-
-          <h3>SubCategories</h3>
-          <div class="carousel" id="subcategorySelector">
-            
-            <div class="carousel-scroller">
-              <ul data-bind="foreach: subcategoriesFilterCategory">
-                <li data-bind="click: $parent.filterSubcategory,
-                    css: { 'list-active': $parent.subcategoryFilter() == $data }">
-                  <div data-bind="text: name"></div>
-                </li>
-              </ul>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
-
-
-    <div class="row">
-      <div class="span12">
-        <div class="well">  
-          <h3>Enrichment Items</h3>
-          <div class="carousel list-items" id="enrichmentSelector">             
-            <div class="carousel-scroller carousel-rows">
-              <ul data-bind="foreach: enrichmentsFilterSubcategory">
-                <li>
-                  
-                  <span class="label label-success pull-left" data-bind="text: categoryName"></span>    
-               
-                  <span class="label label-info pull-right" data-bind="text: subcategoryName"></span>
-                  <div style="clear:both;"></div> 
-                  <div style="clear:both;"></div> 
-                  <h4><strong data-bind="text: name"></strong></h4>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  </div>
 
   {# Modal for creating enrichment category #}
   <div class="modal hide fade" id="modal-enrichment-category">
