@@ -1085,6 +1085,14 @@ class UserResource(ModelResource):
     try:
       user = json.loads(request.raw_post_data)
       print user
+      
+      if user["first_name"] == "":
+        return self.create_response(request, "Blank first name. Please fill in.", response_class=HttpBadRequest)
+      if user["last_name"] == "":
+        return self.create_response(request, "Blank last name. Please fill in.", response_class=HttpBadRequest)
+      if user["password"] == "":
+        return self.create_response(request, "Blank password. Please fill in.", response_class=HttpBadRequest)
+      
       import_user = bulk_import.addUser(
           first_name = user["first_name"], 
           last_name = user["last_name"],
