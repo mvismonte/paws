@@ -109,6 +109,13 @@ def addUser(first_name, last_name, password, is_superuser):
   username = username.lower()
   count = 0    
 
+  # Remove all whitespace from username
+  username = ''.join(username.split(' '))
+  username = ''.join(username.split('\t'))
+  username = ''.join(username.split('\n'))
+  username = ''.join(username.split('\r'))
+
+
   original_username = username
 
   # Check if the username is already in the database

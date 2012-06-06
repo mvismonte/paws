@@ -14,7 +14,6 @@ class EnrichmentIndex(SearchIndex):
 
 class StaffIndex(SearchIndex):
   text = CharField(document=True, use_template=True)
-  animals = CharField(model_attr='animals')
   user = CharField(model_attr='user')
 
 site.register(models.Animal, AnimalIndex)

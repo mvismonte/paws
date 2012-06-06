@@ -4,30 +4,31 @@
 # This file contains the resources for the RESTful API using the
 # django-tastypie.
 
-# TODO(Diana): Reorganize imports so that all froms are in alphabetical order
-# and all imports are in alphabetical order.
+import datetime
+import json
+from django.conf.urls.defaults import *
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
-from django.conf.urls.defaults import *
-from django.core.paginator import Paginator
 from django.core.paginator import InvalidPage
+from django.core.paginator import Paginator
 from django.http import Http404
 from django.http import HttpResponse
+from haystack.query import EmptySearchQuerySet
+from haystack.query import SearchQuerySet
 from paws.main import models
+from paws.main.utilities import bulk_import
+from tastypie.authentication import BasicAuthentication
+from tastypie.authorization import Authorization
+from tastypie.authorization import DjangoAuthorization
+from tastypie.exceptions import BadRequest
+from tastypie.exceptions import ImmediateHttpResponse
+from tastypie.http import HttpApplicationError
+from tastypie.http import HttpUnauthorized
 from tastypie.resources import fields
 from tastypie.resources import ModelResource
-from tastypie.authentication import BasicAuthentication
-from tastypie.authorization import Authorization, DjangoAuthorization
 from tastypie.utils import trailing_slash
-from tastypie.exceptions import BadRequest, ImmediateHttpResponse
-from tastypie.http import HttpApplicationError, HttpUnauthorized
-from haystack.query import SearchQuerySet
-from haystack.query import EmptySearchQuerySet
-from paws.main.utilities import bulk_import
-import datetime
-import json
 
 # Custom Authentication
 class CustomAuthentication(BasicAuthentication):
@@ -73,6 +74,14 @@ class AnimalObservationResource(ModelResource):
 
   # creating new animalObservation into database
   def obj_create(self, bundle, request=None, **kwargs):
+    # Get the user of the observation by fully hydrating the bundle and then
+    # check if the user is allowed to add to this observation.
+    user = self.full_hydrate(bundle).obj.observation.staff.user
+    if not request.user.is_superuser and user != request.user:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot add other users' animal observations")
+      )
+
     return super(AnimalObservationResource, self).obj_create(bundle, request, **kwargs)
     
   # update animalObservation's information in the database
@@ -91,7 +100,7 @@ class AnimalObservationResource(ModelResource):
     observation_id = int(kwargs.pop('pk', None))
     if not self.can_modify_observation(request, observation_id):
       raise ImmediateHttpResponse(
-          HttpUnauthorized("Cannot delet other users' animal observations")
+          HttpUnauthorized("Cannot delete other users' animal observations")
       )
     return super(AnimalObservationResource, self).obj_delete( request, **kwargs)
 
@@ -195,23 +204,24 @@ class AnimalObservationResource(ModelResource):
       avoid_interaction=0.0
       for result in q_set:
         if models.Observation.objects.get(id=result.observation_id).enrichment == e:
+          behavior=models.Behavior.objects.get(id=result.behavior_id)
           total_eachInteraction += result.interaction_time
-          if(result.behavior == 1):
+          if(behavior.reaction == 1):
             positive += 1
             pos_interaction+=result.interaction_time
-          if(result.behavior == 0):
+          if(behavior.reaction == 0):
             NA += 1
             na_interaction+=result.interaction_time
-          if(result.behavior == -1):
+          if(behavior.reaction == -1):
             negative += 1
             neg_interaction+=result.interaction_time
-          if(result.behavior == -2):
+          if(behavior.reaction == -2):
             avoid += 1
             avoid_interaction+=result.interaction_time
         else:
           pass
       # Return 0 if the animal has never interacted with any enrichment
-      if total_interaction == 0.0:
+      if total_eachInteraction == 0.0:
         percentage=0.0
         pos_percentage=0.0
         na_percentage=0.0
@@ -366,6 +376,12 @@ class AnimalResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
+    # Make user is superuser.
+    if not request.user.is_superuser:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot edit other users' observations")
+      )
+
     # try to load the json file
     try:
       animal_list = json.loads(request.raw_post_data)
@@ -389,6 +405,50 @@ class AnimalResource(ModelResource):
       'objects': objects,
     }
     return self.create_response(request, object_list)
+
+#Behavior Resource.
+class BehaviorResource(ModelResource):
+  #define foreign key.
+  enrichment = fields.ForeignKey(
+      'paws.api.resources.EnrichmentResource','enrichment')
+  class Meta:
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = Authorization()
+    queryset = models.Behavior.objects.all()
+    resource_name = 'behavior'
+    # allowed actions towards database
+    # get = getting behavior's information from the database
+    # post = adding new behavior into the database
+    # put = updating behavior's information in the database
+    # delete = delete behavior from the database
+    list_allowed_methods = ['get','post','put','delete']
+
+  # creating new behavior into database
+  def obj_create(self, bundle, request=None, **kwargs):
+    return super(BehaviorResource, self).obj_create(bundle, request, **kwargs)
+    
+  # update behavior's information in the database
+  def obj_update(self, bundle, request=None, **kwargs):
+    return super(BehaviorResource, self).obj_update(bundle, request, **kwargs)
+
+  # delete behavior from the database
+  def obj_delete(self, request=None, **kwargs):
+    return super(BehaviorResource, self).obj_delete( request, **kwargs)
+  
+  # Redefine get_object_list to filter for enrichment_id
+  def get_object_list(self, request):
+    enrichment_id = request.GET.get('enrichment_id', None)
+    q_set = super(BehaviorResource, self).get_object_list(request)
+
+    # Try filtering by enrichment if it exists.
+    try:
+      enrichment = models.Enrichment.objects.get(id=enrichment_id)
+      q_set = q_set.filter(enrichment=enrichment)
+    except ObjectDoesNotExist:
+      pass
+
+    return q_set
 
 # Category Resource.
 class CategoryResource(ModelResource):
@@ -592,6 +652,12 @@ class EnrichmentResource(ModelResource):
     self.method_check(request, allowed=['post'])
     self.is_authenticated(request)
     self.throttle_check(request)
+
+    # Make user is superuser.
+    if not request.user.is_superuser:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot bulk add")
+      )
 
     # try loading the json
     try:
@@ -1020,9 +1086,23 @@ class UserResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
+    # Make user is superuser.
+    if not request.user.is_superuser:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot add user")
+      )
+
     try:
       user = json.loads(request.raw_post_data)
       print user
+      
+      if user["first_name"] == "":
+        return self.create_response(request, "Blank first name. Please fill in.", response_class=HttpBadRequest)
+      if user["last_name"] == "":
+        return self.create_response(request, "Blank last name. Please fill in.", response_class=HttpBadRequest)
+      if user["password"] == "":
+        return self.create_response(request, "Blank password. Please fill in.", response_class=HttpBadRequest)
+      
       import_user = bulk_import.addUser(
           first_name = user["first_name"], 
           last_name = user["last_name"],
@@ -1043,6 +1123,12 @@ class UserResource(ModelResource):
     self.method_check(request, allowed=['post'])
     self.is_authenticated(request)
     self.throttle_check(request)
+
+    # Make user is superuser.
+    if not request.user.is_superuser:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot bulk add")
+      )
  
     # Try making a new user
     try:
