@@ -30,9 +30,6 @@ from tastypie.resources import fields
 from tastypie.resources import ModelResource
 from tastypie.utils import trailing_slash
 
-
-
-
 # Custom Authentication
 class CustomAuthentication(BasicAuthentication):
   def __init__(self,*args,**kwargs):
@@ -438,7 +435,20 @@ class BehaviorResource(ModelResource):
   # delete behavior from the database
   def obj_delete(self, request=None, **kwargs):
     return super(BehaviorResource, self).obj_delete( request, **kwargs)
+  
+  # Redefine get_object_list to filter for enrichment_id
+  def get_object_list(self, request):
+    enrichment_id = request.GET.get('enrichment_id', None)
+    q_set = super(BehaviorResource, self).get_object_list(request)
 
+    # Try filtering by enrichment if it exists.
+    try:
+      enrichment = models.Enrichment.objects.get(id=enrichment_id)
+      q_set = q_set.filter(enrichment=enrichment)
+    except ObjectDoesNotExist:
+      pass
+
+    return q_set
 
 # Category Resource.
 class CategoryResource(ModelResource):
