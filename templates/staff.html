@@ -42,6 +42,7 @@
     <div class="modal-body">
       <div class="clearfix">
         <h3>Add a new Housing Group</h3>
+        <div class="clearfix"></div>
         <div class="alert alert-error" data-bind="visible: newHousingGroupError">
           <button class="close" data-bind="click: function() { newHousingGroupError(null) }">×</button>
           <strong>Error!</strong> <span data-bind="text: newHousingGroupError"></span>
@@ -50,23 +51,23 @@
           <strong>Success!</strong> <span>Enrichment created</span>
         </div>
 
-        <form action="#" class="form-horizontal" data-bind="visible: newHousingGroupIsCreating, submit: function() { addHousingGroup(); return false }">
+        <form action="#" class="form-horizontal well" data-bind="visible: newHousingGroupIsCreating, submit: function() { addHousingGroup(); return false }">
           <fieldset>
             <div class="control-group">
-              <label class="control-label" for="select01">Exhibit</label>
+              <label class="control-label" for="select01">Exhibit:</label>
               <div class="controls">
                 <select data-bind="options: exhibits, value: newHousingGroup.exhibit, optionsText: 'code'"></select>
               </div>
             </div>
             <div class="control-group">
-              <label class="control-label" for="select01">Housing Group</label>
+              <label class="control-label" for="select01">Housing Group:</label>
               <div class="controls">
                 <select data-bind="options: newHousingGroupOptions, value: newHousingGroup.housingGroup, optionsText: 'name'"></select>
               </div>
             </div>
             <div class="control-group">
-              <label class="control-label">Animals</label>
-              <div class="controls" data-bind="foreach: newHousingGroupAnimals">
+              <label class="control-label">Animals:</label>
+              <div id="animalLabel" class="controls" data-bind="foreach: newHousingGroupAnimals">
                 <span data-bind="text: name"></span>,
               </div>
             </div>
@@ -79,6 +80,26 @@
 
       <h3>Current Housing Groups</h3>
       <!-- ko with: currentStaff -->
+      <div data-bind="foreach: housingGroups">
+        <table class="table table-bordered table-striped" >
+          <thead>
+            <tr>
+              <th>
+                <strong data-bind="text: name"></strong>
+                <button class="btn btn-mini btn-danger pull-right">Remove</button>
+              </th>
+            </tr>
+          </thead>
+          <tbody data-bind="foreach: animals">
+            <tr>
+              <td>
+                <small data-bind="text: name"></small>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!--
       <ul data-bind="foreach: housingGroups">
         <li>
           <strong data-bind="text: name"></strong>
@@ -88,6 +109,7 @@
           </ul>
         </li>
       </ul>
+    -->
       <!-- /ko -->
     </div>
 
