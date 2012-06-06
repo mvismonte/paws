@@ -912,11 +912,15 @@ class StaffResource(ModelResource):
   def get_object_list(self, request):
     animal_id = request.GET.get('animal_id', None)
     q_set = super(StaffResource, self).get_object_list(request)
+
+    #Filtering by animals
     try:
       animal = models.Animal.objects.get(id=animal_id)
-      q_set = q_set.filter(animals=animal)
+      housing_group = animal.housing_group
+      q_set = housing_group.staff.all()
     except ObjectDoesNotExist:
       pass
+
     return q_set
 
 # Subcategory Resource.
