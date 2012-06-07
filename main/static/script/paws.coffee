@@ -84,6 +84,7 @@ $(document).ready ->
         $.each @housingGroups(), (index, val) =>
           num++ if val.isInStaff()
         return num
+      @resourceURI = data.resource_uri
 
   class HousingGroup
     constructor: (data) ->
@@ -561,7 +562,8 @@ $(document).ready ->
       $.ajax settings
 
     openCreateHousingGroup: () ->
-      @newHousingGroup.code ''
+      @newHousingGroup.name ''
+      @newHousingGroup.exhibit ''
       @newHousingGroupError null
       @newHousingGroupWarning null
       @newHousingGroupSuccess false
@@ -571,14 +573,15 @@ $(document).ready ->
     createNewHousingGroup: () =>
       newHousingGroup =
         name: @newHousingGroup.name()
-        exhibit: @newHousingGroup.exhibit()
+        exhibit: @newHousingGroup.exhibit().resourceURI
+      console.log newHousingGroup
 
       # Make some simple checks.
       if (newHousingGroup.name.length == 0)
-        @newHousingGroupError 'Code cannot be empty'
+        @newHousingGroupError 'Name cannot be empty'
         return
       if (newHousingGroup.name.length > 100)
-        @newHousingGroupError 'Code cannot more than 100 characters'
+        @newHousingGroupError 'Name cannot more than 100 characters'
         return
 
       settings =
@@ -595,12 +598,13 @@ $(document).ready ->
         console.log textStatus
 
         # Show success message.
-        @newHousingGroupSuccess "HousingGroup #{newHousingGroup.code} was created"
+        @newHousingGroupSuccess "HousingGroup #{newHousingGroup.name} " +
+            "for exhibit #{@newHousingGroup.exhibit().code()} was created"
         @newHousingGroupError null
         @newHousingGroupAjaxLoad false
 
         # TODO(mark): Need to add successful object to housinggroup list.
-        # @housinggroups.push new HousingGroup data
+        @newHousingGroup.exhibit().housingGroups.push new HousingGroup data
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Create housinggroup error"
