@@ -5,17 +5,20 @@
 <div class="container" id="enrichmentListContainer" style="display: none;">
 
   {% if user.is_superuser %}
-  <div id="addnew" class="btn-group pull-right">
-    <button class="btn btn-primary " data-bind="click: openCreateCategory" data-toggle="modal" data-target="#modal-enrichment-category">New Category</button>
-    <button class="btn btn-primary " data-bind="click: openCreateSubcategory" data-toggle="modal" data-target="#modal-enrichment-subcategory">New Subcategory</button>
-    <button class="btn btn-primary " data-bind="click: openCreateEnrichment" data-toggle="modal" data-target="#modal-enrichment">New Enrichment</button>
-  </div>
+    <div id="addnew" class="btn-group pull-right">
+      <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Add <span class="caret"></span></button>
+      <ul class="dropdown-menu">
+        <li><a data-bind="click: openCreateCategory" data-toggle="modal" data-target="#modal-enrichment-category">New Category</a></li>
+        <li><a data-bind="click: openCreateSubcategory" data-toggle="modal" data-target="#modal-enrichment-subcategory">New Subcategory</a></li>
+        <li><a data-bind="click: openCreateEnrichment" data-toggle="modal" data-target="#modal-enrichment">New Enrichment</a></li>
+      </ul>
+    </div>
   {% endif %}
 
   <div class="row">
     <div class="span12">
       <div class="well">
-        <h3>Categories</h3>
+        <h3>Enrichment Categories</h3>
         <div class="carousel" id="categorySelector">
          
           <div class="carousel-scroller">
@@ -53,7 +56,7 @@
       <div class="well">  
         <h3>Enrichment Items</h3>
         <div class="carousel list-items" id="enrichmentSelector">             
-          <div class="carousel-scroller carousel-rows">
+          <div class="carousel-scroller carousel-rows carousel-fixed-width">
             <ul data-bind="foreach: enrichmentsFilterSubcategory">
               <li data-bind="click: $root.openEnrichmentNote">
                 

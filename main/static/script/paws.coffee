@@ -1635,12 +1635,19 @@ $(document).ready ->
     newWidth = 0;
     # Fixed width items, don't compute width of every li
     if fixedWidth
-      newWidth = Math.ceil(length / numRows)*$(scroller).find('ul li:first').outerWidth(true) + 10
+      console.log "fixed"
+      singleWidth = $(scroller).find('ul li:first').outerWidth(true)
+      newWidth = Math.ceil(length / numRows) * singleWidth
+      while newWidth > 8000
+        numRows++
+        newWidth = Math.ceil(length / numRows) * singleWidth
     # Not fixed width, compute the width of every li dynamically
     else
       $(scroller).find('ul li').each ->
         newWidth += $(this).outerWidth(true)
-    newWidth /= numRows if length/numRows > 1
+      newWidth /= numRows
+      newWidth = 8000 if newWidth > 8000
+      console.log newWidth
     if newWidth != oldWidth
       console.log 'Resizing carousel from ' + oldWidth + ' to ' + newWidth + ' with ' + numRows + ' rows'
       $(scroller).width newWidth
@@ -1652,9 +1659,9 @@ $(document).ready ->
       if $(this).hasClass 'carousel-rows'
         numRows = Math.min Math.floor(($(window).height()-$(this).parent().offset().top)/$(this).find('li:first').outerHeight(true)), MAX_SCROLLER_ROWS
         console.log "numrows: #{numRows}"
-        resized = resizeCarousel this, numRows, false
       else
-        resized = resizeCarousel this, 1, false
+        numRows = 1
+      resized = resizeCarousel this, numRows, $(this).hasClass 'carousel-fixed-width'
       if refresh and resized
         console.log 'Refreshing carousel'
         $.each scrollers, (key, value) ->
