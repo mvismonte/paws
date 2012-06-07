@@ -102,23 +102,43 @@ $(document).ready ->
 
   class Enrichment
     constructor: (data) ->
-      @id = ko.observable data.id
-      @name = ko.observable data.name # non-observable is fine
-      @categoryId = ko.observable data.subcategory.category.id
-      @categoryName = ko.observable data.subcategory.category.name
-      @subcategoryId = ko.observable data.subcategory.id
-      @subcategoryName = ko.observable data.subcategory.name
-      @count = ko.observable 0
-      @disabled = false
+      if data?
+        @id = ko.observable data.id
+        @name = ko.observable data.name # non-observable is fine
+        @categoryId = ko.observable data.subcategory.category.id
+        @categoryName = ko.observable data.subcategory.category.name
+        @subcategoryId = ko.observable data.subcategory.id
+        @subcategoryName = ko.observable data.subcategory.name
+        @count = ko.observable 0
+        @disabled = false
+      else
+        @id = ko.observable null
+        @name = ko.observable null
+        @categoryId = ko.observable null
+        @categoryName = ko.observable null
+        @subcategoryId = ko.observable null
+        @subcategoryName = ko.observable null
+        @count = ko.observable 0
+        @disabled = false
 
   class EnrichmentNote
     constructor: (data) ->
-      @enrichmentId = ko.observable data.enrichment.id
-      @speciesCommonName = ko.observable data.species.common_name
-      @speciesId = ko.observable data.species.id
-      @speciesScientificName = ko.observable data.species.scientific_name
-      @limitations = ko.observable data.limitations
-      @instructions = ko.observable data.instructions
+      if data?
+        @enrichmentId = ko.observable data.enrichment.id
+        @speciesCommonName = ko.observable data.species.common_name
+        @speciesId = ko.observable data.species.id
+        @speciesScientificName = ko.observable data.species.scientific_name
+        @species = ko.observable new Species data.species
+        @limitations = ko.observable data.limitations
+        @instructions = ko.observable data.instructions
+      else
+        @enrichmentId = ko.observable null
+        @speciesCommonName = ko.observable null
+        @speciesId = ko.observable null
+        @speciesScientificName = ko.observable null
+        @species = ko.observable new Species null
+        @limitations = ko.observable null
+        @instructions = ko.observable null
 
   class Observation
     constructor: (data=null) ->
@@ -166,9 +186,15 @@ $(document).ready ->
 
   class Species
     constructor: (data) ->
-      @commonName = ko.observable data.common_name
-      @scientificName = ko.observable data.scientific_name
-      @id = ko.observable data.id
+      if data?
+        @commonName = ko.observable data.common_name
+        @scientificName = ko.observable data.scientific_name
+        @id = ko.observable data.id
+      else
+        @commonName = ko.observable null
+        @scientificName = ko.observable null
+        @id = ko.observable null
+
 
   class Subcategory
     constructor: (data) ->
@@ -210,6 +236,8 @@ $(document).ready ->
       @newAnimalObservationIsCreating = ko.observable false
       @newAnimalObservationSuccess = ko.observable false
 
+      # Staff that's in charge of animals
+      @staffs = ko.observableArray []
 
       # If viewing all keeper's animals or just yours
       @viewAll = ko.observable false
@@ -521,6 +549,19 @@ $(document).ready ->
       # Make the ajax call.
       @newExhibitAjaxLoad true
       $.ajax settings
+
+    # Open info modal
+    openInfo: () ->
+      # Empty out staff array
+      @staffs []
+      $.each @selectedAnimals(), (index, animal) =>
+        console.log animal
+        # Get data from API
+        $.getJSON "/api/v1/staff/?format=json&animal_id=#{animal.id()}", (data) =>
+          # Push each staff into 
+          $.each data.objects, (index, item) =>
+            @staffs.push (new Staff item)
+      $('#modal-animal-info').modal('show')
 
     # Open bulk upload.
     openBulkUpload: () ->
@@ -858,6 +899,7 @@ $(document).ready ->
       @categories = ko.observableArray []
       @subcategories = ko.observableArray []
       @enrichments = ko.observableArray []
+      @species = ko.observableArray []
 
       # Operations
       # Current Filters
@@ -921,6 +963,17 @@ $(document).ready ->
       @newEnrichmentAjaxLoad = ko.observable false
       @newEnrichmentIsCreating = ko.observable true
 
+      # EnrichmentNote creation fields.
+      @newEnrichmentNote = new EnrichmentNote null
+      @newEnrichmentNoteError = ko.observable false
+      @newEnrichmentNoteSuccess = ko.observable false
+      @newEnrichmentNoteAjaxLoad = ko.observable false
+      @newEnrichmentNoteIsCreating = ko.observable true
+
+      # Selected enrichment fields
+      @currentEnrichment = ko.observable new Enrichment null
+      @enrichmentNotes = ko.observableArray []
+
     # Apply filters
     filterCategory: (category) =>
       if category == @categoryFilter()
@@ -967,6 +1020,11 @@ $(document).ready ->
           else
             return 1
         resizeAllCarousels()
+      # Get species for enrichmentNote
+      $.getJSON '/api/v1/species/?format=json&limit=0', (data) =>
+        mappedSpecies = $.map data.objects, (item) ->
+          return new Species item
+        @species mappedSpecies
 
     empty: () =>
       @categories null
@@ -1001,6 +1059,16 @@ $(document).ready ->
       @newEnrichmentNameMessageBody ''
       @newEnrichmentAjaxLoad false
       @newEnrichmentIsCreating true
+
+    openEnrichmentNote: (current) =>
+      @currentEnrichment current
+      console.log current.id()
+      $.getJSON "/api/v1/enrichmentNote/?format=json&enrichment_id=#{current.id()}", (data) =>
+        mappedNotes = $.map data.objects, (item) ->
+          return new EnrichmentNote item
+        @enrichmentNotes mappedNotes
+      $('#modal-enrichment-info').modal('show')
+      console.log @currentEnrichment()
 
     createCategory: () =>
       newCategory =
@@ -1199,6 +1267,65 @@ $(document).ready ->
         # Make the ajax call.
         @newEnrichmentAjaxLoad true
         $.ajax settings
+
+    createEnrichmentNote: () =>
+      newEN = 
+        enrichment: "/api/v1/enrichment/#{@currentEnrichment().id()}/"
+        instructions: @newEnrichmentNote.instructions()
+        limitations: @newEnrichmentNote.limitations()
+        species: "/api/v1/species/#{@newEnrichmentNote.species().id()}/"
+
+      console.log newEN
+
+        # Make sure we are not in the middle of loading.
+      if (@newEnrichmentNoteAjaxLoad())
+        console.log "We are already trying to send something"
+        return
+
+      # Validate fields before continuing.
+      # TODO
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/enrichmentNote/?format=json'
+        data: JSON.stringify newEN
+        success: @enrichmentCreated
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "EnrichmentNote successfully created!"
+
+        # Extract the category id from the Location response header.
+        locationsURL = jqXHR.getResponseHeader 'Location'
+        pieces = locationsURL.split "/"
+
+        # Push new note to table
+        noteToPush =
+          enrichment: {id: @currentEnrichment().id()}
+          instructions: @newEnrichmentNote.instructions()
+          limitations: @newEnrichmentNote.limitations()
+          species: {common_name: @newEnrichmentNote.species().commonName()}
+          id: pieces[pieces.length - 2]
+        console.log noteToPush
+        @enrichmentNotes.push new EnrichmentNote noteToPush
+
+        # Show success message and remove extra weight.
+        @newEnrichmentNoteIsCreating false
+        @newEnrichmentNoteSuccess true
+        @newEnrichmentNoteError false
+
+        # Add new enrichment to @subcategories and refresh.
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Enrichment not created!"
+        @newEnrichmentAjaxLoad false
+        @newEnrichmentNameError 'An unexpected error occured'
+
+      # Make the ajax call.
+      @newEnrichmentAjaxLoad true
+      $.ajax settings
 
   class ObservationListViewModel
     constructor: () ->
@@ -1528,10 +1655,10 @@ $(document).ready ->
       data = {}
       data.housing_group = ['/api/v1/housingGroup/' + @newHousingGroup.housingGroup().id() + '/']
       $.each @currentStaff().housingGroups(), (index, value) =>
-        if data.housing_group.indexOf('api/v1/housingGroup/' + value.id() + '/') == -1
-          data.housing_group.push '/api/v1/housingGroup/' + value.id() + '/'
+        if data.housing_group.indexOf('api/v1/housingGroup/' + value().id() + '/') == -1
+          data.housing_group.push '/api/v1/housingGroup/' + value().id() + '/'
       console.log JSON.stringify data
-      $.ajax "/api/v1/staff/#{window.userId}/?format=json", {
+      $.ajax "/api/v1/staff/#{@currentStaff().id()}/?format=json", {
         data: JSON.stringify data
         dataType: "json"
         type: "PUT"
@@ -1636,12 +1763,19 @@ $(document).ready ->
     newWidth = 0;
     # Fixed width items, don't compute width of every li
     if fixedWidth
-      newWidth = Math.ceil(length / numRows)*$(scroller).find('ul li:first').outerWidth(true) + 10
+      console.log "fixed"
+      singleWidth = $(scroller).find('ul li:first').outerWidth(true)
+      newWidth = Math.ceil(length / numRows) * singleWidth
+      while newWidth > 8000
+        numRows++
+        newWidth = Math.ceil(length / numRows) * singleWidth
     # Not fixed width, compute the width of every li dynamically
     else
       $(scroller).find('ul li').each ->
         newWidth += $(this).outerWidth(true)
-    newWidth /= numRows if length/numRows > 1
+      newWidth /= numRows
+      newWidth = 8000 if newWidth > 8000
+      console.log newWidth
     if newWidth != oldWidth
       console.log 'Resizing carousel from ' + oldWidth + ' to ' + newWidth + ' with ' + numRows + ' rows'
       $(scroller).width newWidth
@@ -1653,9 +1787,9 @@ $(document).ready ->
       if $(this).hasClass 'carousel-rows'
         numRows = Math.min Math.floor(($(window).height()-$(this).parent().offset().top)/$(this).find('li:first').outerHeight(true)), MAX_SCROLLER_ROWS
         console.log "numrows: #{numRows}"
-        resized = resizeCarousel this, numRows, false
       else
-        resized = resizeCarousel this, 1, false
+        numRows = 1
+      resized = resizeCarousel this, numRows, $(this).hasClass 'carousel-fixed-width'
       if refresh and resized
         console.log 'Refreshing carousel'
         $.each scrollers, (key, value) ->

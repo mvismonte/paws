@@ -13,9 +13,9 @@
           </div>
           <div class="span6 btn-toolbar">
             {% if user.is_superuser %}
-            <div class="btn-group">
-              <button class="btn" data-bind="click: openBulkUpload" data-toggle="modal" data-target="#modal-animal-upload">Bulk Add</button>
-              <button class="btn btn-success dropdown-toggle" data-toggle="dropdown">Add <span class="caret"></span></button>
+            <div class="btn-group pull-right">
+              <button class="btn" data-bind="click: openBulkUpload"data-toggle="modal" data-target="#modal-animal-upload">Bulk Add</button>
+              <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Add <span class="caret"></span></button>
               <ul class="dropdown-menu">
                 <li><a href="#">Animal</a></li>
                 <li><a href="#" data-bind="click: openCreateSpecies"data-toggle="modal" data-target="#modal-add-species">Species</a></li>
@@ -23,9 +23,10 @@
                 <li><a href="#">Housing Group</a></li>
               </ul>
             </div>
+            <div class="pull-right" style="width: 10px">&nbsp;</div>
             {% endif %}
-            <div class="btn-group">
-              <button class="btn" data-toggle="modal" data-target="#modal-animal" data-bind="disable: selectedAnimals().length == 0">View Selected</button>
+            <div class="btn-group pull-right">
+              <button class="btn" data-bind="click: openInfo, disable: selectedAnimals().length == 0">View Selected</button>
               <button class="btn btn-primary" data-toggle="modal" data-target="#modal-observe-1" data-bind="click: newObservation, disable: selectedAnimals().length == 0">Observe Selected</button>
             </div>
           </div>
@@ -38,13 +39,13 @@
   <div class="row list-items" id="animalSelector" data-bind="foreach: exhibits">
 
     <div class="span12" data-bind="visible: $root.viewAll() || $data.numOwned() > 0">
-      <h2><span data-bind="text: fullName"></span> <button data-bind="click: $root.selectExhibit" class="btn">Select all</button></h2>
+      <h2><span data-bind="text: fullName"></span> <small><a data-bind="click: $root.selectExhibit">Select all</a></small></h2>
     </div>
 
     <!-- ko foreach: housingGroups -->
     <div data-bind="visible: $root.viewAll() || $data.isInStaff()">
       <div class="span12">
-        <h3><span data-bind="text: name"></span> <button data-bind="click: $root.selectHousingGroup" class="btn">Select all</button></h3>
+        <h3><span data-bind="text: name"></span> <small><a data-bind="click: $root.selectHousingGroup">Select all</a></small></h3>
       </div>
 
         <!-- ko foreach: animals -->
@@ -147,7 +148,10 @@
       <h3 data-bind="text: modalTitleAnimal()"></h3>
     </div>
     <div class="modal-body">
-
+      <h4>Staff responsible for these animals</h4>
+      <div data-bind="foreach: staffs">
+        <span data-bind="text: full_name"></span>,
+      </div>
     </div>
     <div class="modal-footer">
       <a href="#" class="btn" data-dismiss="modal">Close</a>
@@ -156,10 +160,10 @@
   </div>
 
   {# Modal dialogs for bulk animal csv uploads #}
-  <div class="modal hide fade" id="modal-animal-upload">
-    <div class="modal-header">
-      <button class="close" data-dismiss="modal">×</button>
-      <h3>Bulk Animal Uploader</h3>
+    <div class="modal hide fade" id="modal-animal-upload">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal">×</button>
+        <h3>Bulk Animal Uploader</h3>
     </div>
     <div class="modal-body">
       <form action="#" class="form-horizontal" data-bind="visible: !uploadUploadSuccess()">
