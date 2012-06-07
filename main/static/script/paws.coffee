@@ -302,6 +302,16 @@ $(document).ready ->
       @newExhibitIsCreating = ko.observable true
       @newExhibitAjaxLoad = ko.observable false
 
+      # HousingGroup creation
+      @newHousingGroup =
+        name: ko.observable ''
+        exhibit: ko.observable ''
+      @newHousingGroupError = ko.observable null
+      @newHousingGroupWarning = ko.observable null
+      @newHousingGroupSuccess = ko.observable false
+      @newHousingGroupIsCreating = ko.observable true
+      @newHousingGroupAjaxLoad = ko.observable false
+
       # Bulk upload fields
       @uploadDisableSubmit = ko.observable true
       @uploadEnablePreview = ko.observable false
@@ -521,6 +531,70 @@ $(document).ready ->
       # Make the ajax call.
       @newExhibitAjaxLoad true
       $.ajax settings
+
+    openCreateHousingGroup: () ->
+      @newHousingGroup.code ''
+      @newHousingGroupError null
+      @newHousingGroupWarning null
+      @newHousingGroupSuccess false
+      @newHousingGroupIsCreating true
+      @newHousingGroupAjaxLoad false
+
+    createNewHousingGroup: () =>
+      newHousingGroup =
+        name: @newHousingGroup.name()
+        exhibit: @newHousingGroup.exhibit()
+
+      # Make some simple checks.
+      if (newHousingGroup.name.length == 0)
+        @newHousingGroupError 'Code cannot be empty'
+        return
+      if (newHousingGroup.name.length > 100)
+        @newHousingGroupError 'Code cannot more than 100 characters'
+        return
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/housingGroup/?format=json'
+        data: JSON.stringify newHousingGroup
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "New HousingGroup created"
+        console.log data
+        console.log textStatus
+
+        # Show success message.
+        @newHousingGroupSuccess "HousingGroup #{newHousingGroup.code} was created"
+        @newHousingGroupError null
+        @newHousingGroupAjaxLoad false
+
+        # TODO(mark): Need to add successful object to housinggroup list.
+        # @housinggroups.push new HousingGroup data
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Create housinggroup error"
+        @newHousingGroupError 'An unexpected error occured'
+        @newHousingGroupAjaxLoad false
+
+      # Make the ajax call.
+      @newHousingGroupAjaxLoad true
+      $.ajax settings
+
+    # Open info modal
+    openInfo: () ->
+      # Empty out staff array
+      @staffs []
+      $.each @selectedAnimals(), (index, animal) =>
+        console.log animal
+        # Get data from API
+        $.getJSON "/api/v1/staff/?format=json&animal_id=#{animal.id()}", (data) =>
+          # Push each staff into 
+          $.each data.objects, (index, item) =>
+            @staffs.push (new Staff item)
+      $('#modal-animal-info').modal('show')
 
     # Open bulk upload.
     openBulkUpload: () ->
