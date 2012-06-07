@@ -1,224 +1,314 @@
 {# Copyright 2012 PAWS. All right reserved #}
 {# Date: 5/14/2012 #}
 {# animals.html #}
-  <div class="container" id="animalListContainer" style="display: none;">
+<div class="container" id="animalListContainer" style="display: none;">
 
-    {# Headers #}
-    <div class="row">
-      <div class="span12">
-        <div class="page-header">
-          <div class="row">
-            <div class="span6">
-              <h1><span data-bind="text: viewText"></span> <small>(<a href="#" data-bind="click: toggleViewAll">toggle animals</a>)</small></h1>
-            </div>
-            <div class="span6 btn-toolbar">
-              <div class="btn-group pull-right">
-                <button class="btn" data-toggle="modal" data-target="#modal-animal" data-bind="css: {'disabled': selectedAnimals().length == 0}">View Selected</button>
-                <button class="btn" data-bind="click: openBulkUpload"data-toggle="modal" data-target="#modal-animal-upload">Bulk Add</button>
-                <button class="btn btn-primary" data-toggle="modal" data-target="#modal-observe-1" data-bind="click: newObservation, css: {'disabled': selectedAnimals().length == 0}">Observe Selected</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {# List of exhibits -> housingGroups -> animals #}
-    <div class="row list-items" id="animalSelector" data-bind="foreach: exhibits">
-
-      <div class="span12" data-bind="visible: $root.viewAll() || $data.numOwned() > 0">
-        <h2><span data-bind="text: fullName"></span> <button data-bind="click: $root.selectExhibit" class="btn">Select all</button></h2>
-      </div>
-
-      <!-- ko foreach: housingGroups -->
-      <div data-bind="visible: $root.viewAll() || $data.isInStaff()">
-        <div class="span12">
-          <h3><span data-bind="text: name"></span> <button data-bind="click: $root.selectHousingGroup" class="btn">Select all</button></h3>
-        </div>
-
-          <!-- ko foreach: animals -->
-        <div class="span3">
-          <div class="list-entry" data-bind="click: $root.toggleAnimal, css: {'list-active': active}">
-            <small data-bind="text: speciesCommonName"></small>
-            <strong data-bind="text: name"></strong>
-          </div>
-        </div>
-          <!-- /ko -->
-      </div>
-        
-      <!-- /ko -->
-
-      <div class="span12" data-bind="visible: $root.viewAll() || $data.numOwned() > 0">
-        <hr>
-      </div>
-    </div>
-    
-    {# Modal for viewing one animal #}
-    {% comment %}
-    <div class="modal hide fade" id="modal-animal" data-bind="with: activeAnimal">
-      <div class="modal-header">
-        <button class="close" data-dismiss="modal">×</button>
-        <h3 data-bind="text: name"></h3>
-      </div>
-      <div class="modal-body">
-        <dl class="dl-horizontal">
-          <dt>Species</dt>
-          <dd><span data-bind="text: speciesCommonName"></span> (<span data-bind="text:speciesScientificName"></span>)</dd>
-        </dl>
-      </div>
-      <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a href="#" class="btn btn-primary">Save changes</a>
-      </div>
-    </div>
-    {% endcomment %}
-
-    {# Modal for making an observation - picking an enrichment #}
-    <div class="modal hide fade" id="modal-observe-1">
-      <div class="modal-header">
-        <button class="close" data-dismiss="modal">×</button>
-        <h3 data-bind="text: modalTitleEnrichment()"></h3>
-      </div>
-      <div class="modal-body">
+  {# Headers #}
+  <div class="row">
+    <div class="span12">
+      <div class="page-header">
         <div class="row">
-          <div class="span2 well">
-            <h4>Category</h4>
-            <div class="list-vertical">
-              <ul data-bind="foreach: categories" class="list-items-modal clearfix">
-                <li data-bind="click: $parent.filterCategory,
-              css: { 'list-active': $parent.categoryFilter() == $data }" class="list-entry">
-                  <span data-bind="text: name"></span>
-                </li>
+          <div class="span6">
+            <h1><span data-bind="text: viewText"></span> <small>(<a href="#" data-bind="click: toggleViewAll">toggle animals</a>)</small></h1>
+          </div>
+          <div class="span6 btn-toolbar">
+            {% if user.is_superuser %}
+            <div class="btn-group">
+              <button class="btn" data-bind="click: openBulkUpload" data-toggle="modal" data-target="#modal-animal-upload">Bulk Add</button>
+              <button class="btn btn-success dropdown-toggle" data-toggle="dropdown">Add <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li><a href="#">Animal</a></li>
+                <li><a href="#" data-bind="click: openCreateSpecies"data-toggle="modal" data-target="#modal-add-species">Species</a></li>
+                <li><a href="#" data-bind="click: openCreateExhibit"data-toggle="modal" data-target="#modal-add-exhibit">Exhibit</a></li>
+                <li><a href="#">Housing Group</a></li>
               </ul>
             </div>
-          </div>
-          <div class="span2 well">
-            <h4>Subcategory</h4>
-              <div class="list-vertical">
-                <ul data-bind="foreach: subcategoriesFilterCategory" class="list-items-modal clearfix" >
-                  <li data-bind="click: $parent.filterSubcategory,
-                      css: { 'list-active': $parent.subcategoryFilter() == $data }" class="list-entry">
-                    <span data-bind="text: name"></span>
-                  </li>
-                </ul>
-              </div>
-          </div>
-          <div class="span2 well">
-            <h4>Enrichment</h4>
-            <div class="list-vertical" id="observationEnrichments">
-              <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items-modal clearfix">
-                <li class="list-entry"
-                  data-bind="click: $root.selectEnrichment,
-                    css: {'list-active': $root.currentEnrichment() == $data }">
-                  <span data-bind="text: name"></span>
-                </li>
-              </ul>
+            {% endif %}
+            <div class="btn-group">
+              <button class="btn" data-toggle="modal" data-target="#modal-animal" data-bind="disable: selectedAnimals().length == 0">View Selected</button>
+              <button class="btn btn-primary" data-toggle="modal" data-target="#modal-observe-1" data-bind="click: newObservation, disable: selectedAnimals().length == 0">Observe Selected</button>
             </div>
           </div>
         </div>
-
-      </div>
-      <div class="modal-footer">
-        <span data-bind="with: currentEnrichment">
-          <strong>Current enrichment: </strong>
-          <span data-bind="text: name"></span>
-        </span>
-        &nbsp;
-        <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a href="#" class="btn btn-primary" data-bind="click: createObservation">Observe</a>
       </div>
     </div>
-
-    {# Modal for viewing information about an animal #}
-    <div class="modal hide fade" id="modal-animal-info">
-      <div class="modal-header">
-        <button class="close" data-dismiss="modal">×</button>
-        <h3 data-bind="text: modalTitleAnimal()"></h3>
-      </div>
-      <div class="modal-body">
-
-      </div>
-      <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Close</a>
-        <a href="#" class="btn btn-primary" data-bind="">Observe</a>
-      </div>
-    </div>
-
-    {# Modal dialogs for csv uploads #}
-    <div class="modal hide fade" id="modal-animal-upload">
-      <div class="modal-header">
-        <button class="close" data-dismiss="modal">×</button>
-        <h3>Bulk Animal Uploader</h3>
-      </div>
-      <div class="modal-body">
-        <form action="#" class="form-horizontal" data-bind="visible: !uploadUploadSuccess()">
-          <p>Upload a <code>.csv</code> file</p>
-          <fieldset>
-            <div class="control-group">
-              <label class="control-label">Animals List</label>
-              <div class="controls">
-                <input type="file" id="file_upload" accept="text/csv">
-              </div>
-            </div>
-            <div class="control-group">
-              <label class="control-label">First Row</label>
-              <div class="controls">
-                <label class="checkbox">
-                  <input type="checkbox" data-bind="checked: uploadIncludeFirstLine">
-                  Check this box if you want the first row of the CSV to be included
-                </label>
-              </div>
-            </div>
-          </fieldset>
-        </form>
-
-        <div class="alert alert-error" data-bind="visible: uploadErrorMessageEnable">
-          <button class="close" data-bind="click: function() { uploadErrorMessageEnable(false) }">×</button>
-          <strong>Error!</strong> <span data-bind="text: uploadErrorMessageBody"></span>
-        </div>
-        <div class="alert alert-success" data-bind="visible: uploadUploadSuccess">
-          <strong>Success!</strong> <span>Animals bulk upload completed</span>
-        </div>
-        <div class="alert" data-bind="visible: uploadWarningMessageEnable">
-          <button class="close" data-bind="click: function() { uploadWarningMessageEnable(false) }">×</button>
-          <strong>Warning!</strong> <span data-bind="text: uploadWarningMessageBody"></span>
-        </div>
-
-        <div data-bind="visible: uploadEnablePreview">
-          <h4>Preview</h4>
-          <table class="table table-striped table-condensed">
-            <thead>
-              <tr>
-                <th>ID #</th>
-                <th>Species Common Name</th>
-                <th>Species Scientific Name</th>
-                <th>Exhibit</th>
-                <th>House Group Name</th>
-                <th>House Name</th>
-                <th>Count</th>
-              </tr>
-            </thead>
-
-            <tbody data-bind="foreach: uploadAnimalsPreview">
-              <tr data-bind="visible: $index() > 0 || $root.uploadIncludeFirstLine()">
-                <td data-bind="text: id"></td>
-                <td data-bind="text: speciesCommonName"></td>
-                <td data-bind="text: speciesScientificName"></td>
-                <td data-bind="text: exhibit"></td>
-                <td data-bind="text: houseGroupName"></td>
-                <td data-bind="text: houseName"></td>
-                <td data-bind="text: count"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="modal-footer" data-bind="visible: uploadUploadSuccess() == false">
-        <img data-bind="visible: uploadAjaxInProgress" src="/static/img/ajax-loader.gif"/>
-        <a href="#" class="btn" data-dismiss="modal">Cancel</a>
-        <a href="#" data-bind="click: sendBulkUpload, css: {'disabled': uploadDisableSubmit}" class="btn btn-primary">Upload</a>
-      </div>
-    </div>
-
-
   </div>
+
+  {# List of exhibits -> housingGroups -> animals #}
+  <div class="row list-items" id="animalSelector" data-bind="foreach: exhibits">
+
+    <div class="span12" data-bind="visible: $root.viewAll() || $data.numOwned() > 0">
+      <h2><span data-bind="text: fullName"></span> <button data-bind="click: $root.selectExhibit" class="btn">Select all</button></h2>
+    </div>
+
+    <!-- ko foreach: housingGroups -->
+    <div data-bind="visible: $root.viewAll() || $data.isInStaff()">
+      <div class="span12">
+        <h3><span data-bind="text: name"></span> <button data-bind="click: $root.selectHousingGroup" class="btn">Select all</button></h3>
+      </div>
+
+        <!-- ko foreach: animals -->
+      <div class="span3">
+        <div class="list-entry" data-bind="click: $root.toggleAnimal, css: {'list-active': active}">
+          <strong data-bind="text: name"></strong>
+          <small data-bind="text: speciesCommonName"></small>
+        </div>
+      </div>
+        <!-- /ko -->
+    </div>
+      
+    <!-- /ko -->
+
+    <div class="span12" data-bind="visible: $root.viewAll() || $data.numOwned() > 0">
+      <hr>
+    </div>
+  </div>
+  
+  {# Modal for viewing one animal #}
+  {% comment %}
+  <div class="modal hide fade" id="modal-animal" data-bind="with: activeAnimal">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3 data-bind="text: name"></h3>
+    </div>
+    <div class="modal-body">
+      <dl class="dl-horizontal">
+        <dt>Species</dt>
+        <dd><span data-bind="text: speciesCommonName"></span> (<span data-bind="text:speciesScientificName"></span>)</dd>
+      </dl>
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="btn" data-dismiss="modal">Close</a>
+      <a href="#" class="btn btn-primary">Save changes</a>
+    </div>
+  </div>
+  {% endcomment %}
+
+  {# Modal for making an observation - picking an enrichment #}
+  <div class="modal hide fade" id="modal-observe-1">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3 data-bind="text: modalTitleEnrichment()"></h3>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <div class="span2 well">
+          <h4>Category</h4>
+          <div class="list-vertical">
+            <ul data-bind="foreach: categories" class="list-items-a clearfix">
+              <li data-bind="click: $parent.filterCategory,
+            css: { 'list-active': $parent.categoryFilter() == $data }" class="list-entry">
+                <span data-bind="text: name"></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="span2 well">
+          <h4>Subcategory</h4>
+            <div class="list-vertical">
+              <ul data-bind="foreach: subcategoriesFilterCategory" class="list-items-a clearfix" >
+                <li data-bind="click: $parent.filterSubcategory,
+                    css: { 'list-active': $parent.subcategoryFilter() == $data }" class="list-entry">
+                  <span data-bind="text: name"></span>
+                </li>
+              </ul>
+            </div>
+        </div>
+        <div class="span2 well">
+          <h4>Enrichment</h4>
+          <div class="list-vertical" id="observationEnrichments">
+            <ul data-bind="foreach: enrichmentsFilterSubcategory" class="list-items-a clearfix">
+              <li class="list-entry"
+                data-bind="click: $root.selectEnrichment,
+                  css: {'list-active': $root.currentEnrichment() == $data }">
+                <span data-bind="text: name"></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <span data-bind="with: currentEnrichment">
+        <strong>Current enrichment: </strong>
+        <span data-bind="text: name"></span>
+      </span>
+      &nbsp;
+      <a href="#" class="btn" data-dismiss="modal">Close</a>
+      <a href="#" class="btn btn-primary" data-bind="click: createObservation">Observe</a>
+    </div>
+  </div>
+
+  {# Modal for viewing information about an animal #}
+  <div class="modal hide fade" id="modal-animal-info">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3 data-bind="text: modalTitleAnimal()"></h3>
+    </div>
+    <div class="modal-body">
+
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="btn" data-dismiss="modal">Close</a>
+      <a href="#" class="btn btn-primary" data-bind="">Observe</a>
+    </div>
+  </div>
+
+  {# Modal dialogs for bulk animal csv uploads #}
+  <div class="modal hide fade" id="modal-animal-upload">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3>Bulk Animal Uploader</h3>
+    </div>
+    <div class="modal-body">
+      <form action="#" class="form-horizontal" data-bind="visible: !uploadUploadSuccess()">
+        <p>Upload a <code>.csv</code> file</p>
+        <fieldset>
+          <div class="control-group">
+            <label class="control-label">Animals List</label>
+            <div class="controls">
+              <input type="file" id="file_upload" accept="text/csv">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">First Row</label>
+            <div class="controls">
+              <label class="checkbox">
+                <input type="checkbox" data-bind="checked: uploadIncludeFirstLine">
+                Check this box if you want the first row of the CSV to be included
+              </label>
+            </div>
+          </div>
+        </fieldset>
+      </form>
+
+      <div class="alert alert-error" data-bind="visible: uploadErrorMessageEnable">
+        <button class="close" data-bind="click: function() { uploadErrorMessageEnable(false) }">×</button>
+        <strong>Error!</strong> <span data-bind="text: uploadErrorMessageBody"></span>
+      </div>
+      <div class="alert alert-success" data-bind="visible: uploadUploadSuccess">
+        <strong>Success!</strong> <span>Animals bulk upload completed</span>
+      </div>
+      <div class="alert" data-bind="visible: uploadWarningMessageEnable">
+        <button class="close" data-bind="click: function() { uploadWarningMessageEnable(false) }">×</button>
+        <strong>Warning!</strong> <span data-bind="text: uploadWarningMessageBody"></span>
+      </div>
+
+      <div data-bind="visible: uploadEnablePreview">
+        <h4>Preview</h4>
+        <table class="table table-striped table-condensed">
+          <thead>
+            <tr>
+              <th>ID #</th>
+              <th>Species Common Name</th>
+              <th>Species Scientific Name</th>
+              <th>Exhibit</th>
+              <th>House Group Name</th>
+              <th>House Name</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+
+          <tbody data-bind="foreach: uploadAnimalsPreview">
+            <tr data-bind="visible: $index() > 0 || $root.uploadIncludeFirstLine()">
+              <td data-bind="text: id"></td>
+              <td data-bind="text: speciesCommonName"></td>
+              <td data-bind="text: speciesScientificName"></td>
+              <td data-bind="text: exhibit"></td>
+              <td data-bind="text: houseGroupName"></td>
+              <td data-bind="text: houseName"></td>
+              <td data-bind="text: count"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer" data-bind="visible: uploadUploadSuccess() == false">
+      <img data-bind="visible: uploadAjaxInProgress" src="/static/img/ajax-loader.gif"/>
+      <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+      <a href="#" data-bind="click: sendBulkUpload, css: {'disabled': uploadDisableSubmit}" class="btn btn-primary">Upload</a>
+    </div>
+  </div>
+
+  {# Modal for creating Species #}
+  <div class="modal hide fade" id="modal-add-species">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3>Add Species</h3>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" data-bind="visible: newSpeciesError">
+        <button class="close" data-bind="click: function(){ newSpeciesError(null) }">×</button>
+        <strong>Error!</strong> <span data-bind="text: newSpeciesError"></span>
+      </div>
+      <div class="alert alert-success" data-bind="visible: newSpeciesSuccess">
+        <strong>Success!</strong> <span data-bind="text: newSpeciesSuccess"></span>
+      </div>
+      <div class="alert" data-bind="visible: newSpeciesWarning">
+        <button class="close" data-bind="click: function(){ newSpeciesWarning(null) }">×</button>
+        <strong>Warning!</strong> <span data-bind="text: newSpeciesWarning"></span>
+      </div>
+
+      <form action="#" class="form-horizontal" data-bind="visible: !newSpeciesSuccess(), submit: function() {createNewSpecies(); return false}">
+        <fieldset>
+          <div class="control-group">
+            <label class="control-label" for="input01">Common Name</label>
+            <div class="controls">
+              <input type="text" class="input-xlarge" data-bind="value: newSpecies.commonName">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="input02">Scientific Name</label>
+            <div class="controls">
+              <input type="text" class="input-xlarge" data-bind="value: newSpecies.scientificName">
+            </div>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+    <div class="modal-footer" data-bind="visible: !newSpeciesSuccess()">
+      <img data-bind="visible: newSpeciesAjaxLoad" src="/static/img/ajax-loader.gif"/>
+      <a href="#" class="btn" data-dismiss="modal">Close</a>
+      <a href="#" class="btn btn-primary" data-bind="click: createNewSpecies">Create Species</a>
+    </div>
+  </div>
+
+  {# Modal for creating Exhibit #}
+  <div class="modal hide fade" id="modal-add-exhibit">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3>Add Exhibit</h3>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" data-bind="visible: newExhibitError">
+        <button class="close" data-bind="click: function(){ newExhibitError(null) }">×</button>
+        <strong>Error!</strong> <span data-bind="text: newExhibitError"></span>
+      </div>
+      <div class="alert alert-success" data-bind="visible: newExhibitSuccess">
+        <strong>Success!</strong> <span data-bind="text: newExhibitSuccess"></span>
+      </div>
+      <div class="alert" data-bind="visible: newExhibitWarning">
+        <button class="close" data-bind="click: function(){ newExhibitWarning(null) }">×</button>
+        <strong>Warning!</strong> <span data-bind="text: newExhibitWarning"></span>
+      </div>
+
+      <form action="#" class="form-horizontal" data-bind="visible: !newExhibitSuccess(), submit: function() {createNewExhibit(); return false}">
+        <fieldset>
+          <div class="control-group">
+            <label class="control-label" for="input01">Code</label>
+            <div class="controls">
+              <input type="text" class="input-xlarge" data-bind="value: newExhibit.code">
+            </div>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+    <div class="modal-footer" data-bind="visible: !newExhibitSuccess()">
+      <img data-bind="visible: newExhibitAjaxLoad" src="/static/img/ajax-loader.gif"/>
+      <a href="#" class="btn" data-dismiss="modal">Close</a>
+      <a href="#" class="btn btn-primary" data-bind="click: createNewExhibit">Create Exhibit</a>
+    </div>
+  </div>
+
+</div>

@@ -73,6 +73,14 @@ class AnimalObservationResource(ModelResource):
 
   # creating new animalObservation into database
   def obj_create(self, bundle, request=None, **kwargs):
+    # Get the user of the observation by fully hydrating the bundle and then
+    # check if the user is allowed to add to this observation.
+    user = self.full_hydrate(bundle).obj.observation.staff.user
+    if not request.user.is_superuser and user != request.user:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot add other users' animal observations")
+      )
+
     return super(AnimalObservationResource, self).obj_create(bundle, request, **kwargs)
     
   # update animalObservation's information in the database
@@ -91,7 +99,7 @@ class AnimalObservationResource(ModelResource):
     observation_id = int(kwargs.pop('pk', None))
     if not self.can_modify_observation(request, observation_id):
       raise ImmediateHttpResponse(
-          HttpUnauthorized("Cannot delet other users' animal observations")
+          HttpUnauthorized("Cannot delete other users' animal observations")
       )
     return super(AnimalObservationResource, self).obj_delete( request, **kwargs)
 
@@ -366,6 +374,12 @@ class AnimalResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
+    # Make user is superuser.
+    if not request.user.is_superuser:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot edit other users' observations")
+      )
+
     # try to load the json file
     try:
       animal_list = json.loads(request.raw_post_data)
@@ -593,6 +607,12 @@ class EnrichmentResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
+    # Make user is superuser.
+    if not request.user.is_superuser:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot bulk add")
+      )
+
     # try loading the json
     try:
       enrichment_list = json.loads(request.raw_post_data)
@@ -619,13 +639,16 @@ class EnrichmentResource(ModelResource):
 
 # Exhibit Resource.
 class ExhibitResource(ModelResource):
-  housing_groups = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
+  housing_groups = fields.ToManyField(
+      'paws.api.resources.HousingGroupResource', 'housinggroup_set',
+      full=True, blank=True)
   class Meta:
     # authenticate the user
     authentication = CustomAuthentication()
     authorization = DjangoAuthorization()
     queryset = models.Exhibit.objects.all()
     resource_name = 'exhibit'
+    always_return_data = True
     # allowed actions towards database
     # get = getting exhibit's information from the database
     # post = adding new exhibit into the database
@@ -793,6 +816,7 @@ class SpeciesResource(ModelResource):
     authorization = DjangoAuthorization()
     queryset = models.Species.objects.all()
     resource_name = 'species'
+    always_return_data = True
     # allowed actions towards database
     # get = getting species' information from the database
     # post = adding new species into the database
@@ -1007,6 +1031,12 @@ class UserResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
+    # Make user is superuser.
+    if not request.user.is_superuser:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot add user")
+      )
+
     try:
       user = json.loads(request.raw_post_data)
       print user
@@ -1030,6 +1060,12 @@ class UserResource(ModelResource):
     self.method_check(request, allowed=['post'])
     self.is_authenticated(request)
     self.throttle_check(request)
+
+    # Make user is superuser.
+    if not request.user.is_superuser:
+      raise ImmediateHttpResponse(
+          HttpUnauthorized("Cannot bulk add")
+      )
  
     # Try making a new user
     try:
