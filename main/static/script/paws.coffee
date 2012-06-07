@@ -142,7 +142,6 @@ $(document).ready ->
 
   class Staff
     constructor: (data) ->
-      console.log data
       @id = ko.observable data.id
       @first_name = ko.observable data.user.first_name
       @last_name = ko.observable data.user.last_name
@@ -153,6 +152,7 @@ $(document).ready ->
         return @full_name() + '\'s animals'
       @housingGroups = ko.observableArray []
       @loading = ko.observable false
+      @is_superuser = ko.observable data.user.is_superuser
     loadInfo: () ->
       if @housingGroups().length != 0
         return
@@ -282,6 +282,26 @@ $(document).ready ->
         return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
           return enrichment.subcategoryId() == subcategory.id()
 
+      # Creation fields.
+      # Species creation
+      @newSpecies =
+        commonName: ko.observable ''
+        scientificName: ko.observable ''
+      @newSpeciesError = ko.observable null
+      @newSpeciesWarning = ko.observable null
+      @newSpeciesSuccess = ko.observable false
+      @newSpeciesIsCreating = ko.observable true
+      @newSpeciesAjaxLoad = ko.observable false
+
+      # Exhibit creation
+      @newExhibit =
+        code: ko.observable ''
+      @newExhibitError = ko.observable null
+      @newExhibitWarning = ko.observable null
+      @newExhibitSuccess = ko.observable false
+      @newExhibitIsCreating = ko.observable true
+      @newExhibitAjaxLoad = ko.observable false
+
       # Bulk upload fields
       @uploadDisableSubmit = ko.observable true
       @uploadEnablePreview = ko.observable false
@@ -392,6 +412,115 @@ $(document).ready ->
         
         # Initiate the reader.
         reader.readAsText(file)
+
+    openCreateSpecies: () ->
+      @newSpecies.commonName ''
+      @newSpecies.scientificName ''
+      @newSpeciesError null
+      @newSpeciesWarning null
+      @newSpeciesSuccess false
+      @newSpeciesIsCreating true
+      @newSpeciesAjaxLoad false
+
+    createNewSpecies: () =>
+      newSpecies =
+        common_name: @newSpecies.commonName()
+        scientific_name: @newSpecies.scientificName()
+
+      # Make some simple checks.
+      if (newSpecies.common_name.length == 0)
+        @newSpeciesError 'Common Name cannot be empty'
+        return
+      if (newSpecies.scientific_name.length == 0)
+        @newSpeciesError 'Scientific Name cannot be empty'
+        return
+      if (newSpecies.common_name.length > 100)
+        @newSpeciesError 'Common Name cannot more than 100 characters'
+        return
+      if (newSpecies.scientific_name.length > 200)
+        @newSpeciesError 'Scientific Name cannot be more than 200 characters'
+        return
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/species/?format=json'
+        data: JSON.stringify newSpecies
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "New Species created"
+        console.log data
+        console.log textStatus
+
+        # Show success message.
+        @newSpeciesSuccess "Species #{newSpecies.common_name} " +
+            "(#{newSpecies.scientific_name}) was created"
+        @newSpeciesError null
+        @newSpeciesAjaxLoad false
+
+        # TODO(mark): Need to add successful object to species list.
+        
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Species error"
+        @newSpeciesError 'An unexpected error occured'
+        @newSpeciesAjaxLoad false
+
+      # Make the ajax call.
+      @newSpeciesAjaxLoad true
+      $.ajax settings
+
+    openCreateExhibit: () ->
+      @newExhibit.code ''
+      @newExhibitError null
+      @newExhibitWarning null
+      @newExhibitSuccess false
+      @newExhibitIsCreating true
+      @newExhibitAjaxLoad false
+
+    createNewExhibit: () =>
+      newExhibit =
+        code: @newExhibit.code()
+
+      # Make some simple checks.
+      if (newExhibit.code.length == 0)
+        @newExhibitError 'Code cannot be empty'
+        return
+      if (newExhibit.code.length > 100)
+        @newExhibitError 'Code cannot more than 100 characters'
+        return
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/exhibit/?format=json'
+        data: JSON.stringify newExhibit
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "New Exhibit created"
+        console.log data
+        console.log textStatus
+
+        # Show success message.
+        @newExhibitSuccess "Exhibit #{newExhibit.code} was created"
+        @newExhibitError null
+        @newExhibitAjaxLoad false
+
+        # TODO(mark): Need to add successful object to exhibit list.
+        @exhibits.push new Exhibit data
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Create exhibit error"
+        @newExhibitError 'An unexpected error occured'
+        @newExhibitAjaxLoad false
+
+      # Make the ajax call.
+      @newExhibitAjaxLoad true
+      $.ajax settings
 
     # Open bulk upload.
     openBulkUpload: () ->
@@ -1145,12 +1274,15 @@ $(document).ready ->
       return d.toString()
 
 
-
-
   class StaffListViewModel
     constructor: () ->
       # Array for staff data
       @staff = ko.observableArray []
+      @currentStaff = ko.observable
+        full_name: ''
+        animal_title: ''
+        housingGroups: []
+        loading: false
       @exhibits = ko.observable null
       @housingGroups = ko.observable null
 
@@ -1167,11 +1299,18 @@ $(document).ready ->
       @newStaffIsCreating = ko.observable true
       @newStaffAjaxLoad = ko.observable false
 
-      @currentStaff = ko.observable
-        full_name: ''
-        animal_title: ''
-        housingGroups: []
-        loading: false
+      # Bulk upload fields.
+      # The @bulkStaff field is in two different ways in the HTML View.  First,
+      # it is used for previewing the upload lines.  After a successful POST is
+      # sent off and returned, an array of objects is also returned.  The
+      # @bulkStaff field will then be used to populate the second of two tables
+      # and it will contain actual Staff models, as opposed to the temporary
+      # one created in @fileChanged.
+      @bulkStaff = ko.observableArray []
+      @bulkError = ko.observable null
+      @bulkWarning = ko.observable null
+      @bulkSuccess = ko.observable null
+      @bulkAjaxInProgress = ko.observable false
 
       # Add HG to staff modal
       @newHousingGroup =
@@ -1206,6 +1345,125 @@ $(document).ready ->
       @newStaffSuccess false
       @newStaffIsCreating true
       @newStaffAjaxLoad false
+
+    openBulkCreate: () ->
+      $('input[type="file"]').val('')
+      @bulkStaff []
+      @bulkError null
+      @bulkWarning null
+      @bulkSuccess null
+      @bulkAjaxInProgress false
+
+    fileChanged: (viewModel, event) =>
+      # Extract file from event, create FileReader, and empty current staff.
+      file = event.target.files[0]
+      reader = new FileReader()
+      @bulkStaff []
+      @bulkWarning null
+      @bulkError null
+
+      # Set file traversal function.
+      reader.onload = (ev) =>
+        lines = ev.target.result.split /[\n|\r]/
+        anyLinesIncluded = false
+
+        for line, index in lines
+          # Create a staff object and add it to bulkStaff array.
+          index = index + 1
+          staffObj =
+            line: line
+            lineNumber: ko.observable index
+            firstName: ko.observable ''
+            lastName: ko.observable ''
+            password: ko.observable ''
+            isSuperuser: ko.observable 'No'
+            validLine: ko.observable false
+            includeLine: ko.observable false
+          @bulkStaff.push staffObj
+          fields = line.split ','
+
+          # Perform some error checking.
+          if (line == "")
+            if (index != lines.length)
+              @bulkWarning "Line #{index}: Line is empty"
+            continue
+          if (fields.length != 4)
+            @bulkWarning "Line #{index}: Invalid amount of lines"
+            continue
+          if (fields[0] == "")
+            @bulkWarning "Line #{index}: First name is empty"
+            continue
+          if (fields[1] == "")
+            @bulkWarning "Line #{index}: Last name is empty"
+            continue
+          if (fields[2] == "")
+            @bulkWarning "Line #{index}: Password is empty"
+            continue
+
+          # Finally, modify object to assign values.
+          staffObj.firstName fields[0]
+          staffObj.lastName fields[1]
+          staffObj.password fields[2]
+          if (fields[3] == "1")
+            staffObj.isSuperuser 'Yes'
+          staffObj.includeLine true
+          staffObj.validLine true
+          anyLinesIncluded = true
+
+        if (not anyLinesIncluded)
+          @bulkWarning null
+          @bulkError 'This file contains no valid lines'
+          @bulkStaff []
+
+      # Initiate reading.
+      reader.readAsText file
+
+    # bulkCreateStaff
+    bulkCreateStaff: () =>
+      uploadStaff = []
+
+      for staff in @bulkStaff()
+        if (staff.validLine() and staff.includeLine())
+          uploadStaff.push staff.line
+
+      console.log uploadStaff
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/user/bulk/?format=json&always_return_data=true'
+        data: JSON.stringify uploadStaff
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "Batch staff created"
+        console.log data
+        console.log textStatus
+
+        @bulkStaff []
+        @bulkSuccess 'Staff successfully uploaded!'
+        @bulkWarning null
+        @bulkError null
+
+        # Insert all into staff array.
+        for newData in data.objects
+          staffTemp =
+            user: newData
+            id: newData.id
+          staff = new Staff staffTemp
+          console.log staff
+          @staff.push staff
+          @bulkStaff.push staff
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Batch staff error"
+        @bulkWarning null
+        @bulkError 'An unexpected error occured'
+
+      # Make the ajax call.
+      @bulkAjaxInProgress true
+      $.ajax settings
 
     createStaff: () ->
       newStaff =
@@ -1243,7 +1501,7 @@ $(document).ready ->
           user: data.object
           id: data.object.id
 
-        # TODO(Mark): Fix this laziness.
+        # Create a staff members and insert.
         @staff.push new Staff staff
         resizeAllCarousels()
 
@@ -1295,7 +1553,6 @@ $(document).ready ->
     load: () ->
       # Get data from API
       $.getJSON '/api/v1/staff/?format=json', (data) =>
-        console.log data
         mapped = $.map data.objects, (item) ->
           return new Staff item
         @staff mapped
