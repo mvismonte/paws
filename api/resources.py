@@ -718,8 +718,9 @@ class ExhibitResource(ModelResource):
 class HousingGroupResource(ModelResource):
   # exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
   staff = fields.ToManyField(
-      'paws.api.resources.StaffResource', 'staff')
-  animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal_set', full=True)
+      'paws.api.resources.StaffResource', 'staff', blank=True)
+  animals = fields.ToManyField(
+      'paws.api.resources.AnimalResource', 'animal_set', full=True, blank=True)
   exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
   class Meta:
     # authenticate the user
@@ -727,6 +728,7 @@ class HousingGroupResource(ModelResource):
     authorization = DjangoAuthorization()
     queryset = models.HousingGroup.objects.all()
     resource_name = 'housingGroup'
+    always_return_data = True
     # allowed actions towards database
     # get = getting HousingGroup's information from the database
     # post = adding new HousingGroup into the database
