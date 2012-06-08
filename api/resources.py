@@ -11,23 +11,16 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.paginator import InvalidPage
-from django.core.paginator import Paginator
-from django.http import Http404
-from django.http import HttpResponse
-from haystack.query import EmptySearchQuerySet
-from haystack.query import SearchQuerySet
+from django.core.paginator import InvalidPage, Paginator
+from django.http import Http404, HttpResponse
+from haystack.query import EmptySearchQuerySet, SearchQuerySet
 from paws.main import models
 from paws.main.utilities import bulk_import
 from tastypie.authentication import BasicAuthentication
-from tastypie.authorization import Authorization
-from tastypie.authorization import DjangoAuthorization
-from tastypie.exceptions import BadRequest
-from tastypie.exceptions import ImmediateHttpResponse
-from tastypie.http import HttpApplicationError
-from tastypie.http import HttpUnauthorized
-from tastypie.resources import fields
-from tastypie.resources import ModelResource
+from tastypie.authorization import Authorization, DjangoAuthorization
+from tastypie.exceptions import BadRequest, ImmediateHttpResponse
+from tastypie.http import HttpApplicationError, HttpUnauthorized
+from tastypie.resources import fields, ModelResource
 from tastypie.utils import trailing_slash
 
 # Custom Authentication
