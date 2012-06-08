@@ -500,7 +500,6 @@ $(document).ready ->
         @newSpeciesAjaxLoad false
 
         # TODO(mark): Need to add successful object to species list.
-        
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Species error"
@@ -668,7 +667,6 @@ $(document).ready ->
 
         # Reload to ensure that we have all animals added.
         @load()
-
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Batch animals error"
@@ -897,7 +895,8 @@ $(document).ready ->
         @currentEnrichment null
 
         # (optional) redirect
-        window.location = "/observe"
+        $('#modal-observe-1').modal('hide').on 'hidden', ->
+          sammy.setLocation('/observe')
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Observation not created!"
@@ -1419,7 +1418,7 @@ $(document).ready ->
       $.ajax "/api/v1/observation/#{@activeObservation().id}/?format=json", {
         data: JSON.stringify obs
         dataType: "json"
-        type: "PUT"
+        type: "PATCH"
         contentType: "application/json"
         processData: false
         success: (result) => 
@@ -1448,7 +1447,7 @@ $(document).ready ->
       $.ajax "/api/v1/animalObservation/#{data.id}/?format=json", {
         data: JSON.stringify obs
         dataType: "json"
-        type: "PUT"
+        type: "PATCH"
         contentType: "application/json"
         processData: false
         success: (result) => 
@@ -1475,6 +1474,7 @@ $(document).ready ->
         animal_title: ''
         housingGroups: []
         loading: false
+        id: ''
       @exhibits = ko.observable null
       @housingGroups = ko.observable null
 
@@ -1720,8 +1720,9 @@ $(document).ready ->
       data = {}
       data.housing_group = ['/api/v1/housingGroup/' + @newHousingGroup.housingGroup().id() + '/']
       $.each @currentStaff().housingGroups(), (index, value) =>
-        if data.housing_group.indexOf('api/v1/housingGroup/' + value().id() + '/') == -1
-          data.housing_group.push '/api/v1/housingGroup/' + value().id() + '/'
+        hg = if $.isFunction(value) then value() else value
+        if data.housing_group.indexOf('api/v1/housingGroup/' + hg.id() + '/') == -1
+          data.housing_group.push '/api/v1/housingGroup/' + hg.id() + '/'
       console.log JSON.stringify data
       $.ajax "/api/v1/staff/#{@currentStaff().id()}/?format=json", {
         data: JSON.stringify data
@@ -1730,12 +1731,36 @@ $(document).ready ->
         contentType: "application/json"
         processData: false
         success: (result) => 
-          console.log "added staff?!"
+          console.log "added HG?!"
           @currentStaff().housingGroups.push @newHousingGroup.housingGroup
         error: (result) =>
           console.log result
       }
 
+    deleteHousingGroup: (hg) =>
+      idToDelete = hg.id()
+      url = "/api/v1/staff/#{@currentStaff().id()}/?format=json"
+
+      # Have only the proper list of housingGroups after deletion
+      updatedGroupList = []
+      $.each @currentStaff().housingGroups(), (index, value) ->
+        hgUrl = "/api/v1/housingGroup/#{value.id()}/"
+        updatedGroupList.push hgUrl if value.id() != idToDelete
+
+      # Prepare data to be sent
+      data = {'housing_group': updatedGroupList}
+      $.ajax url, {
+        data: JSON.stringify data
+        dataType: "json"
+        type: "PUT"
+        contentType: "application/json"
+        processData: false
+        success: (result) =>
+          console.log "removed HG"
+          @currentStaff().housingGroups.remove hg
+        error: (result) =>
+          console.log result
+      }
 
     viewInfo: (staff) =>
       staff.loadInfo()
