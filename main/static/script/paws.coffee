@@ -1717,7 +1717,7 @@ $(document).ready ->
       data = {}
       data.housing_group = ['/api/v1/housingGroup/' + @newHousingGroup.housingGroup().id() + '/']
       $.each @currentStaff().housingGroups(), (index, value) =>
-        hg = if value.isFunction then value() else value
+        hg = if value.isFunction() then value() else value
         if data.housing_group.indexOf('api/v1/housingGroup/' + hg.id() + '/') == -1
           data.housing_group.push '/api/v1/housingGroup/' + hg.id() + '/'
       console.log JSON.stringify data
