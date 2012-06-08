@@ -1725,11 +1725,11 @@ $(document).ready ->
       # Set file traversal function.
       reader.onload = (ev) =>
         lines = ev.target.result.split /[\n|\r]/
+        console.log lines
         anyLinesIncluded = false
 
         for line, index in lines
           # Create a staff object and add it to bulkStaff array.
-          index = index + 1
           staffObj =
             line: line
             lineNumber: ko.observable index
