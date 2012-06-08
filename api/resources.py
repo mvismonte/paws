@@ -266,11 +266,17 @@ class AnimalResource(ModelResource):
   # Define foreign keys.
   species = fields.ForeignKey(
       'paws.api.resources.SpeciesResource', 'species', full=True)
+  housing_group = fields.ForeignKey(
+      'paws.api.resources.HousingGroupResource', 'housing_group',
+      full=False, blank=True)
 
   class Meta:
     # authenticate the user
     queryset = models.Animal.objects.all()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     resource_name = 'animal'
+    always_return_data = True
     # allowed actions towards database
     # get = getting animal's information from the database
     # post = adding new animal into the database
