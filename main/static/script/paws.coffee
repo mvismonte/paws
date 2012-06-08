@@ -86,14 +86,25 @@ $(document).ready ->
 
   class HousingGroup
     constructor: (data) ->
-      @id = ko.observable data.id
-      @name = ko.observable data.name
-      @staff = ko.observableArray data.staff
-      @resourceURI = data.resource_uri
-      @animals = ko.observableArray $.map data.animals, (item) ->
-        return new Animal item
+      if data?
+        @id = ko.observable data.id
+        @name = ko.observable data.name
+        @staff = ko.observableArray data.staff
+        @resourceURI = data.resource_uri
+        @animals = ko.observableArray $.map data.animals, (item) ->
+          return new Animal item
+      else
+        @id = ko.observable null
+        @name = ko.observable null
+        @staff = ko.observableArray null
+        @resourceURI = null
+        @animals = ko.observableArray null
+
       @isInStaff = ko.computed =>
-        return (@staff.indexOf('/api/v1/staff/' + window.userId + '/') != -1)
+        if @staff()?
+          return (@staff.indexOf('/api/v1/staff/' + window.userId + '/') != -1)
+        else
+          return false
 
   class Category
     constructor: (data={}) ->
@@ -1889,7 +1900,15 @@ $(document).ready ->
         success: (result, status) => 
           console.log "added HG?!"
           console.log status
-          @currentStaff().housingGroups.push @newHousingGroup.housingGroup
+          newHG = new HousingGroup null
+          target = @newHousingGroup.housingGroup
+          newHG.id target().id()
+          newHG.name target().name()
+          newHG.staff target().staff()
+          newHG.resourceURI = target().resourceURI
+          newHG.animals target().animals()
+
+          @currentStaff().housingGroups.push newHG
         error: (result) =>
           console.log result
       }
