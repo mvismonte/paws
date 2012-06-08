@@ -84,12 +84,14 @@ $(document).ready ->
         $.each @housingGroups(), (index, val) =>
           num++ if val.isInStaff()
         return num
+      @resourceURI = data.resource_uri
 
   class HousingGroup
     constructor: (data) ->
       @id = ko.observable data.id
       @name = ko.observable data.name
       @staff = ko.observableArray data.staff
+      @resourceURI = data.resource_uri
       @animals = ko.observableArray $.map data.animals, (item) ->
         return new Animal item
       @isInStaff = ko.computed =>
@@ -190,6 +192,7 @@ $(document).ready ->
         @commonName = ko.observable data.common_name
         @scientificName = ko.observable data.scientific_name
         @id = ko.observable data.id
+        @resourceURI = data.resource_uri
       else
         @commonName = ko.observable null
         @scientificName = ko.observable null
@@ -214,6 +217,7 @@ $(document).ready ->
     constructor: () ->
       # Arrays for holding data
       @animals = ko.observableArray []
+      @species = ko.observableArray []
       @exhibits = ko.observableArray []
       @categories = ko.observableArray []
       @subcategories = ko.observableArray []
@@ -339,6 +343,21 @@ $(document).ready ->
       @newHousingGroupSuccess = ko.observable false
       @newHousingGroupIsCreating = ko.observable true
       @newHousingGroupAjaxLoad = ko.observable false
+
+      # Animal creation
+      @newAnimal =
+        count: ko.observable '1'
+        housingGroup: ko.observable ''
+        name: ko.observable ''
+        species: ko.observable ''
+        exhibit: ko.observable {
+          housingGroups: ko.observableArray []
+        }
+      @newAnimalError = ko.observable null
+      @newAnimalWarning = ko.observable null
+      @newAnimalSuccess = ko.observable false
+      @newAnimalIsCreating = ko.observable true
+      @newAnimalAjaxLoad = ko.observable false
 
       # Bulk upload fields
       @uploadDisableSubmit = ko.observable true
@@ -499,6 +518,7 @@ $(document).ready ->
         @newSpeciesAjaxLoad false
 
         # TODO(mark): Need to add successful object to species list.
+        @species new Species data
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Species error"
@@ -560,7 +580,8 @@ $(document).ready ->
       $.ajax settings
 
     openCreateHousingGroup: () ->
-      @newHousingGroup.code ''
+      @newHousingGroup.name ''
+      @newHousingGroup.exhibit ''
       @newHousingGroupError null
       @newHousingGroupWarning null
       @newHousingGroupSuccess false
@@ -570,14 +591,15 @@ $(document).ready ->
     createNewHousingGroup: () =>
       newHousingGroup =
         name: @newHousingGroup.name()
-        exhibit: @newHousingGroup.exhibit()
+        exhibit: @newHousingGroup.exhibit().resourceURI
+      console.log newHousingGroup
 
       # Make some simple checks.
       if (newHousingGroup.name.length == 0)
-        @newHousingGroupError 'Code cannot be empty'
+        @newHousingGroupError 'Name cannot be empty'
         return
       if (newHousingGroup.name.length > 100)
-        @newHousingGroupError 'Code cannot more than 100 characters'
+        @newHousingGroupError 'Name cannot more than 100 characters'
         return
 
       settings =
@@ -594,12 +616,13 @@ $(document).ready ->
         console.log textStatus
 
         # Show success message.
-        @newHousingGroupSuccess "HousingGroup #{newHousingGroup.code} was created"
+        @newHousingGroupSuccess "HousingGroup #{newHousingGroup.name} " +
+            "for exhibit #{@newHousingGroup.exhibit().code()} was created"
         @newHousingGroupError null
         @newHousingGroupAjaxLoad false
 
         # TODO(mark): Need to add successful object to housinggroup list.
-        # @housinggroups.push new HousingGroup data
+        @newHousingGroup.exhibit().housingGroups.push new HousingGroup data
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Create housinggroup error"
@@ -608,6 +631,74 @@ $(document).ready ->
 
       # Make the ajax call.
       @newHousingGroupAjaxLoad true
+      $.ajax settings
+
+    openCreateAnimal: () ->
+      @newAnimal.count '1'
+      @newAnimal.housingGroup ''
+      @newAnimal.name ''
+      @newAnimal.species ''
+      @newAnimal.exhibit {
+        housingGroups: ko.observableArray []
+      }
+      @newAnimalError null
+      @newAnimalWarning null
+      @newAnimalSuccess false
+      @newAnimalIsCreating true
+      @newAnimalAjaxLoad false
+
+    createNewAnimal: () =>
+      newAnimal =
+        count: parseInt @newAnimal.count()
+        housing_group: @newAnimal.housingGroup().resourceURI
+        name: @newAnimal.name()
+        species: @newAnimal.species().resourceURI
+
+      # Make some simple checks.
+      if (@newAnimal.count().length == 0)
+        @newAnimalError 'Count cannot be empty'
+        return
+      if (newAnimal.count <= 0)
+        @newAnimalError 'Count must be a positive integer'
+        return
+      if (!newAnimal.count)
+        @newAnimalError 'Count must be a number'
+        return
+      if (newAnimal.name.length == 0)
+        @newAnimalError 'Name cannot be empty'
+        return
+      if (newAnimal.name.length > 100)
+        @newAnimalError 'Name cannot more than 100 characters'
+        return
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/animal/?format=json'
+        data: JSON.stringify newAnimal
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "New Animal created"
+        console.log data
+        console.log textStatus
+
+        # Show success message.
+        @newAnimalSuccess "Animal #{newAnimal.name} was created"
+        @newAnimalError null
+        @newAnimalAjaxLoad false
+
+        # TODO(mark): Need to add successful object to animal list.
+        @newAnimal.housingGroup().animals.push new Animal data
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Create animal error"
+        @newAnimalError 'An unexpected error occured'
+        @newAnimalAjaxLoad false
+
+      # Make the ajax call.
+      @newAnimalAjaxLoad true
       $.ajax settings
 
     # Open info modal
@@ -786,6 +877,10 @@ $(document).ready ->
         mappedExhibits = $.map data.objects, (item) ->
           return new Exhibit item
         @exhibits mappedExhibits
+      $.getJSON '/api/v1/species/?format=json&limit=0', (data) =>
+        mappedSpecies = $.map data.objects, (item) ->
+          return new Species item
+        @species ko.toJS mappedSpecies
 
     # Check if ID exists in observableArray
     idInArray: (id, array) =>

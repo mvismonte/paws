@@ -17,10 +17,10 @@
               <button class="btn" data-bind="click: openBulkUpload"data-toggle="modal" data-target="#modal-animal-upload">Bulk Add</button>
               <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Add <span class="caret"></span></button>
               <ul class="dropdown-menu">
-                <li><a href="#">Animal</a></li>
-                <li><a href="#" data-bind="click: openCreateSpecies"data-toggle="modal" data-target="#modal-add-species">Species</a></li>
-                <li><a href="#" data-bind="click: openCreateExhibit"data-toggle="modal" data-target="#modal-add-exhibit">Exhibit</a></li>
-                <li><a href="#" data-bind="click: openCreateHousingGroup"data-toggle="modal" data-target="#modal-add-housing-group">Housing Group</a></li>
+                <li><a href="#" data-bind="click: openCreateAnimal" data-toggle="modal" data-target="#modal-add-animal">Animal</a></li>
+                <li><a href="#" data-bind="click: openCreateSpecies" data-toggle="modal" data-target="#modal-add-species">Species</a></li>
+                <li><a href="#" data-bind="click: openCreateExhibit" data-toggle="modal" data-target="#modal-add-exhibit">Exhibit</a></li>
+                <li><a href="#" data-bind="click: openCreateHousingGroup" data-toggle="modal" data-target="#modal-add-housing-group">Housing Group</a></li>
               </ul>
             </div>
             <div class="pull-right" style="width: 10px">&nbsp;</div>
@@ -324,9 +324,9 @@
             </div>
           </div>
           <div class="control-group">
-            <label class="control-label" for="input01">Code</label>
+            <label class="control-label" for="input01">Name</label>
             <div class="controls">
-              <input type="text" class="input-xlarge" data-bind="value: newHousingGroup.code">
+              <input type="text" class="input-xlarge" data-bind="value: newHousingGroup.name">
             </div>
           </div>
         </fieldset>
@@ -336,6 +336,67 @@
       <img data-bind="visible: newHousingGroupAjaxLoad" src="/static/img/ajax-loader.gif"/>
       <a href="#" class="btn" data-dismiss="modal">Close</a>
       <a href="#" class="btn btn-primary" data-bind="click: createNewHousingGroup">Create HousingGroup</a>
+    </div>
+  </div>
+
+  {# Modal for creating Animal #}
+  <div class="modal hide fade" id="modal-add-animal">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3>Add Animal</h3>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" data-bind="visible: newAnimalError">
+        <button class="close" data-bind="click: function(){ newAnimalError(null) }">×</button>
+        <strong>Error!</strong> <span data-bind="text: newAnimalError"></span>
+      </div>
+      <div class="alert alert-success" data-bind="visible: newAnimalSuccess">
+        <strong>Success!</strong> <span data-bind="text: newAnimalSuccess"></span>
+      </div>
+      <div class="alert" data-bind="visible: newAnimalWarning">
+        <button class="close" data-bind="click: function(){ newAnimalWarning(null) }">×</button>
+        <strong>Warning!</strong> <span data-bind="text: newAnimalWarning"></span>
+      </div>
+
+      <form action="#" class="form-horizontal" data-bind="visible: !newAnimalSuccess(), submit: function() {createNewAnimal(); return false}">
+        <fieldset>
+          <div class="control-group">
+            <label class="control-label" for="select01">Exhibit</label>
+            <div class="controls">
+              <select data-bind="options: exhibits, value: newAnimal.exhibit, optionsText: 'code'"></select>
+            </div>
+          </div>
+          <div class="control-group" data-bind="if: newAnimal.exhibit">
+            <label class="control-label" for="select02">HousingGroup</label>
+            <div class="controls">
+              <select data-bind="options: newAnimal.exhibit().housingGroups, value: newAnimal.housingGroup, optionsText: 'name', disable: newAnimal.exhibit().housingGroups().length == 0"></select>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="select03">Species</label>
+            <div class="controls">
+              <select data-bind="options: species, value: newAnimal.species, optionsText: 'commonName'"></select>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="input01">Name</label>
+            <div class="controls">
+              <input type="text" class="input-xlarge" data-bind="value: newAnimal.name">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="input01">Count</label>
+            <div class="controls">
+              <input type="text" class="input-xlarge" data-bind="value: newAnimal.count">
+            </div>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+    <div class="modal-footer" data-bind="visible: !newAnimalSuccess()">
+      <img data-bind="visible: newAnimalAjaxLoad" src="/static/img/ajax-loader.gif"/>
+      <a href="#" class="btn" data-dismiss="modal">Close</a>
+      <button class="btn btn-primary" data-bind="click: createNewAnimal, disable: !newAnimal.housingGroup() || !newAnimal.species()">Create Animal</button>
     </div>
   </div>
 

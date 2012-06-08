@@ -262,14 +262,22 @@ class AnimalObservationResource(ModelResource):
 # Animal Resource.
 class AnimalResource(ModelResource):
   # Define foreign keys.
-  animal_observations = fields.ToManyField('paws.api.resources.AnimalObservationResource', 'animalobservation_set', related_name='animal')
+  animal_observations = fields.ToManyField(
+      'paws.api.resources.AnimalObservationResource', 'animalobservation_set',
+      related_name='animal', blank=True)
   species = fields.ForeignKey(
       'paws.api.resources.SpeciesResource', 'species', full=True)
+  housing_group = fields.ForeignKey(
+      'paws.api.resources.HousingGroupResource', 'housing_group',
+      full=False, blank=True)
 
   class Meta:
     # authenticate the user
     queryset = models.Animal.objects.all()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     resource_name = 'animal'
+    always_return_data = True
     # allowed actions towards database
     # get = getting animal's information from the database
     # post = adding new animal into the database
@@ -718,8 +726,9 @@ class ExhibitResource(ModelResource):
 class HousingGroupResource(ModelResource):
   # exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
   staff = fields.ToManyField(
-      'paws.api.resources.StaffResource', 'staff')
-  animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal_set', full=True)
+      'paws.api.resources.StaffResource', 'staff', blank=True)
+  animals = fields.ToManyField(
+      'paws.api.resources.AnimalResource', 'animal_set', full=True, blank=True)
   exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
   class Meta:
     # authenticate the user
@@ -727,6 +736,7 @@ class HousingGroupResource(ModelResource):
     authorization = DjangoAuthorization()
     queryset = models.HousingGroup.objects.all()
     resource_name = 'housingGroup'
+    always_return_data = True
     # allowed actions towards database
     # get = getting HousingGroup's information from the database
     # post = adding new HousingGroup into the database
