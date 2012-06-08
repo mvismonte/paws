@@ -4,16 +4,30 @@
 
 <div class="container" id="enrichmentListContainer" style="display: none;">
 
-  {% if user.is_superuser %}
-    <div id="addnew" class="btn-group pull-right">
-      <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Add <span class="caret"></span></button>
-      <ul class="dropdown-menu">
-        <li><a data-bind="click: openCreateCategory" data-toggle="modal" data-target="#modal-enrichment-category">New Category</a></li>
-        <li><a data-bind="click: openCreateSubcategory" data-toggle="modal" data-target="#modal-enrichment-subcategory">New Subcategory</a></li>
-        <li><a data-bind="click: openCreateEnrichment" data-toggle="modal" data-target="#modal-enrichment">New Enrichment</a></li>
-      </ul>
+  <div class="row">
+    <div class="span12">
+      <div class="page-header">
+        <div class="row">
+          <div class="span6">
+            <h1>Enrichments <small>availible to provide</small></h1>
+          </div>
+          <div class="span6">
+            {% if user.is_superuser %}
+              <div id="addnew" class="btn-group pull-right">
+                <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Add <span class="caret"></span></button>
+                <ul class="dropdown-menu">
+                  <li><a data-bind="click: openCreateCategory" data-toggle="modal" data-target="#modal-enrichment-category">New Category</a></li>
+                  <li><a data-bind="click: openCreateSubcategory" data-toggle="modal" data-target="#modal-enrichment-subcategory">New Subcategory</a></li>
+                  <li><a data-bind="click: openCreateEnrichment" data-toggle="modal" data-target="#modal-enrichment">New Enrichment</a></li>
+                </ul>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
     </div>
-  {% endif %}
+  </div>
+
 
   <div class="row">
     <div class="span12">
