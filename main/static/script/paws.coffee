@@ -34,9 +34,8 @@ $(document).ready ->
         @observation_id = ko.observable data.observation.id
         @interaction_time = ko.observable data.interaction_time
         @observation_time = ko.observable data.observation_time
-        #@behavior = ko.observable data.behavior
-        #@description = ko.observable data.description
         @indirect_use = ko.observable data.indirect_use
+        @behavior = ko.observable data.behavior
 
         @interaction_time.subscribe (value) =>
           console.log "change interaction_time"
@@ -68,9 +67,8 @@ $(document).ready ->
         @observation_id = ko.observable null
         @interaction_time = ko.observable null
         @observation_time = ko.observable null
-        #@behavior = ko.observable null
-        #@description = ko.observable null
         @indirect_use = ko.observable null
+        @behavior = ko.observable null
 
   class Exhibit
     constructor: (data) ->
@@ -1501,11 +1499,11 @@ $(document).ready ->
 
       @selectedBehavior = ko.observable null
 
-
       updateAnimalObservation.subscribe (data) =>
           console.log "saving animal observation"
           @saveAnimalObservation data
         , @, "saveAnimalObservation"
+
 
     loadBehaviors: (observation, animalObservation) =>
       @activeObservation observation

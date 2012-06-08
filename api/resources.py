@@ -39,7 +39,7 @@ class AnimalObservationResource(ModelResource):
   observation = fields.ToOneField(
       'paws.api.resources.ObservationResource', 'observation', related_name='animal_observations')
   behavior = fields.ForeignKey(
-      'paws.api.resources.BehaviorResource', 'behavior', null=True, blank=True)
+      'paws.api.resources.BehaviorResource', 'behavior', full=True, null=True, blank=True)
 
   class Meta:
     # authenticate the user

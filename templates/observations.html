@@ -41,7 +41,8 @@
             <input data-bind="value: observation_time" class="span1"></input>
           </label>
           <label class="span7">
-            <button data-bind="click: $root.loadBehaviors.bind($data, $parent)" data-toggle="modal" data-target="#modal-add-behavior" class="btn">Add Behavior</button>
+            <span data-bind="text: behavior().description"></span>
+            <button data-bind="click: $root.loadBehaviors.bind($data, $parent)" data-toggle="modal" data-target="#modal-add-behavior" class="btn pull-right">Edit Behavior</button>
             {% comment %}
             Description
             <input data-bind="value: description" class="span7"></textarea>
