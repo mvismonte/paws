@@ -211,8 +211,8 @@
     </div>
 
     <div class="modal-body">
+      {% if user.is_superuser %}
       <div class="clearfix">
-        {% if user.is_superuser %}
         <h3>Assign new enrichment to a species</h3>
         <div class="clearfix"></div>
         <div class="alert alert-error" data-bind="visible: newEnrichmentNoteError">

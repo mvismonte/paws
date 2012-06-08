@@ -1693,7 +1693,7 @@ $(document).ready ->
         else
           return []
 
-    openStaffCreate: () ->
+    openStaffCreate: () =>
       @newStaff.firstName ''
       @newStaff.lastName ''
       @newStaff.password1 ''
@@ -1704,6 +1704,7 @@ $(document).ready ->
       @newStaffSuccess false
       @newStaffIsCreating true
       @newStaffAjaxLoad false
+      console.log 'openStaffCreate'
 
     openBulkCreate: () ->
       $('input[type="file"]').val('')
