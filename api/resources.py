@@ -820,6 +820,10 @@ class ObservationResource(ModelResource):
     
   # update observation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
+    # Clean related fields into URI's instead of bundles
+    bundle.data['enrichment'] = bundle.data['enrichment'].data['resource_uri']
+    for key, animalObservation in enumerate(bundle.data['animal_observations']):
+      bundle.data['animal_observations'][key] = animalObservation.data['resource_uri']
     # Make sure that the user can modifty.
     observation_id = int(kwargs.pop('pk', None))
     if not self.can_modify_observation(request, observation_id):

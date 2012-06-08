@@ -1413,7 +1413,7 @@ $(document).ready ->
       $.ajax "/api/v1/observation/#{@activeObservation().id}/?format=json", {
         data: JSON.stringify obs
         dataType: "json"
-        type: "PUT"
+        type: "PATCH"
         contentType: "application/json"
         processData: false
         success: (result) => 
