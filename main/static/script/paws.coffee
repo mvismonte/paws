@@ -1886,8 +1886,9 @@ $(document).ready ->
         type: "PUT"
         contentType: "application/json"
         processData: false
-        success: (result) => 
+        success: (result, status) => 
           console.log "added HG?!"
+          console.log status
           @currentStaff().housingGroups.push @newHousingGroup.housingGroup
         error: (result) =>
           console.log result

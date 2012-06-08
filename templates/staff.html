@@ -68,36 +68,26 @@
             <div class="control-group">
               <label class="control-label">Animals:</label>
               <div id="animalLabel" class="controls" data-bind="foreach: newHousingGroupAnimals">
-                <span data-bind="text: name"></span>,
+                <span data-bind="text: name" class="label"></span> 
               </div>
             </div>
           </fieldset>
+          <button class="btn btn-primary pull-right" data-bind="click: addHousingGroup">Add Housing Group</button>
         </form>
-        <button class="btn btn-primary pull-right" data-bind="click: addHousingGroup">Add Housing Group</button>
       </div>
-
-      <hr>
-
       <h3>Current Housing Groups</h3>
       <!-- ko with: currentStaff -->
       <div data-bind="foreach: housingGroups">
-        <table class="table table-bordered table-striped" >
-          <thead>
-            <tr>
-              <th>
-                <strong data-bind="text: name"></strong>
-                <button class="btn btn-mini btn-danger pull-right" data-bind="click: $root.deleteHousingGroup">Remove</button>
-              </th>
-            </tr>
-          </thead>
-          <tbody data-bind="foreach: animals">
-            <tr>
-              <td>
-                <small data-bind="text: name"></small>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <hr>
+        <dl>
+          <dt>
+            <h4><strong data-bind="text: name"></strong></h4>
+            <button class="btn btn-mini btn-danger pull-right" data-bind="click: $root.deleteHousingGroup">Remove</button>
+          </dt>
+          <dd data-bind="foreach: animals">
+            <span data-bind="text: name" class="label"></span>
+          </dd>
+        </dl>
       </div>
       <!--
       <ul data-bind="foreach: housingGroups">
