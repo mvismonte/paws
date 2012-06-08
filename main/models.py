@@ -42,7 +42,7 @@ class Behavior(models.Model):
     (0, 'N/A'),
     (1, 'Positive'),
   )
-  reaction = models.SmallIntegerField(choices=BEHAVIOR_CHOICES, null=True, blank=True)
+  reaction = models.SmallIntegerField(choices=BEHAVIOR_CHOICES, null=True, default='0')
   enrichment = models.ForeignKey('Enrichment')
   description = models.TextField(blank=True)
   def __unicode__(self):

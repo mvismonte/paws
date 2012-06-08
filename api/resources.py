@@ -38,6 +38,8 @@ class AnimalObservationResource(ModelResource):
       'paws.api.resources.AnimalResource','animal', full=True, related_name='animal_observations')
   observation = fields.ToOneField(
       'paws.api.resources.ObservationResource', 'observation', related_name='animal_observations')
+  behavior = fields.ForeignKey(
+      'paws.api.resources.BehaviorResource', 'behavior', null=True, blank=True)
 
   class Meta:
     # authenticate the user
@@ -79,7 +81,9 @@ class AnimalObservationResource(ModelResource):
     
   # update animalObservation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
+    print bundle
     bundle.data['animal'] = bundle.data['animal'].data['resource_uri']
+    # bundle.data['behavior'] = bundle.data['behavior'].data['resource_uri']
     # Make sure that the user can modifty.
     ao_id = int(kwargs.pop('pk', None))
     if not self.can_modify_observation(request, ao_id):
@@ -418,6 +422,7 @@ class BehaviorResource(ModelResource):
     # put = updating behavior's information in the database
     # delete = delete behavior from the database
     list_allowed_methods = ['get','post','put','delete']
+    always_return_data = True
 
   # creating new behavior into database
   def obj_create(self, bundle, request=None, **kwargs):

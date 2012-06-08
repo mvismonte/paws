@@ -1392,16 +1392,82 @@ $(document).ready ->
       # Arrays for holding data
       @observations = ko.observableArray []
       @behaviorType = [
-        { id: -2, type: 'Avoid'}
-        { id: -1, type: 'Negative'}
         { id: 0, type: 'N/A'}
         { id: 1, type: 'Positive'}
+        { id: -1, type: 'Negative'}
+        { id: -2, type: 'Avoid'}
       ]
       @activeObservation = ko.observable null
+      @activeAnimalObservation = ko.observable null
+      @activeBehaviors = ko.observableArray []
+
+      @newBehaviorType = ko.observable null
+      @newBehaviorDesc = ko.observable null
+
+      @selectedBehavior = ko.observable null
+
+
       updateAnimalObservation.subscribe (data) =>
-          console.log "saving indirect_use"
+          console.log "saving animal observation"
           @saveAnimalObservation data
         , @, "saveAnimalObservation"
+
+    loadBehaviors: (observation, animalObservation) =>
+      @activeObservation observation
+      @activeAnimalObservation animalObservation
+      console.log "getting behaviors for #{observation.enrichment().id}"
+      $.getJSON "/api/v1/behavior/?format=json&enrichment_id=#{observation.enrichment().id}", (data) =>
+        console.log data
+        @activeBehaviors data.objects
+        console.log @activeBehaviors()
+
+    addNewBehavior: (data) =>
+      behavior = {}
+      behavior.description = @newBehaviorDesc()
+      behavior.reaction = @newBehaviorType()
+      behavior.enrichment = @activeObservation().enrichment().resource_uri
+      console.log behavior
+      $.ajax "/api/v1/behavior/?format=json", {
+        data: JSON.stringify behavior
+        dataType: "json"
+        type: "POST"
+        contentType: "application/json"
+        processData: false
+        success: (result) =>
+          console.log result
+          console.log "Created behavior"
+          @activeBehaviors.push result
+          @newBehaviorType null
+          @newBehaviorDesc null
+        error: (result) =>
+          console.log result
+      }
+    saveBehavior: () =>
+      try
+        console.log "saving behavior #{@selectedBehavior().id} for #{@activeAnimalObservation().id}"
+      catch TypeError
+        return
+      console.log @selectedBehavior()
+      obs = {}
+      obs.behavior = @selectedBehavior().resource_uri
+      console.log obs
+      $.ajax "/api/v1/animalObservation/#{@activeAnimalObservation().id}/?format=json", {
+        data: JSON. stringify obs
+        dataType: "json"
+        type: "PATCH"
+        contentType: "application/json"
+        processData: false
+        success: (result) =>
+          console.log "finished saving behavior"
+          console.log result
+          @activeObservation null
+          @activeBehaviors []
+          @activeAnimalObservation null
+          @selectedBehavior null
+        error: (result) =>
+          console.log result
+      }
+
 
     finishObservation: () =>
       try
@@ -1431,6 +1497,7 @@ $(document).ready ->
         mapped = $.map data.objects, (item) ->
           return new Observation item
         @observations mapped
+        # TODO can remove below
         @observations.subscribe (value) ->
           console.log(value)
           console.log "observation change"
