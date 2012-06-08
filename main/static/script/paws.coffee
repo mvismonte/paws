@@ -499,7 +499,6 @@ $(document).ready ->
         @newSpeciesAjaxLoad false
 
         # TODO(mark): Need to add successful object to species list.
-        
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Species error"
@@ -664,7 +663,6 @@ $(document).ready ->
 
         # Reload to ensure that we have all animals added.
         @load()
-
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Batch animals error"
@@ -1522,6 +1520,9 @@ $(document).ready ->
         else
           return []
 
+    deleteHousingGroup: (hg) ->
+      id = hg.id()
+
     openStaffCreate: () ->
       @newStaff.firstName ''
       @newStaff.lastName ''
@@ -1716,8 +1717,9 @@ $(document).ready ->
       data = {}
       data.housing_group = ['/api/v1/housingGroup/' + @newHousingGroup.housingGroup().id() + '/']
       $.each @currentStaff().housingGroups(), (index, value) =>
-        if data.housing_group.indexOf('api/v1/housingGroup/' + value().id() + '/') == -1
-          data.housing_group.push '/api/v1/housingGroup/' + value().id() + '/'
+        hg = if value.isFunction then value() else value
+        if data.housing_group.indexOf('api/v1/housingGroup/' + hg.id() + '/') == -1
+          data.housing_group.push '/api/v1/housingGroup/' + hg.id() + '/'
       console.log JSON.stringify data
       $.ajax "/api/v1/staff/#{@currentStaff().id()}/?format=json", {
         data: JSON.stringify data
