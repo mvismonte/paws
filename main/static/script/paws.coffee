@@ -891,7 +891,8 @@ $(document).ready ->
         @currentEnrichment null
 
         # (optional) redirect
-        #window.location = "/observe"
+        $('#modal-observe-1').modal('hide').on 'hidden', ->
+          sammy.setLocation('/observe')
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Observation not created!"
