@@ -41,10 +41,10 @@ class CustomAuthentication(BasicAuthentication):
 # AnimalObservation Resource.
 class AnimalObservationResource(ModelResource):
   # Define foreign keys.
-  animal = fields.ForeignKey(
-      'paws.api.resources.AnimalResource','animal', full=True)
-  observation = fields.ForeignKey(
-      'paws.api.resources.ObservationResource', 'observation')
+  animal = fields.ToOneField(
+      'paws.api.resources.AnimalResource','animal', full=True, related_name='animal_observations')
+  observation = fields.ToOneField(
+      'paws.api.resources.ObservationResource', 'observation', related_name='animal_observations')
 
   class Meta:
     # authenticate the user
@@ -86,6 +86,7 @@ class AnimalObservationResource(ModelResource):
     
   # update animalObservation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
+    bundle.data['animal'] = bundle.data['animal'].data['resource_uri']
     # Make sure that the user can modifty.
     ao_id = int(kwargs.pop('pk', None))
     if not self.can_modify_observation(request, ao_id):
@@ -264,6 +265,7 @@ class AnimalObservationResource(ModelResource):
 # Animal Resource.
 class AnimalResource(ModelResource):
   # Define foreign keys.
+  animal_observations = fields.ToManyField('paws.api.resources.AnimalObservationResource', 'animalobservation_set', related_name='animal')
   species = fields.ForeignKey(
       'paws.api.resources.SpeciesResource', 'species', full=True)
 
@@ -781,7 +783,7 @@ class HousingGroupResource(ModelResource):
 class ObservationResource(ModelResource):
   # Define foreign keys.
   animal_observations = fields.ToManyField(
-      'paws.api.resources.AnimalObservationResource','animalobservation_set', full=True, null=True)
+      'paws.api.resources.AnimalObservationResource','animalobservation_set', full=True, null=True, related_name='observation')
   enrichment = fields.ForeignKey(
       'paws.api.resources.EnrichmentResource','enrichment', full=True)
   staff = fields.ForeignKey(

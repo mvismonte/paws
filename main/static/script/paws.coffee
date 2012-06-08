@@ -891,7 +891,7 @@ $(document).ready ->
         @currentEnrichment null
 
         # (optional) redirect
-        window.location = "/observe"
+        #window.location = "/observe"
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Observation not created!"
@@ -1442,7 +1442,7 @@ $(document).ready ->
       $.ajax "/api/v1/animalObservation/#{data.id}/?format=json", {
         data: JSON.stringify obs
         dataType: "json"
-        type: "PUT"
+        type: "PATCH"
         contentType: "application/json"
         processData: false
         success: (result) => 
