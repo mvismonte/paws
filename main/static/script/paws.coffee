@@ -1729,10 +1729,11 @@ $(document).ready ->
         anyLinesIncluded = false
 
         for line, index in lines
+          tempIndex = index + 1
           # Create a staff object and add it to bulkStaff array.
           staffObj =
             line: line
-            lineNumber: ko.observable index
+            lineNumber: ko.observable tempIndex
             firstName: ko.observable ''
             lastName: ko.observable ''
             password: ko.observable ''
@@ -1745,19 +1746,19 @@ $(document).ready ->
           # Perform some error checking.
           if (line == "")
             if (index != lines.length)
-              @bulkWarning "Line #{index}: Line is empty"
+              @bulkWarning "Line #{tempIndex}: Line is empty"
             continue
           if (fields.length != 4)
-            @bulkWarning "Line #{index}: Invalid amount of lines"
+            @bulkWarning "Line #{tempIndex}: Invalid amount of lines"
             continue
           if (fields[0] == "")
-            @bulkWarning "Line #{index}: First name is empty"
+            @bulkWarning "Line #{tempIndex}: First name is empty"
             continue
           if (fields[1] == "")
-            @bulkWarning "Line #{index}: Last name is empty"
+            @bulkWarning "Line #{tempIndex}: Last name is empty"
             continue
           if (fields[2] == "")
-            @bulkWarning "Line #{index}: Password is empty"
+            @bulkWarning "Line #{tempIndex}: Password is empty"
             continue
 
           # Finally, modify object to assign values.
