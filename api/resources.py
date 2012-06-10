@@ -1070,7 +1070,7 @@ class UserResource(ModelResource):
         url(r"^(?P<resource_name>%s)/bulk%s$" % 
             (self._meta.resource_name, trailing_slash()), 
             self.wrap_view('bulk_add'), name="api_bulk_add"),
-	url(r"^(?P<resource_name>%s)/add_user%s$" %
+        url(r"^(?P<resource_name>%s)/add_user%s$" %
             (self._meta.resource_name, trailing_slash()),
             self.wrap_view('add_user'), name="api_add_user"),
     ]
@@ -1131,11 +1131,11 @@ class UserResource(ModelResource):
       ret_user = {
         'object': object,
       }
-	  
+      
       return self.create_response(request, ret_user)
     except ValueError:
       return self.create_response(request, "Invalid JSON", response_class=HttpApplicationError)
-	
+
   # Bulk add view.
   def bulk_add(self, request, **kwargs):
     self.method_check(request, allowed=['post'])
