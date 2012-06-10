@@ -1,0 +1,119 @@
+* Noteworthy changes in release 1.0 (2012-06-08)
+
+** Backend changes
+
+  Observations have an integer observation_time for duration of interaction,
+  instead of the difference of two dates
+
+  Non-read requests to the API must be authenticated with a Django login
+
+** Frontend additions
+
+  Animals, species, housing groups, and exhibits can be created from the
+  frontend.
+
+  Animal bulk uploading implemented (from CSV)
+
+  Animal Housing Group associations can be added to staff members from the
+  frontend.
+
+  Observation changes are updated in real time
+
+
+* Noteworthy changes in release 0.9 (2012-06-01)
+
+** Backend additions
+
+  Can obtain a list of Enrichment Notes that only pertain to a specific species
+  using `&species_id=###` in the HTTP request.
+
+  Observation lists can be filtered by staff members by adding `&staff_id=###`
+  to the HTTP request.
+
+  POST, PUT, PATCH, GET works generally for all models
+
+  Animals, enrichments, and staff have a bulk upload function (CSV file)
+
+** Backend changes
+
+  Animal Behavior after observation now has its own model, instead of being a
+  part of the Animal Observation model, to store and autocomplete behaviors
+
+** Frontend additions
+
+  Animals can be observed by selecting them and pressing the "Observe Selected"
+  button. This will pull up a modal dialog to select an enrichment.
+
+  Login page alerts informative errors instead of being silent.
+
+  Categories, subcategories, enrichments, and staff members can be created from
+  the frontend.
+
+  Observations can be made in the frontend, and past observations can be
+  viewed and edited on the frontend
+
+** Frontend changes
+
+  Animal list only shows animals that the currently logged in user can view, and
+  can be toggled to view all animals
+
+  The enrichment list in both Enrichments and the modal dialog have been
+  redesigned. In the modal dialog, there are now 3 columns to better fit the
+  small size of the modal.
+
+
+* Noteworthy changes in release 0.8 (2012-05-25)
+
+
+** Backend additions
+
+  Backend-based bulk uploading of animal CSV implemented
+
+  Categories, subcategories can now be added using POST requests to the API
+
+** Frontend additions
+
+  Now uses sammy.js for a single-page application. Everything should now load
+  using the RESTful API through AJAX calls. Page refreshing is no more!
+
+  Animals can be selected, and a modal dialog can be opened to obtain info
+  about selected animals
+
+  Superuser-limited functions can no longer be accessed by regular users
+
+
+* Noteworthy changes in release 0.7 (2012-05-18)
+
+** Frontend changes
+
+  Removed animal carousel in favor of a list of animals grouped into exhibits
+  and housing groups
+
+
+* Noteworthy changes in release 0.6 (2012-05-11)
+
+** Frontend additions
+
+  Bootstrap UI implemented and styled, including buttons and top navigation bar.
+
+  Animals page lists all animals in a scrolling carousel, and can be filtered by
+  species
+
+  Authentication views exist for both logging in and logging out
+
+  Enrichment page lists all enrichments in a scrolling carousel, and can be
+  filtered by categories and subcategories
+
+  Error pages for 404, 500
+
+
+* Noteworthy changes in release 0.5 (2012-05-04)
+
+** Backend additions
+
+  Models created
+
+** Frontend additions
+
+  Django admin can be used to modify all aspects of the database models. It's
+  just not very touch-friendly

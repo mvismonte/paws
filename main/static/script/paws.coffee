@@ -34,9 +34,8 @@ $(document).ready ->
         @observation_id = ko.observable data.observation.id
         @interaction_time = ko.observable data.interaction_time
         @observation_time = ko.observable data.observation_time
-        #@behavior = ko.observable data.behavior
-        #@description = ko.observable data.description
         @indirect_use = ko.observable data.indirect_use
+        @behavior = ko.observable data.behavior
 
         @interaction_time.subscribe (value) =>
           console.log "change interaction_time"
@@ -68,9 +67,8 @@ $(document).ready ->
         @observation_id = ko.observable null
         @interaction_time = ko.observable null
         @observation_time = ko.observable null
-        #@behavior = ko.observable null
-        #@description = ko.observable null
         @indirect_use = ko.observable null
+        @behavior = ko.observable null
 
   class Exhibit
     constructor: (data) ->
@@ -84,16 +82,29 @@ $(document).ready ->
         $.each @housingGroups(), (index, val) =>
           num++ if val.isInStaff()
         return num
+      @resourceURI = data.resource_uri
 
   class HousingGroup
     constructor: (data) ->
-      @id = ko.observable data.id
-      @name = ko.observable data.name
-      @staff = ko.observableArray data.staff
-      @animals = ko.observableArray $.map data.animals, (item) ->
-        return new Animal item
+      if data?
+        @id = ko.observable data.id
+        @name = ko.observable data.name
+        @staff = ko.observableArray data.staff
+        @resourceURI = data.resource_uri
+        @animals = ko.observableArray $.map data.animals, (item) ->
+          return new Animal item
+      else
+        @id = ko.observable null
+        @name = ko.observable null
+        @staff = ko.observableArray null
+        @resourceURI = null
+        @animals = ko.observableArray null
+
       @isInStaff = ko.computed =>
-        return (@staff.indexOf('/api/v1/staff/' + window.userId + '/') != -1)
+        if @staff()?
+          return (@staff.indexOf('/api/v1/staff/' + window.userId + '/') != -1)
+        else
+          return false
 
   class Category
     constructor: (data={}) ->
@@ -102,23 +113,43 @@ $(document).ready ->
 
   class Enrichment
     constructor: (data) ->
-      @id = ko.observable data.id
-      @name = ko.observable data.name # non-observable is fine
-      @categoryId = ko.observable data.subcategory.category.id
-      @categoryName = ko.observable data.subcategory.category.name
-      @subcategoryId = ko.observable data.subcategory.id
-      @subcategoryName = ko.observable data.subcategory.name
-      @count = ko.observable 0
-      @disabled = false
+      if data?
+        @id = ko.observable data.id
+        @name = ko.observable data.name # non-observable is fine
+        @categoryId = ko.observable data.subcategory.category.id
+        @categoryName = ko.observable data.subcategory.category.name
+        @subcategoryId = ko.observable data.subcategory.id
+        @subcategoryName = ko.observable data.subcategory.name
+        @count = ko.observable 0
+        @disabled = false
+      else
+        @id = ko.observable null
+        @name = ko.observable null
+        @categoryId = ko.observable null
+        @categoryName = ko.observable null
+        @subcategoryId = ko.observable null
+        @subcategoryName = ko.observable null
+        @count = ko.observable 0
+        @disabled = false
 
   class EnrichmentNote
     constructor: (data) ->
-      @enrichmentId = ko.observable data.enrichment.id
-      @speciesCommonName = ko.observable data.species.common_name
-      @speciesId = ko.observable data.species.id
-      @speciesScientificName = ko.observable data.species.scientific_name
-      @limitations = ko.observable data.limitations
-      @instructions = ko.observable data.instructions
+      if data?
+        @enrichmentId = ko.observable data.enrichment.id
+        @speciesCommonName = ko.observable data.species.common_name
+        @speciesId = ko.observable data.species.id
+        @speciesScientificName = ko.observable data.species.scientific_name
+        @species = ko.observable new Species data.species
+        @limitations = ko.observable data.limitations
+        @instructions = ko.observable data.instructions
+      else
+        @enrichmentId = ko.observable null
+        @speciesCommonName = ko.observable null
+        @speciesId = ko.observable null
+        @speciesScientificName = ko.observable null
+        @species = ko.observable new Species null
+        @limitations = ko.observable null
+        @instructions = ko.observable null
 
   class Observation
     constructor: (data=null) ->
@@ -166,9 +197,16 @@ $(document).ready ->
 
   class Species
     constructor: (data) ->
-      @commonName = ko.observable data.common_name
-      @scientificName = ko.observable data.scientific_name
-      @id = ko.observable data.id
+      if data?
+        @commonName = ko.observable data.common_name
+        @scientificName = ko.observable data.scientific_name
+        @id = ko.observable data.id
+        @resourceURI = data.resource_uri
+      else
+        @commonName = ko.observable null
+        @scientificName = ko.observable null
+        @id = ko.observable null
+
 
   class Subcategory
     constructor: (data) ->
@@ -188,6 +226,7 @@ $(document).ready ->
     constructor: () ->
       # Arrays for holding data
       @animals = ko.observableArray []
+      @species = ko.observableArray []
       @exhibits = ko.observableArray []
       @categories = ko.observableArray []
       @subcategories = ko.observableArray []
@@ -210,6 +249,8 @@ $(document).ready ->
       @newAnimalObservationIsCreating = ko.observable false
       @newAnimalObservationSuccess = ko.observable false
 
+      # Staff that's in charge of animals
+      @staffs = ko.observableArray []
 
       # If viewing all keeper's animals or just yours
       @viewAll = ko.observable false
@@ -281,6 +322,51 @@ $(document).ready ->
           return @enrichmentsFilterCategory()
         return ko.utils.arrayFilter @enrichmentsFilterCategory(), (enrichment) ->
           return enrichment.subcategoryId() == subcategory.id()
+
+      # Creation fields.
+      # Species creation
+      @newSpecies =
+        commonName: ko.observable ''
+        scientificName: ko.observable ''
+      @newSpeciesError = ko.observable null
+      @newSpeciesWarning = ko.observable null
+      @newSpeciesSuccess = ko.observable false
+      @newSpeciesIsCreating = ko.observable true
+      @newSpeciesAjaxLoad = ko.observable false
+
+      # Exhibit creation
+      @newExhibit =
+        code: ko.observable ''
+      @newExhibitError = ko.observable null
+      @newExhibitWarning = ko.observable null
+      @newExhibitSuccess = ko.observable false
+      @newExhibitIsCreating = ko.observable true
+      @newExhibitAjaxLoad = ko.observable false
+
+      # HousingGroup creation
+      @newHousingGroup =
+        name: ko.observable ''
+        exhibit: ko.observable ''
+      @newHousingGroupError = ko.observable null
+      @newHousingGroupWarning = ko.observable null
+      @newHousingGroupSuccess = ko.observable false
+      @newHousingGroupIsCreating = ko.observable true
+      @newHousingGroupAjaxLoad = ko.observable false
+
+      # Animal creation
+      @newAnimal =
+        count: ko.observable '1'
+        housingGroup: ko.observable ''
+        name: ko.observable ''
+        species: ko.observable ''
+        exhibit: ko.observable {
+          housingGroups: ko.observableArray []
+        }
+      @newAnimalError = ko.observable null
+      @newAnimalWarning = ko.observable null
+      @newAnimalSuccess = ko.observable false
+      @newAnimalIsCreating = ko.observable true
+      @newAnimalAjaxLoad = ko.observable false
 
       # Bulk upload fields
       @uploadDisableSubmit = ko.observable true
@@ -393,6 +479,250 @@ $(document).ready ->
         # Initiate the reader.
         reader.readAsText(file)
 
+    openCreateSpecies: () ->
+      @newSpecies.commonName ''
+      @newSpecies.scientificName ''
+      @newSpeciesError null
+      @newSpeciesWarning null
+      @newSpeciesSuccess false
+      @newSpeciesIsCreating true
+      @newSpeciesAjaxLoad false
+
+    createNewSpecies: () =>
+      newSpecies =
+        common_name: @newSpecies.commonName()
+        scientific_name: @newSpecies.scientificName()
+
+      # Make some simple checks.
+      if (newSpecies.common_name.length == 0)
+        @newSpeciesError 'Common Name cannot be empty'
+        return
+      if (newSpecies.scientific_name.length == 0)
+        @newSpeciesError 'Scientific Name cannot be empty'
+        return
+      if (newSpecies.common_name.length > 100)
+        @newSpeciesError 'Common Name cannot more than 100 characters'
+        return
+      if (newSpecies.scientific_name.length > 200)
+        @newSpeciesError 'Scientific Name cannot be more than 200 characters'
+        return
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/species/?format=json'
+        data: JSON.stringify newSpecies
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "New Species created"
+        console.log data
+        console.log textStatus
+
+        # Show success message.
+        @newSpeciesSuccess "Species #{newSpecies.common_name} " +
+            "(#{newSpecies.scientific_name}) was created"
+        @newSpeciesError null
+        @newSpeciesAjaxLoad false
+
+        # TODO(mark): Need to add successful object to species list.
+        @species new Species data
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Species error"
+        @newSpeciesError 'An unexpected error occured'
+        @newSpeciesAjaxLoad false
+
+      # Make the ajax call.
+      @newSpeciesAjaxLoad true
+      $.ajax settings
+
+    openCreateExhibit: () ->
+      @newExhibit.code ''
+      @newExhibitError null
+      @newExhibitWarning null
+      @newExhibitSuccess false
+      @newExhibitIsCreating true
+      @newExhibitAjaxLoad false
+
+    createNewExhibit: () =>
+      newExhibit =
+        code: @newExhibit.code()
+
+      # Make some simple checks.
+      if (newExhibit.code.length == 0)
+        @newExhibitError 'Code cannot be empty'
+        return
+      if (newExhibit.code.length > 100)
+        @newExhibitError 'Code cannot more than 100 characters'
+        return
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/exhibit/?format=json'
+        data: JSON.stringify newExhibit
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "New Exhibit created"
+        console.log data
+        console.log textStatus
+
+        # Show success message.
+        @newExhibitSuccess "Exhibit #{newExhibit.code} was created"
+        @newExhibitError null
+        @newExhibitAjaxLoad false
+
+        # TODO(mark): Need to add successful object to exhibit list.
+        @exhibits.push new Exhibit data
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Create exhibit error"
+        @newExhibitError 'An unexpected error occured'
+        @newExhibitAjaxLoad false
+
+      # Make the ajax call.
+      @newExhibitAjaxLoad true
+      $.ajax settings
+
+    openCreateHousingGroup: () ->
+      @newHousingGroup.name ''
+      @newHousingGroup.exhibit ''
+      @newHousingGroupError null
+      @newHousingGroupWarning null
+      @newHousingGroupSuccess false
+      @newHousingGroupIsCreating true
+      @newHousingGroupAjaxLoad false
+
+    createNewHousingGroup: () =>
+      newHousingGroup =
+        name: @newHousingGroup.name()
+        exhibit: @newHousingGroup.exhibit().resourceURI
+      console.log newHousingGroup
+
+      # Make some simple checks.
+      if (newHousingGroup.name.length == 0)
+        @newHousingGroupError 'Name cannot be empty'
+        return
+      if (newHousingGroup.name.length > 100)
+        @newHousingGroupError 'Name cannot more than 100 characters'
+        return
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/housingGroup/?format=json'
+        data: JSON.stringify newHousingGroup
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "New HousingGroup created"
+        console.log data
+        console.log textStatus
+
+        # Show success message.
+        @newHousingGroupSuccess "HousingGroup #{newHousingGroup.name} " +
+            "for exhibit #{@newHousingGroup.exhibit().code()} was created"
+        @newHousingGroupError null
+        @newHousingGroupAjaxLoad false
+
+        # TODO(mark): Need to add successful object to housinggroup list.
+        @newHousingGroup.exhibit().housingGroups.push new HousingGroup data
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Create housinggroup error"
+        @newHousingGroupError 'An unexpected error occured'
+        @newHousingGroupAjaxLoad false
+
+      # Make the ajax call.
+      @newHousingGroupAjaxLoad true
+      $.ajax settings
+
+    openCreateAnimal: () ->
+      @newAnimal.count '1'
+      @newAnimal.housingGroup ''
+      @newAnimal.name ''
+      @newAnimal.species ''
+      @newAnimal.exhibit {
+        housingGroups: ko.observableArray []
+      }
+      @newAnimalError null
+      @newAnimalWarning null
+      @newAnimalSuccess false
+      @newAnimalIsCreating true
+      @newAnimalAjaxLoad false
+
+    createNewAnimal: () =>
+      newAnimal =
+        count: parseInt @newAnimal.count()
+        housing_group: @newAnimal.housingGroup().resourceURI
+        name: @newAnimal.name()
+        species: @newAnimal.species().resourceURI
+
+      # Make some simple checks.
+      if (@newAnimal.count().length == 0)
+        @newAnimalError 'Count cannot be empty'
+        return
+      if (newAnimal.count <= 0)
+        @newAnimalError 'Count must be a positive integer'
+        return
+      if (!newAnimal.count)
+        @newAnimalError 'Count must be a number'
+        return
+      if (newAnimal.name.length == 0)
+        @newAnimalError 'Name cannot be empty'
+        return
+      if (newAnimal.name.length > 100)
+        @newAnimalError 'Name cannot more than 100 characters'
+        return
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/animal/?format=json'
+        data: JSON.stringify newAnimal
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "New Animal created"
+        console.log data
+        console.log textStatus
+
+        # Show success message.
+        @newAnimalSuccess "Animal #{newAnimal.name} was created"
+        @newAnimalError null
+        @newAnimalAjaxLoad false
+
+        # TODO(mark): Need to add successful object to animal list.
+        @newAnimal.housingGroup().animals.push new Animal data
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Create animal error"
+        @newAnimalError 'An unexpected error occured'
+        @newAnimalAjaxLoad false
+
+      # Make the ajax call.
+      @newAnimalAjaxLoad true
+      $.ajax settings
+
+    # Open info modal
+    openInfo: () ->
+      # Empty out staff array
+      @staffs []
+      $.each @selectedAnimals(), (index, animal) =>
+        console.log animal
+        # Get data from API
+        $.getJSON "/api/v1/staff/?format=json&animal_id=#{animal.id()}", (data) =>
+          # Push each staff into 
+          $.each data.objects, (index, item) =>
+            @staffs.push (new Staff item)
+      $('#modal-animal-info').modal('show')
+
     # Open bulk upload.
     openBulkUpload: () ->
       $('#file_upload').val('');
@@ -433,7 +763,6 @@ $(document).ready ->
 
         # Reload to ensure that we have all animals added.
         @load()
-
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Batch animals error"
@@ -557,6 +886,10 @@ $(document).ready ->
         mappedExhibits = $.map data.objects, (item) ->
           return new Exhibit item
         @exhibits mappedExhibits
+      $.getJSON '/api/v1/species/?format=json&limit=0', (data) =>
+        mappedSpecies = $.map data.objects, (item) ->
+          return new Species item
+        @species ko.toJS mappedSpecies
 
     # Check if ID exists in observableArray
     idInArray: (id, array) =>
@@ -662,7 +995,8 @@ $(document).ready ->
         @currentEnrichment null
 
         # (optional) redirect
-        window.location = "/observe"
+        $('#modal-observe-1').modal('hide').on 'hidden', ->
+          sammy.setLocation('/observe')
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Observation not created!"
@@ -729,6 +1063,7 @@ $(document).ready ->
       @categories = ko.observableArray []
       @subcategories = ko.observableArray []
       @enrichments = ko.observableArray []
+      @species = ko.observableArray []
 
       # Operations
       # Current Filters
@@ -792,6 +1127,17 @@ $(document).ready ->
       @newEnrichmentAjaxLoad = ko.observable false
       @newEnrichmentIsCreating = ko.observable true
 
+      # EnrichmentNote creation fields.
+      @newEnrichmentNote = new EnrichmentNote null
+      @newEnrichmentNoteError = ko.observable false
+      @newEnrichmentNoteSuccess = ko.observable false
+      @newEnrichmentNoteAjaxLoad = ko.observable false
+      @newEnrichmentNoteIsCreating = ko.observable true
+
+      # Selected enrichment fields
+      @currentEnrichment = ko.observable new Enrichment null
+      @enrichmentNotes = ko.observableArray []
+
     # Apply filters
     filterCategory: (category) =>
       if category == @categoryFilter()
@@ -838,6 +1184,11 @@ $(document).ready ->
           else
             return 1
         resizeAllCarousels()
+      # Get species for enrichmentNote
+      $.getJSON '/api/v1/species/?format=json&limit=0', (data) =>
+        mappedSpecies = $.map data.objects, (item) ->
+          return new Species item
+        @species mappedSpecies
 
     empty: () =>
       @categories null
@@ -872,6 +1223,16 @@ $(document).ready ->
       @newEnrichmentNameMessageBody ''
       @newEnrichmentAjaxLoad false
       @newEnrichmentIsCreating true
+
+    openEnrichmentNote: (current) =>
+      @currentEnrichment current
+      console.log current.id()
+      $.getJSON "/api/v1/enrichmentNote/?format=json&enrichment_id=#{current.id()}", (data) =>
+        mappedNotes = $.map data.objects, (item) ->
+          return new EnrichmentNote item
+        @enrichmentNotes mappedNotes
+      $('#modal-enrichment-info').modal('show')
+      console.log @currentEnrichment()
 
     createCategory: () =>
       newCategory =
@@ -1071,21 +1432,146 @@ $(document).ready ->
         @newEnrichmentAjaxLoad true
         $.ajax settings
 
+    createEnrichmentNote: () =>
+      newEN = 
+        enrichment: "/api/v1/enrichment/#{@currentEnrichment().id()}/"
+        instructions: @newEnrichmentNote.instructions()
+        limitations: @newEnrichmentNote.limitations()
+        species: "/api/v1/species/#{@newEnrichmentNote.species().id()}/"
+
+      console.log newEN
+
+        # Make sure we are not in the middle of loading.
+      if (@newEnrichmentNoteAjaxLoad())
+        console.log "We are already trying to send something"
+        return
+
+      # Validate fields before continuing.
+      # TODO
+
+      settings =
+        type: 'POST'
+        url: '/api/v1/enrichmentNote/?format=json'
+        data: JSON.stringify newEN
+        success: @enrichmentCreated
+        dataType: "json",
+        processData:  false,
+        contentType: "application/json"
+
+      settings.success = (data, textStatus, jqXHR) =>
+        console.log "EnrichmentNote successfully created!"
+
+        # Extract the category id from the Location response header.
+        locationsURL = jqXHR.getResponseHeader 'Location'
+        pieces = locationsURL.split "/"
+
+        # Push new note to table
+        noteToPush =
+          enrichment: {id: @currentEnrichment().id()}
+          instructions: @newEnrichmentNote.instructions()
+          limitations: @newEnrichmentNote.limitations()
+          species: {common_name: @newEnrichmentNote.species().commonName()}
+          id: pieces[pieces.length - 2]
+        console.log noteToPush
+        @enrichmentNotes.push new EnrichmentNote noteToPush
+
+        # Show success message and remove extra weight.
+        @newEnrichmentNoteIsCreating false
+        @newEnrichmentNoteSuccess true
+        @newEnrichmentNoteError false
+
+        # Add new enrichment to @subcategories and refresh.
+
+      settings.error = (jqXHR, textStatus, errorThrown) =>
+        console.log "Enrichment not created!"
+        @newEnrichmentAjaxLoad false
+        @newEnrichmentNameError 'An unexpected error occured'
+
+      # Make the ajax call.
+      @newEnrichmentAjaxLoad true
+      $.ajax settings
+
   class ObservationListViewModel
     constructor: () ->
       # Arrays for holding data
       @observations = ko.observableArray []
       @behaviorType = [
-        { id: -2, type: 'Avoid'}
-        { id: -1, type: 'Negative'}
         { id: 0, type: 'N/A'}
         { id: 1, type: 'Positive'}
+        { id: -1, type: 'Negative'}
+        { id: -2, type: 'Avoid'}
       ]
       @activeObservation = ko.observable null
+      @activeAnimalObservation = ko.observable null
+      @activeBehaviors = ko.observableArray []
+
+      @newBehaviorType = ko.observable null
+      @newBehaviorDesc = ko.observable null
+
+      @selectedBehavior = ko.observable null
+
       updateAnimalObservation.subscribe (data) =>
-          console.log "saving indirect_use"
+          console.log "saving animal observation"
           @saveAnimalObservation data
         , @, "saveAnimalObservation"
+
+
+    loadBehaviors: (observation, animalObservation) =>
+      @activeObservation observation
+      @activeAnimalObservation animalObservation
+      console.log "getting behaviors for #{observation.enrichment().id}"
+      $.getJSON "/api/v1/behavior/?format=json&enrichment_id=#{observation.enrichment().id}", (data) =>
+        console.log data
+        @activeBehaviors data.objects
+        console.log @activeBehaviors()
+
+    addNewBehavior: (data) =>
+      behavior = {}
+      behavior.description = @newBehaviorDesc()
+      behavior.reaction = @newBehaviorType()
+      behavior.enrichment = @activeObservation().enrichment().resource_uri
+      console.log behavior
+      $.ajax "/api/v1/behavior/?format=json", {
+        data: JSON.stringify behavior
+        dataType: "json"
+        type: "POST"
+        contentType: "application/json"
+        processData: false
+        success: (result) =>
+          console.log result
+          console.log "Created behavior"
+          @activeBehaviors.push result
+          @newBehaviorType null
+          @newBehaviorDesc null
+        error: (result) =>
+          console.log result
+      }
+    saveBehavior: () =>
+      try
+        console.log "saving behavior #{@selectedBehavior().id} for #{@activeAnimalObservation().id}"
+      catch TypeError
+        return
+      console.log @selectedBehavior()
+      obs = {}
+      obs.behavior = @selectedBehavior().resource_uri
+      console.log obs
+      $.ajax "/api/v1/animalObservation/#{@activeAnimalObservation().id}/?format=json", {
+        data: JSON. stringify obs
+        dataType: "json"
+        type: "PATCH"
+        contentType: "application/json"
+        processData: false
+        success: (result) =>
+          console.log "finished saving behavior"
+          console.log result
+          @activeObservation null
+          @activeBehaviors []
+          @activeAnimalObservation null
+          @selectedBehavior null
+        error: (result) =>
+          console.log result
+      }
+
 
     finishObservation: () =>
       try
@@ -1098,7 +1584,7 @@ $(document).ready ->
       $.ajax "/api/v1/observation/#{@activeObservation().id}/?format=json", {
         data: JSON.stringify obs
         dataType: "json"
-        type: "PUT"
+        type: "PATCH"
         contentType: "application/json"
         processData: false
         success: (result) => 
@@ -1115,6 +1601,7 @@ $(document).ready ->
         mapped = $.map data.objects, (item) ->
           return new Observation item
         @observations mapped
+        # TODO can remove below
         @observations.subscribe (value) ->
           console.log(value)
           console.log "observation change"
@@ -1127,7 +1614,7 @@ $(document).ready ->
       $.ajax "/api/v1/animalObservation/#{data.id}/?format=json", {
         data: JSON.stringify obs
         dataType: "json"
-        type: "PUT"
+        type: "PATCH"
         contentType: "application/json"
         processData: false
         success: (result) => 
@@ -1154,6 +1641,7 @@ $(document).ready ->
         animal_title: ''
         housingGroups: []
         loading: false
+        id: ''
       @exhibits = ko.observable null
       @housingGroups = ko.observable null
 
@@ -1205,7 +1693,7 @@ $(document).ready ->
         else
           return []
 
-    openStaffCreate: () ->
+    openStaffCreate: () =>
       @newStaff.firstName ''
       @newStaff.lastName ''
       @newStaff.password1 ''
@@ -1216,6 +1704,7 @@ $(document).ready ->
       @newStaffSuccess false
       @newStaffIsCreating true
       @newStaffAjaxLoad false
+      console.log 'openStaffCreate'
 
     openBulkCreate: () ->
       $('input[type="file"]').val('')
@@ -1236,14 +1725,15 @@ $(document).ready ->
       # Set file traversal function.
       reader.onload = (ev) =>
         lines = ev.target.result.split /[\n|\r]/
+        console.log lines
         anyLinesIncluded = false
 
         for line, index in lines
+          tempIndex = index + 1
           # Create a staff object and add it to bulkStaff array.
-          index = index + 1
           staffObj =
             line: line
-            lineNumber: ko.observable index
+            lineNumber: ko.observable tempIndex
             firstName: ko.observable ''
             lastName: ko.observable ''
             password: ko.observable ''
@@ -1256,19 +1746,19 @@ $(document).ready ->
           # Perform some error checking.
           if (line == "")
             if (index != lines.length)
-              @bulkWarning "Line #{index}: Line is empty"
+              @bulkWarning "Line #{tempIndex}: Line is empty"
             continue
           if (fields.length != 4)
-            @bulkWarning "Line #{index}: Invalid amount of lines"
+            @bulkWarning "Line #{tempIndex}: Invalid amount of lines"
             continue
           if (fields[0] == "")
-            @bulkWarning "Line #{index}: First name is empty"
+            @bulkWarning "Line #{tempIndex}: First name is empty"
             continue
           if (fields[1] == "")
-            @bulkWarning "Line #{index}: Last name is empty"
+            @bulkWarning "Line #{tempIndex}: Last name is empty"
             continue
           if (fields[2] == "")
-            @bulkWarning "Line #{index}: Password is empty"
+            @bulkWarning "Line #{tempIndex}: Password is empty"
             continue
 
           # Finally, modify object to assign values.
@@ -1399,22 +1889,56 @@ $(document).ready ->
       data = {}
       data.housing_group = ['/api/v1/housingGroup/' + @newHousingGroup.housingGroup().id() + '/']
       $.each @currentStaff().housingGroups(), (index, value) =>
-        if data.housing_group.indexOf('api/v1/housingGroup/' + value.id() + '/') == -1
-          data.housing_group.push '/api/v1/housingGroup/' + value.id() + '/'
+        hg = if $.isFunction(value) then value() else value
+        if data.housing_group.indexOf('api/v1/housingGroup/' + hg.id() + '/') == -1
+          data.housing_group.push '/api/v1/housingGroup/' + hg.id() + '/'
       console.log JSON.stringify data
-      $.ajax "/api/v1/staff/#{window.userId}/?format=json", {
+      $.ajax "/api/v1/staff/#{@currentStaff().id()}/?format=json", {
         data: JSON.stringify data
         dataType: "json"
         type: "PUT"
         contentType: "application/json"
         processData: false
-        success: (result) => 
-          console.log "added staff?!"
-          @currentStaff().housingGroups.push @newHousingGroup.housingGroup
+        success: (result, status) => 
+          console.log "added HG?!"
+          console.log status
+          newHG = new HousingGroup null
+          target = @newHousingGroup.housingGroup
+          newHG.id target().id()
+          newHG.name target().name()
+          newHG.staff target().staff()
+          newHG.resourceURI = target().resourceURI
+          newHG.animals target().animals()
+
+          @currentStaff().housingGroups.push newHG
         error: (result) =>
           console.log result
       }
 
+    deleteHousingGroup: (hg) =>
+      idToDelete = hg.id()
+      url = "/api/v1/staff/#{@currentStaff().id()}/?format=json"
+
+      # Have only the proper list of housingGroups after deletion
+      updatedGroupList = []
+      $.each @currentStaff().housingGroups(), (index, value) ->
+        hgUrl = "/api/v1/housingGroup/#{value.id()}/"
+        updatedGroupList.push hgUrl if value.id() != idToDelete
+
+      # Prepare data to be sent
+      data = {'housing_group': updatedGroupList}
+      $.ajax url, {
+        data: JSON.stringify data
+        dataType: "json"
+        type: "PUT"
+        contentType: "application/json"
+        processData: false
+        success: (result) =>
+          console.log "removed HG"
+          @currentStaff().housingGroups.remove hg
+        error: (result) =>
+          console.log result
+      }
 
     viewInfo: (staff) =>
       staff.loadInfo()
@@ -1507,12 +2031,19 @@ $(document).ready ->
     newWidth = 0;
     # Fixed width items, don't compute width of every li
     if fixedWidth
-      newWidth = Math.ceil(length / numRows)*$(scroller).find('ul li:first').outerWidth(true) + 10
+      console.log "fixed"
+      singleWidth = $(scroller).find('ul li:first').outerWidth(true)
+      newWidth = Math.ceil(length / numRows) * singleWidth
+      while newWidth > 8000
+        numRows++
+        newWidth = Math.ceil(length / numRows) * singleWidth
     # Not fixed width, compute the width of every li dynamically
     else
       $(scroller).find('ul li').each ->
         newWidth += $(this).outerWidth(true)
-    newWidth /= numRows if length/numRows > 1
+      newWidth /= numRows
+      newWidth = 8000 if newWidth > 8000
+      console.log newWidth
     if newWidth != oldWidth
       console.log 'Resizing carousel from ' + oldWidth + ' to ' + newWidth + ' with ' + numRows + ' rows'
       $(scroller).width newWidth
@@ -1524,9 +2055,9 @@ $(document).ready ->
       if $(this).hasClass 'carousel-rows'
         numRows = Math.min Math.floor(($(window).height()-$(this).parent().offset().top)/$(this).find('li:first').outerHeight(true)), MAX_SCROLLER_ROWS
         console.log "numrows: #{numRows}"
-        resized = resizeCarousel this, numRows, false
       else
-        resized = resizeCarousel this, 1, false
+        numRows = 1
+      resized = resizeCarousel this, numRows, $(this).hasClass 'carousel-fixed-width'
       if refresh and resized
         console.log 'Refreshing carousel'
         $.each scrollers, (key, value) ->

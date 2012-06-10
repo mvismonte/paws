@@ -24,12 +24,10 @@
           </h3>
         </dt>
         <dd class="row">
-          <label class="span2">
             {% comment %}
             Behavior
             <select data-bind="options: $root.behaviorType, value: behavior, optionsText: 'type', optionsValue: 'id'" class="span2"></select>
             {% endcomment %}
-          </label>
           <label class="span1">
             Indirect Use
             <input type="checkbox" data-bind="checked: indirect_use" class="pull-right"></input>
@@ -43,6 +41,8 @@
             <input data-bind="value: observation_time" class="span1"></input>
           </label>
           <label class="span7">
+            {#<span data-bind="text: behavior().description"></span>#}
+            <button data-bind="click: $root.loadBehaviors.bind($data, $parent)" data-toggle="modal" data-target="#modal-add-behavior" class="btn pull-right">Edit Behavior</button>
             {% comment %}
             Description
             <input data-bind="value: description" class="span7"></textarea>
@@ -62,6 +62,23 @@
     <div class="modal-footer">
       <a href="#" class="btn" data-dismiss="modal">Cancel</a>
       <a href="#" class="btn btn-primary" data-dismiss="modal" data-bind="click: $root.finishObservation">Finish!</a>
+    </div>
+  </div>
+  {# Modal for adding behavior #}
+  <div class="modal hide fade" id="modal-add-behavior">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3>Add Behavior</h3>
+    </div>
+    <div class="modal-body">
+      <select data-bind="options: $root.activeBehaviors, optionsText: 'description', optionsCaption: 'Select a behavior', value: selectedBehavior" class="span2"></select>
+      <input data-bind="value: newBehaviorDesc" class="span7" placeholder="Add new behavior">
+      <select data-bind="options: $root.behaviorType, optionsText: 'type', optionsValue: 'id', value: newBehaviorType" class="span2"></select>
+      <button class="btn" data-bind="click: addNewBehavior">Add!</button>
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+      <a href="#" class="btn btn-primary" data-dismiss="modal" data-bind="click: $root.saveBehavior">Select</a>
     </div>
   </div>
 

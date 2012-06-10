@@ -30,6 +30,8 @@ class EnrichmentAdmin(admin.ModelAdmin):
   )
 
 admin.site.register(models.Animal, AnimalAdmin)
+admin.site.register(models.AnimalObservation)
+admin.site.register(models.Behavior)
 admin.site.register(models.Category)
 admin.site.register(models.Enrichment, EnrichmentAdmin)
 admin.site.register(models.EnrichmentNote)

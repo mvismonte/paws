@@ -5,6 +5,7 @@
 
 from datetime import datetime
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 # Animal Model
@@ -26,7 +27,12 @@ class AnimalObservation(models.Model):
   behavior = models.ForeignKey('Behavior', null=True, blank=True)
   indirect_use = models.BooleanField(default=False)
   def __unicode__(self):
-    return "%s for %s" % (self.observation.enrichment.name, self.animal.name)
+    r = ''
+    try:
+      r = "%s for %s" % (self.observation.enrichment.name, self.animal.name)
+    except ObjectDoesNotExist:
+      r = "Animal Observation"
+    return r
 
 # BehaviorModel
 class Behavior(models.Model):
@@ -36,9 +42,18 @@ class Behavior(models.Model):
     (0, 'N/A'),
     (1, 'Positive'),
   )
-  reaction = models.SmallIntegerField(choices=BEHAVIOR_CHOICES, null=True, blank=True)
+  reaction = models.SmallIntegerField(choices=BEHAVIOR_CHOICES, null=True, default='0')
   enrichment = models.ForeignKey('Enrichment')
   description = models.TextField(blank=True)
+  def __unicode__(self):
+    name='Positive'
+    if self.reaction == 0 :
+      name='N/A'
+    if self.reaction == -1 :
+      name='Negative'
+    if self.reaction == -2 :
+      name='Avoid'
+    return "%s for %s with description: %s" % (name,self.enrichment, self.description)
 
 # Category Model
 class Category(models.Model):

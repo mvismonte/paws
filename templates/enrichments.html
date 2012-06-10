@@ -4,72 +4,83 @@
 
 <div class="container" id="enrichmentListContainer" style="display: none;">
 
-    {% if user.is_superuser %}
-    <div id="addnew" class="btn-group pull-right">
-      <button class="btn btn-primary " data-bind="click: openCreateCategory" data-toggle="modal" data-target="#modal-enrichment-category">New Category</button>
-      <button class="btn btn-primary " data-bind="click: openCreateSubcategory" data-toggle="modal" data-target="#modal-enrichment-subcategory">New Subcategory</button>
-      <button class="btn btn-primary " data-bind="click: openCreateEnrichment" data-toggle="modal" data-target="#modal-enrichment">New Enrichment</button>
+  <div class="row">
+    <div class="span12">
+      <div class="page-header">
+            {% if user.is_superuser %}
+              <div id="addnew" class="btn-group pull-right">
+                <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">Add <span class="caret"></span></button>
+                <ul class="dropdown-menu">
+                  <li><a data-bind="click: openCreateCategory" data-toggle="modal" data-target="#modal-enrichment-category">New Category</a></li>
+                  <li><a data-bind="click: openCreateSubcategory" data-toggle="modal" data-target="#modal-enrichment-subcategory">New Subcategory</a></li>
+                  <li><a data-bind="click: openCreateEnrichment" data-toggle="modal" data-target="#modal-enrichment">New Enrichment</a></li>
+                </ul>
+              </div>
+            {% endif %}
+            <h1>Enrichments <small>available to provide</small></h1>
+      </div>
     </div>
-    {% endif %}
+  </div>
 
-    <div class="row">
-      <div class="span12">
-        <div class="well">
-          <h3>Categories</h3>
-          <div class="carousel" id="categorySelector">
-           
-            <div class="carousel-scroller">
-              <ul data-bind="foreach: categories">
-                <li data-bind="click: $parent.filterCategory,
-                    css: { 'list-active': $parent.categoryFilter() == $data }">
-                  <div data-bind="text: name"></div>
-                </li>
-              </ul>
-            </div>
+
+  <div class="row">
+    <div class="span12">
+      <div class="well">
+        <h3>Enrichment Categories</h3>
+        <div class="carousel" id="categorySelector">
+         
+          <div class="carousel-scroller">
+            <ul data-bind="foreach: categories">
+              <li data-bind="click: $parent.filterCategory,
+                  css: { 'list-active': $parent.categoryFilter() == $data }">
+                <div data-bind="text: name"></div>
+              </li>
+            </ul>
           </div>
+        </div>
 
-          <hr>
+        <hr>
 
-          <h3>SubCategories</h3>
-          <div class="carousel" id="subcategorySelector">
-            
-            <div class="carousel-scroller">
-              <ul data-bind="foreach: subcategoriesFilterCategory">
-                <li data-bind="click: $parent.filterSubcategory,
-                    css: { 'list-active': $parent.subcategoryFilter() == $data }">
-                  <div data-bind="text: name"></div>
-                </li>
-              </ul>
-            </div>
+        <h3>SubCategories</h3>
+        <div class="carousel" id="subcategorySelector">
+          
+          <div class="carousel-scroller">
+            <ul data-bind="foreach: subcategoriesFilterCategory">
+              <li data-bind="click: $parent.filterSubcategory,
+                  css: { 'list-active': $parent.subcategoryFilter() == $data }">
+                <div data-bind="text: name"></div>
+              </li>
+            </ul>
           </div>
+        </div>
 
+      </div>
+    </div>
+  </div>
+
+
+  <div class="row">
+    <div class="span12">
+      <div class="well">  
+        <h3>Enrichment Items</h3>
+        <div class="carousel list-items" id="enrichmentSelector">             
+          <div class="carousel-scroller carousel-rows carousel-fixed-width">
+            <ul data-bind="foreach: enrichmentsFilterSubcategory">
+              <li data-bind="click: $root.openEnrichmentNote">
+                
+                <span class="label label-success pull-left" data-bind="text: categoryName"></span>    
+             
+                <span class="label label-info pull-right" data-bind="text: subcategoryName"></span>
+                <div style="clear:both;"></div> 
+                <div style="clear:both;"></div> 
+                <h4><strong data-bind="text: name"></strong></h4>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
-
-
-    <div class="row">
-      <div class="span12">
-        <div class="well">  
-          <h3>Enrichment Items</h3>
-          <div class="carousel list-items" id="enrichmentSelector">             
-            <div class="carousel-scroller carousel-rows">
-              <ul data-bind="foreach: enrichmentsFilterSubcategory">
-                <li>
-                  
-                  <span class="label label-success pull-left" data-bind="text: categoryName"></span>    
-               
-                  <span class="label label-info pull-right" data-bind="text: subcategoryName"></span>
-                  <div style="clear:both;"></div> 
-                  <div style="clear:both;"></div> 
-                  <h4><strong data-bind="text: name"></strong></h4>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  </div>
 
   {# Modal for creating enrichment category #}
   <div class="modal hide fade" id="modal-enrichment-category">
@@ -190,6 +201,82 @@
       <a href="#" class="btn" data-dismiss="modal">Close</a>
       <a href="#" class="btn btn-primary" data-bind="click: createEnrichment">Create Enrichment</a>
     </div>
+  </div>
+
+  {# Modal for viewing enrichment + their notes #}
+  <div class="modal hide fade" id="modal-enrichment-info">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3 data-bind="text: currentEnrichment().name"></h3>
+    </div>
+
+    <div class="modal-body">
+      {% if user.is_superuser %}
+      <div class="clearfix">
+        <h3>Assign new enrichment to a species</h3>
+        <div class="clearfix"></div>
+        <div class="alert alert-error" data-bind="visible: newEnrichmentNoteError">
+          <button class="close" data-bind="click: function() { neweNrichmentNoteError(null) }">×</button>
+          <strong>Error!</strong> <span data-bind="text: newEnrichmentNoteError"></span>
+        </div>
+        <div class="alert alert-success" data-bind="visible: newEnrichmentNoteSuccess">
+          <strong>Success!</strong> <span>Enrichment assigned to species</span>
+        </div>
+
+        <form action="#" class="form-horizontal well" data-bind="visible: newEnrichmentNoteIsCreating, submit: function() { addEnrichmentNote(); return false }">
+          <fieldset>
+            <div class="control-group">
+              <label class="control-label" for="select01">Species:</label>
+              <div class="controls">
+                <select data-bind="options: species, value: newEnrichmentNote.species, optionsText: 'commonName'"></select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Instructions</label>
+              <div class="controls">
+                <input type="text" class="input-xlarge" data-bind="value: newEnrichmentNote.instructions">
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Limitations</label>
+              <div class="controls">
+                <input type="text" class="input-xlarge" data-bind="value: newEnrichmentNote.limitations">
+              </div>
+            </div>
+          </fieldset>
+        </form>
+        <button class="btn btn-primary pull-right" data-bind="click: createEnrichmentNote">Assign</button>
+      </div>
+
+      <hr>
+      {% endif %}
+
+      <h3>Current Assigned Species</h3>
+      <div>
+        <table class="table table-bordered table-striped" >
+          <thead>
+            <tr>
+              <th>Species</th>
+              <th>Limitations</th>
+              <th>Instructions</th>
+            </tr>
+          </thead>
+          <tbody data-bind="foreach: enrichmentNotes">
+            <tr>
+              <td data-bind="text: speciesCommonName"></td>
+              <td data-bind="text: limitations"></td>
+              <td data-bind="text: instructions"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <a href="#" class="btn" data-dismiss="modal">Close</a>
+    </div>
+
   </div>
 
 </div>

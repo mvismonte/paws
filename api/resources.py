@@ -4,30 +4,24 @@
 # This file contains the resources for the RESTful API using the
 # django-tastypie.
 
-# TODO(Diana): Reorganize imports so that all froms are in alphabetical order
-# and all imports are in alphabetical order.
+import datetime
+import json
+from django.conf.urls.defaults import *
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ObjectDoesNotExist
-from django.conf.urls.defaults import *
-from django.core.paginator import Paginator
-from django.core.paginator import InvalidPage
-from django.http import Http404
-from django.http import HttpResponse
+from django.core.paginator import InvalidPage, Paginator
+from django.http import Http404, HttpResponse
+from haystack.query import EmptySearchQuerySet, SearchQuerySet
 from paws.main import models
-from tastypie.resources import fields
-from tastypie.resources import ModelResource
+from paws.main.utilities import bulk_import
 from tastypie.authentication import BasicAuthentication
 from tastypie.authorization import Authorization, DjangoAuthorization
-from tastypie.utils import trailing_slash
 from tastypie.exceptions import BadRequest, ImmediateHttpResponse
 from tastypie.http import HttpApplicationError, HttpUnauthorized, HttpBadRequest
-from haystack.query import SearchQuerySet
-from haystack.query import EmptySearchQuerySet
-from paws.main.utilities import bulk_import
-import datetime
-import json
+from tastypie.resources import fields, ModelResource
+from tastypie.utils import trailing_slash
 
 # Custom Authentication
 class CustomAuthentication(BasicAuthentication):
@@ -40,10 +34,12 @@ class CustomAuthentication(BasicAuthentication):
 # AnimalObservation Resource.
 class AnimalObservationResource(ModelResource):
   # Define foreign keys.
-  animal = fields.ForeignKey(
-      'paws.api.resources.AnimalResource','animal', full=True)
-  observation = fields.ForeignKey(
-      'paws.api.resources.ObservationResource', 'observation')
+  animal = fields.ToOneField(
+      'paws.api.resources.AnimalResource','animal', full=True, related_name='animal_observations')
+  observation = fields.ToOneField(
+      'paws.api.resources.ObservationResource', 'observation', related_name='animal_observations')
+  behavior = fields.ForeignKey(
+      'paws.api.resources.BehaviorResource', 'behavior', full=True, null=True, blank=True)
 
   class Meta:
     # authenticate the user
@@ -85,6 +81,9 @@ class AnimalObservationResource(ModelResource):
     
   # update animalObservation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
+    print bundle
+    bundle.data['animal'] = bundle.data['animal'].data['resource_uri']
+    # bundle.data['behavior'] = bundle.data['behavior'].data['resource_uri']
     # Make sure that the user can modifty.
     ao_id = int(kwargs.pop('pk', None))
     if not self.can_modify_observation(request, ao_id):
@@ -203,23 +202,24 @@ class AnimalObservationResource(ModelResource):
       avoid_interaction=0.0
       for result in q_set:
         if models.Observation.objects.get(id=result.observation_id).enrichment == e:
+          behavior=models.Behavior.objects.get(id=result.behavior_id)
           total_eachInteraction += result.interaction_time
-          if(result.behavior == 1):
+          if(behavior.reaction == 1):
             positive += 1
             pos_interaction+=result.interaction_time
-          if(result.behavior == 0):
+          if(behavior.reaction == 0):
             NA += 1
             na_interaction+=result.interaction_time
-          if(result.behavior == -1):
+          if(behavior.reaction == -1):
             negative += 1
             neg_interaction+=result.interaction_time
-          if(result.behavior == -2):
+          if(behavior.reaction == -2):
             avoid += 1
             avoid_interaction+=result.interaction_time
         else:
           pass
       # Return 0 if the animal has never interacted with any enrichment
-      if total_interaction == 0.0:
+      if total_eachInteraction == 0.0:
         percentage=0.0
         pos_percentage=0.0
         na_percentage=0.0
@@ -262,13 +262,22 @@ class AnimalObservationResource(ModelResource):
 # Animal Resource.
 class AnimalResource(ModelResource):
   # Define foreign keys.
+  animal_observations = fields.ToManyField(
+      'paws.api.resources.AnimalObservationResource', 'animalobservation_set',
+      related_name='animal', blank=True)
   species = fields.ForeignKey(
       'paws.api.resources.SpeciesResource', 'species', full=True)
+  housing_group = fields.ForeignKey(
+      'paws.api.resources.HousingGroupResource', 'housing_group',
+      full=False, blank=True)
 
   class Meta:
     # authenticate the user
     queryset = models.Animal.objects.all()
+    authentication = CustomAuthentication()
+    authorization = DjangoAuthorization()
     resource_name = 'animal'
+    always_return_data = True
     # allowed actions towards database
     # get = getting animal's information from the database
     # post = adding new animal into the database
@@ -403,6 +412,51 @@ class AnimalResource(ModelResource):
       'objects': objects,
     }
     return self.create_response(request, object_list)
+
+#Behavior Resource.
+class BehaviorResource(ModelResource):
+  #define foreign key.
+  enrichment = fields.ForeignKey(
+      'paws.api.resources.EnrichmentResource','enrichment')
+  class Meta:
+    # authenticate the user
+    authentication = CustomAuthentication()
+    authorization = Authorization()
+    queryset = models.Behavior.objects.all()
+    resource_name = 'behavior'
+    # allowed actions towards database
+    # get = getting behavior's information from the database
+    # post = adding new behavior into the database
+    # put = updating behavior's information in the database
+    # delete = delete behavior from the database
+    list_allowed_methods = ['get','post','put','delete']
+    always_return_data = True
+
+  # creating new behavior into database
+  def obj_create(self, bundle, request=None, **kwargs):
+    return super(BehaviorResource, self).obj_create(bundle, request, **kwargs)
+    
+  # update behavior's information in the database
+  def obj_update(self, bundle, request=None, **kwargs):
+    return super(BehaviorResource, self).obj_update(bundle, request, **kwargs)
+
+  # delete behavior from the database
+  def obj_delete(self, request=None, **kwargs):
+    return super(BehaviorResource, self).obj_delete( request, **kwargs)
+  
+  # Redefine get_object_list to filter for enrichment_id
+  def get_object_list(self, request):
+    enrichment_id = request.GET.get('enrichment_id', None)
+    q_set = super(BehaviorResource, self).get_object_list(request)
+
+    # Try filtering by enrichment if it exists.
+    try:
+      enrichment = models.Enrichment.objects.get(id=enrichment_id)
+      q_set = q_set.filter(enrichment=enrichment)
+    except ObjectDoesNotExist:
+      pass
+
+    return q_set
 
 # Category Resource.
 class CategoryResource(ModelResource):
@@ -639,13 +693,16 @@ class EnrichmentResource(ModelResource):
 
 # Exhibit Resource.
 class ExhibitResource(ModelResource):
-  housing_groups = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set', full=True)
+  housing_groups = fields.ToManyField(
+      'paws.api.resources.HousingGroupResource', 'housinggroup_set',
+      full=True, blank=True)
   class Meta:
     # authenticate the user
     authentication = CustomAuthentication()
     authorization = DjangoAuthorization()
     queryset = models.Exhibit.objects.all()
     resource_name = 'exhibit'
+    always_return_data = True
     # allowed actions towards database
     # get = getting exhibit's information from the database
     # post = adding new exhibit into the database
@@ -669,8 +726,9 @@ class ExhibitResource(ModelResource):
 class HousingGroupResource(ModelResource):
   # exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
   staff = fields.ToManyField(
-      'paws.api.resources.StaffResource', 'staff')
-  animals = fields.ToManyField('paws.api.resources.AnimalResource', 'animal_set', full=True)
+      'paws.api.resources.StaffResource', 'staff', blank=True)
+  animals = fields.ToManyField(
+      'paws.api.resources.AnimalResource', 'animal_set', full=True, blank=True)
   exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
   class Meta:
     # authenticate the user
@@ -678,6 +736,7 @@ class HousingGroupResource(ModelResource):
     authorization = DjangoAuthorization()
     queryset = models.HousingGroup.objects.all()
     resource_name = 'housingGroup'
+    always_return_data = True
     # allowed actions towards database
     # get = getting HousingGroup's information from the database
     # post = adding new HousingGroup into the database
@@ -701,6 +760,7 @@ class HousingGroupResource(ModelResource):
   def get_object_list(self, request):
     staff_id = request.GET.get('staff_id', None)
     exhibit_id = request.GET.get('exhibit_id', None)
+    animal_id = request.GET.get('animal_id', None)
     q_set = super(HousingGroupResource, self).get_object_list(request)
 
     # Try filtering by staff_id if it exists.
@@ -717,13 +777,21 @@ class HousingGroupResource(ModelResource):
     except ObjectDoesNotExist:
       pass
 
+    # Try filtering by animal if it exists
+    try:
+      animal = models.Animal.objects.get(id=animal_id)
+      print animal.housing_group
+      q_set = q_set.filter(id=animal.housing_group.id)
+    except ObjectDoesNotExist:
+      pass
+
     return q_set
 
 # Observation Resource.
 class ObservationResource(ModelResource):
   # Define foreign keys.
   animal_observations = fields.ToManyField(
-      'paws.api.resources.AnimalObservationResource','animalobservation_set', full=True, null=True)
+      'paws.api.resources.AnimalObservationResource','animalobservation_set', full=True, null=True, related_name='observation')
   enrichment = fields.ForeignKey(
       'paws.api.resources.EnrichmentResource','enrichment', full=True)
   staff = fields.ForeignKey(
@@ -760,6 +828,10 @@ class ObservationResource(ModelResource):
     
   # update observation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
+    # Clean related fields into URI's instead of bundles
+    bundle.data['enrichment'] = bundle.data['enrichment'].data['resource_uri']
+    for key, animalObservation in enumerate(bundle.data['animal_observations']):
+      bundle.data['animal_observations'][key] = animalObservation.data['resource_uri']
     # Make sure that the user can modifty.
     observation_id = int(kwargs.pop('pk', None))
     if not self.can_modify_observation(request, observation_id):
@@ -813,6 +885,7 @@ class SpeciesResource(ModelResource):
     authorization = DjangoAuthorization()
     queryset = models.Species.objects.all()
     resource_name = 'species'
+    always_return_data = True
     # allowed actions towards database
     # get = getting species' information from the database
     # post = adding new species into the database
@@ -923,11 +996,15 @@ class StaffResource(ModelResource):
   def get_object_list(self, request):
     animal_id = request.GET.get('animal_id', None)
     q_set = super(StaffResource, self).get_object_list(request)
+
+    #Filtering by animals
     try:
       animal = models.Animal.objects.get(id=animal_id)
-      q_set = q_set.filter(animals=animal)
+      housing_group = animal.housing_group
+      q_set = housing_group.staff.all()
     except ObjectDoesNotExist:
       pass
+
     return q_set
 
 # Subcategory Resource.
@@ -1036,14 +1113,14 @@ class UserResource(ModelResource):
     try:
       user = json.loads(request.raw_post_data)
       print user
-
+      
       if user["first_name"] == "":
         return self.create_response(request, "Blank first name. Please fill in.", response_class=HttpBadRequest)
       if user["last_name"] == "":
         return self.create_response(request, "Blank last name. Please fill in.", response_class=HttpBadRequest)
       if user["password"] == "":
         return self.create_response(request, "Blank password. Please fill in.", response_class=HttpBadRequest)
-        
+      
       import_user = bulk_import.addUser(
           first_name = user["first_name"], 
           last_name = user["last_name"],

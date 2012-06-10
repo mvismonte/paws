@@ -14,7 +14,7 @@
             {% if user.is_superuser %}
             <div class="btn-group pull-right">
               <button class="btn" data-bind="click: openBulkCreate" data-toggle="modal" data-target="#modal-staff-bulk">Bulk Add</button>
-              <button class="btn btn-primary" data-bind="" data-toggle="modal" data-target="#modal-staff-new">Add Staff Member</button>
+              <button class="btn btn-primary" data-toggle="modal" data-target="#modal-staff-new" data-bind="click: openStaffCreate">Add Staff Member</button>
             </div>
             {% endif %}
           </div>
@@ -26,8 +26,8 @@
   <div class="row list-items" data-bind="foreach: staff">
     <div class="span3">
       <div class="list-entry" data-bind="click: $root.viewInfo">
+        <span class="label label-info">id : <small data-bind="text: username"></small></span>
         <strong data-bind="text: full_name"></strong>
-        <small data-bind="text: username"></small>
       </div>
     </div>
   </div>
@@ -42,6 +42,7 @@
     <div class="modal-body">
       <div class="clearfix">
         <h3>Add a new Housing Group</h3>
+        <div class="clearfix"></div>
         <div class="alert alert-error" data-bind="visible: newHousingGroupError">
           <button class="close" data-bind="click: function() { newHousingGroupError(null) }">×</button>
           <strong>Error!</strong> <span data-bind="text: newHousingGroupError"></span>
@@ -50,35 +51,45 @@
           <strong>Success!</strong> <span>Enrichment created</span>
         </div>
 
-        <form action="#" class="form-horizontal" data-bind="visible: newHousingGroupIsCreating, submit: function() { addHousingGroup(); return false }">
+        <form action="#" class="form-horizontal well" data-bind="visible: newHousingGroupIsCreating, submit: function() { addHousingGroup(); return false }">
           <fieldset>
             <div class="control-group">
-              <label class="control-label" for="select01">Exhibit</label>
+              <label class="control-label" for="select01">Exhibit:</label>
               <div class="controls">
                 <select data-bind="options: exhibits, value: newHousingGroup.exhibit, optionsText: 'code'"></select>
               </div>
             </div>
             <div class="control-group">
-              <label class="control-label" for="select01">Housing Group</label>
+              <label class="control-label" for="select01">Housing Group:</label>
               <div class="controls">
                 <select data-bind="options: newHousingGroupOptions, value: newHousingGroup.housingGroup, optionsText: 'name'"></select>
               </div>
             </div>
             <div class="control-group">
-              <label class="control-label">Animals</label>
-              <div class="controls" data-bind="foreach: newHousingGroupAnimals">
-                <span data-bind="text: name"></span>,
+              <label class="control-label">Animals:</label>
+              <div id="animalLabel" class="controls" data-bind="foreach: newHousingGroupAnimals">
+                <span data-bind="text: name" class="label"></span> 
               </div>
             </div>
           </fieldset>
+          <button class="btn btn-primary pull-right" data-bind="click: addHousingGroup">Add Housing Group</button>
         </form>
-        <button class="btn btn-primary pull-right" data-bind="click: addHousingGroup">Add Housing Group</button>
       </div>
-
-      <hr>
-
       <h3>Current Housing Groups</h3>
       <!-- ko with: currentStaff -->
+      <div data-bind="foreach: housingGroups">
+        <hr>
+        <dl>
+          <dt>
+            <h4><strong data-bind="text: name"></strong></h4>
+            <button class="btn btn-mini btn-danger pull-right" data-bind="click: $root.deleteHousingGroup">Remove</button>
+          </dt>
+          <dd data-bind="foreach: animals">
+            <span data-bind="text: name" class="label"></span>
+          </dd>
+        </dl>
+      </div>
+      <!--
       <ul data-bind="foreach: housingGroups">
         <li>
           <strong data-bind="text: name"></strong>
@@ -88,6 +99,7 @@
           </ul>
         </li>
       </ul>
+    -->
       <!-- /ko -->
     </div>
 
