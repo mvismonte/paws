@@ -84,6 +84,9 @@ COMPRESS_PRECOMPILERS = (
   ('text/less', 'lessc {infile} {outfile}'),
   ('text/coffeescript', 'coffee --compile --stdio'),
 )
+# Enable this option so that we can compress without refreshing the page.  This
+# is useful for deployment
+COMPRESS_OFFLINE = True
 #COMPRESS_ENABLED = True
 
 # URL prefix for admin static files -- CSS, JavaScript and images.
