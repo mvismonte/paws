@@ -19,8 +19,8 @@
     {% compress css %}
     <link href="{{ STATIC_URL }}style/custom-theme/jquery-ui-1.8.16.custom.css" rel="stylesheet">
     <!--<link href="{{ STATIC_URL }}css/paws.css" rel="stylesheet">-->
-    <link href="{{ STATIC_URL }}style/less/bootstrap.less" rel="stylesheet" type="text/less">
-    <link href="{{ STATIC_URL }}style/less/responsive.less" rel="stylesheet" type="text/less">
+    <link href="{{ STATIC_URL }}style/css/bootstrap.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}style/css/responsive.css" rel="stylesheet">
     {% endcompress %}
     <!--[if IE]>
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}style/custom-theme/jquery.ui.1.8.16.ie.css"/>
@@ -91,7 +91,7 @@
       window.userId = {{ user.id }};
     </script>
   {% compress js %}
-    <script type="text/coffeescript" charset="utf-8" src="{{ STATIC_URL }}script/paws.coffee"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}script/paws.js"></script>
   {% endcompress %}
   {% endblock %}
   </body>
