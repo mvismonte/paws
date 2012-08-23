@@ -150,7 +150,6 @@ INSTALLED_APPS = [
   # Extra Applications.
   'south',  # For migrations.
   'tastypie',  # For RESTful API.
-  'coffeescript', # For coffeescript
   'compressor', # for Compressor
   'haystack', # for HayStack-SearchIndex
 ]
