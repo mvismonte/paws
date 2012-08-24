@@ -953,6 +953,8 @@ class SubcategoryResource(ModelResource):
 
 # User Resource.
 class UserResource(ModelResource):
+  staff = fields.ToOneField(
+      'paws.api.resources.StaffResource', 'staff', null=True)
   class Meta:
     # authenticate the user
     authentication = CustomAuthentication()
