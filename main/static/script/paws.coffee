@@ -952,7 +952,7 @@ $(document).ready ->
     createObservation: () =>
       newObservation =
         enrichment: '/api/v1/enrichment/' + @currentEnrichment().id() + '/'
-        staff: '/api/v1/enrichment/' + window.userId + '/'
+        staff: '/api/v1/staff/' + window.userId + '/'
         date_created: new Date().toISOString().split('.')[0]
 
       # Make sure we are not in the middle of loading.

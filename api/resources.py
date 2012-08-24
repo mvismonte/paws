@@ -25,11 +25,10 @@ from tastypie.utils import trailing_slash
 
 # Custom Authentication
 class CustomAuthentication(BasicAuthentication):
-  def __init__(self,*args,**kwargs):
-    super(CustomAuthentication,self).__init__(*args,**kwargs)
 
   def is_authenticated(self, request, **kwargs):
     return request.user.is_authenticated()
+
 
 # AnimalObservation Resource.
 class AnimalObservationResource(ModelResource):
@@ -76,7 +75,6 @@ class AnimalObservationResource(ModelResource):
       raise ImmediateHttpResponse(
           HttpUnauthorized("Cannot add other users' animal observations")
       )
-
     return super(AnimalObservationResource, self).obj_create(bundle, request, **kwargs)
     
   # update animalObservation's information in the database
@@ -158,7 +156,6 @@ class AnimalObservationResource(ModelResource):
       wrapped_view = super(AnimalObservationResource, self).wrap_view(view)
       return wrapped_view(request, *args, **kwargs)
     return wrapper
-
 
   # Calculate interaction rate between one given enrichment with other given enrichments
   def get_stats(self, request, **kwargs):
@@ -258,6 +255,7 @@ class AnimalObservationResource(ModelResource):
 
     # Return the search results in json format
     return self.create_response(request, object_list)
+
 
 # Animal Resource.
 class AnimalResource(ModelResource):
@@ -413,6 +411,7 @@ class AnimalResource(ModelResource):
     }
     return self.create_response(request, object_list)
 
+
 #Behavior Resource.
 class BehaviorResource(ModelResource):
   #define foreign key.
@@ -431,18 +430,6 @@ class BehaviorResource(ModelResource):
     # delete = delete behavior from the database
     list_allowed_methods = ['get','post','put','delete']
     always_return_data = True
-
-  # creating new behavior into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(BehaviorResource, self).obj_create(bundle, request, **kwargs)
-    
-  # update behavior's information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(BehaviorResource, self).obj_update(bundle, request, **kwargs)
-
-  # delete behavior from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(BehaviorResource, self).obj_delete( request, **kwargs)
   
   # Redefine get_object_list to filter for enrichment_id
   def get_object_list(self, request):
@@ -457,6 +444,7 @@ class BehaviorResource(ModelResource):
       pass
 
     return q_set
+
 
 # Category Resource.
 class CategoryResource(ModelResource):
@@ -473,17 +461,6 @@ class CategoryResource(ModelResource):
     # delete = delete category from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  # creating new category into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(CategoryResource, self).obj_create(bundle, request, **kwargs)
-    
-  # update category's information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(CategoryResource, self).obj_update(bundle, request, **kwargs)
-
-  # delete category from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(CategoryResource, self).obj_delete( request, **kwargs)
 
 # Enrichment Note Resource.
 class EnrichmentNoteResource(ModelResource):
@@ -505,18 +482,6 @@ class EnrichmentNoteResource(ModelResource):
     # put = updating enrichmentNote's information in the database
     # delete = delete enrichmentNote from the database
     list_allowed_methods = ['get','post','put','delete']
-
-  # creating new enrichmentNote into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(EnrichmentNoteResource, self).obj_create(bundle, request, **kwargs)
-    
-  # update enrichmentNote's information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(EnrichmentNoteResource, self).obj_update(bundle, request, **kwargs)
-
-  # delete enrichmentNote from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(EnrichmentNoteResource, self).obj_delete( request, **kwargs)
 
   # Redefine get_object_list to filter for enrichment_id and species_id.
   def get_object_list(self, request):
@@ -549,6 +514,7 @@ class EnrichmentNoteResource(ModelResource):
 
     return q_set
 
+
 # Enrichment Resource.
 class EnrichmentResource(ModelResource):
   # Define foreign keys.
@@ -567,18 +533,6 @@ class EnrichmentResource(ModelResource):
     # put = updating enrichment's information in the database
     # delete = delete enrichment from the database
     list_allowed_methods = ['get','post','put','delete']
-
-  # creating new enrichment into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(EnrichmentResource, self).obj_create(bundle, request, **kwargs)
-    
-  # update enrichment's information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(EnrichmentResource, self).obj_update(bundle, request, **kwargs)
-
-  # delete enrichment from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(EnrichmentResource, self).obj_delete( request, **kwargs)
 
   # override the url for a specific url path of searching
   def override_urls(self):
@@ -691,6 +645,7 @@ class EnrichmentResource(ModelResource):
     }
     return self.create_response(request, object_list)
 
+
 # Exhibit Resource.
 class ExhibitResource(ModelResource):
   housing_groups = fields.ToManyField(
@@ -710,17 +665,6 @@ class ExhibitResource(ModelResource):
     # delete = delete exhibit from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  # creating new species into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(ExhibitResource, self).obj_create(bundle, request, **kwargs)
-    
-  # update exhibit's information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(ExhibitResource, self).obj_update(bundle, request, **kwargs)
-
-  # delete exhibit from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(ExhibitResource, self).obj_delete(request, **kwargs)
 
 # HousingGroup Resource
 class HousingGroupResource(ModelResource):
@@ -743,18 +687,6 @@ class HousingGroupResource(ModelResource):
     # put = updating HousingGroup's information in the database
     # delete = delete HousingGroup from the database
     list_allowed_methods = ['get','post','put','patch','delete']
-
-  # creating new HousingGroup into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(HousingGroupResource, self).obj_create(bundle, request, **kwargs)
-    
-  # update HousingGroup's information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(HousingGroupResource, self).obj_update(bundle, request, **kwargs)
-
-  # delete HousingGroup from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(HousingGroupResource, self).obj_delete( request, **kwargs)
 
   # Redefine get_object_list to filter for exhibit_id and staff_id.
   def get_object_list(self, request):
@@ -786,6 +718,7 @@ class HousingGroupResource(ModelResource):
       pass
 
     return q_set
+
 
 # Observation Resource.
 class ObservationResource(ModelResource):
@@ -877,6 +810,7 @@ class ObservationResource(ModelResource):
 
     return q_set
 
+
 # Species Resource.
 class SpeciesResource(ModelResource):
   class Meta:
@@ -893,23 +827,13 @@ class SpeciesResource(ModelResource):
     # delete = delete species from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  # creating new species into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(SpeciesResource, self).obj_create(bundle, request, **kwargs)
-    
-  # update species' information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(SpeciesResource, self).obj_update(bundle, request, **kwargs)
-
-  # delete species from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(SpeciesResource, self).obj_delete(request, **kwargs)
 
 # Staff Resource.
 class StaffResource(ModelResource):
   user = fields.ToOneField(
       'paws.api.resources.UserResource', 'user', full=True)
   housing_group = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set')
+
   class Meta:
     # authenticate the user
     authentication = CustomAuthentication()
@@ -922,18 +846,6 @@ class StaffResource(ModelResource):
     # put = updating staff's information in the database
     # delete = delete staff from the database
     list_allowed_methods = ['get','post','put','patch','delete']
-
-  # creating new staff into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(StaffResource, self).obj_create(bundle, request, **kwargs)
-    
-  # update staff's information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(StaffResource, self).obj_update(bundle, request, **kwargs)
-
-  # delete staff from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(StaffResource, self).obj_delete( request, **kwargs)
 
   # override the url for a specific url path of searching
   def override_urls(self):
@@ -1007,6 +919,7 @@ class StaffResource(ModelResource):
 
     return q_set
 
+
 # Subcategory Resource.
 class SubcategoryResource(ModelResource):
   # Define foreign keys.
@@ -1026,18 +939,6 @@ class SubcategoryResource(ModelResource):
     # delete = delete subcategory from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  # creating new subcategory into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(SubcategoryResource, self).obj_create(bundle, request, **kwargs)
-    
-  # update subcategory's information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(SubcategoryResource, self).obj_update(bundle, request, **kwargs)
-
-  # delete subcategory from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(SubcategoryResource, self).obj_delete( request, **kwargs)
-
   # Redefine get_object_list to filter for category_id.
   def get_object_list(self, request):
     category_id = request.GET.get('category_id', None)
@@ -1048,6 +949,7 @@ class SubcategoryResource(ModelResource):
     except ObjectDoesNotExist:
       pass
     return q_set
+
 
 # User Resource.
 class UserResource(ModelResource):
