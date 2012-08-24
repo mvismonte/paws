@@ -1442,16 +1442,20 @@
           contentType: "application/json"
         };
         settings.success = __bind(function(data, textStatus, jqXHR) {
-          var locationsURL, pieces;
+          var enrichment, locationsURL, pieces;
           console.log("Enrichment successfully created!");
           locationsURL = jqXHR.getResponseHeader('Location');
           pieces = locationsURL.split("/");
-          newEnrichment.id = pieces[pieces.length - 2];
+          enrichment = {
+            id: pieces[pieces.length - 2],
+            name: newEnrichment.name,
+            subcategory: subcategory
+          };
           this.newEnrichmentIsCreating(false);
           this.newEnrichmentNameSuccessMessage(true);
           this.newEnrichmentNameErrorMessage(false);
           newEnrichment.subcategory.category = category;
-          this.enrichments.push(new Enrichment(newEnrichment));
+          this.enrichments.push(new Enrichment(enrichment));
           return resizeAllCarousels();
         }, this);
         settings.error = __bind(function(jqXHR, textStatus, errorThrown) {

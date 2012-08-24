@@ -1402,7 +1402,11 @@ $(document).ready ->
           # Extract the category id from the Location response header.
           locationsURL = jqXHR.getResponseHeader 'Location'
           pieces = locationsURL.split "/"
-          newEnrichment.id = pieces[pieces.length - 2]
+          enrichment = {
+            id: pieces[pieces.length - 2]
+            name: newEnrichment.name
+            subcategory: subcategory
+          }
 
           # Show success message and remove extra weight.
           @newEnrichmentIsCreating false
@@ -1411,7 +1415,7 @@ $(document).ready ->
 
           # Add new enrichment to @subcategories and refresh.
           newEnrichment.subcategory.category = category
-          @enrichments.push new Enrichment newEnrichment
+          @enrichments.push new Enrichment enrichment
           resizeAllCarousels()
 
         settings.error = (jqXHR, textStatus, errorThrown) =>
