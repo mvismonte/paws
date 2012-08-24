@@ -1892,22 +1892,25 @@ $(document).ready ->
         console.log ("adding HG " + @newHousingGroup.housingGroup().name())
       catch TypeError
         return
-      data = {}
-      data.housing_group = ['/api/v1/housingGroup/' + @newHousingGroup.housingGroup().id() + '/']
+      data = {
+        housing_group: []
+      }
       $.each @currentStaff().housingGroups(), (index, value) =>
         hg = if $.isFunction(value) then value() else value
-        if data.housing_group.indexOf('api/v1/housingGroup/' + hg.id() + '/') == -1
-          data.housing_group.push '/api/v1/housingGroup/' + hg.id() + '/'
-      console.log JSON.stringify data
+        if hg.id() is @newHousingGroup.housingGroup().id()
+          delete data
+          return
+        data.housing_group.push '/api/v1/housingGroup/#{hg.id()}/'
+      data.housing_group = ['/api/v1/housingGroup/#{@newHousingGroup.housingGroup().id()}/']
+      console.log data
       $.ajax "/api/v1/staff/#{@currentStaff().id()}/?format=json", {
         data: JSON.stringify data
         dataType: "json"
-        type: "PUT"
+        type: "PUT" # PATCH
         contentType: "application/json"
         processData: false
         success: (result, status) => 
-          console.log "added HG?!"
-          console.log status
+          console.log "added HG", status
           newHG = new HousingGroup null
           target = @newHousingGroup.housingGroup
           newHG.id target().id()
