@@ -1224,13 +1224,11 @@ $(document).ready ->
       @newEnrichmentAjaxLoad false
       @newEnrichmentIsCreating true
 
-    openCreateEnrichmentNote: () =>
+    openEnrichmentNote: (current) =>
       @newEnrichmentNoteError false
       @newEnrichmentNoteSuccess false
       @newEnrichmentNoteAjaxLoad false
       @newEnrichmentNoteIsCreating true
-
-    openEnrichmentNote: (current) =>
       @currentEnrichment current
       console.log current.id()
       $.getJSON "/api/v1/enrichmentNote/?format=json&enrichment_id=#{current.id()}", (data) =>
@@ -1412,20 +1410,7 @@ $(document).ready ->
           @newEnrichmentNameErrorMessage false
 
           # Add new enrichment to @subcategories and refresh.
-          @enrichments.push {
-            name: ko.observable newEnrichment.name
-            id: ko.observable newEnrichment.id
-            subcategoryId: ko.observable subcategory.id()
-            ###
-            @id = ko.observable data.id
-            @name = ko.observable data.name # non-observable is fine
-            @categoryId = ko.observable data.subcategory.category.id
-            @categoryName = ko.observable data.subcategory.category.name
-            @subcategoryId = ko.observable data.subcategory.id
-            @subcategoryName = ko.observable data.subcategory.name###
-            count: ko.observable 0
-            disabled: false
-          }
+          @enrichments.push new Enrichment newEnrichment
           resizeAllCarousels()
 
         settings.error = (jqXHR, textStatus, errorThrown) =>
@@ -1487,7 +1472,7 @@ $(document).ready ->
         # Refresh.
         @newEnrichmentNote.instructions null
         @newEnrichmentNote.limitations null
-        @newEnrichmentNote.species() null
+        @newEnrichmentNote.species null
 
         @newEnrichmentNoteAjaxLoad false
 
