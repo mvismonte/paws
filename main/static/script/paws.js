@@ -1969,7 +1969,7 @@
           }
           return data.housing_group.push('/api/v1/housingGroup/#{hg.id()}/');
         }, this));
-        data.housing_group = ['/api/v1/housingGroup/#{@newHousingGroup.housingGroup().id()}/'];
+        data.housing_group.push('/api/v1/housingGroup/#{@newHousingGroup.housingGroup().id()}/');
         console.log(data);
         return $.ajax("/api/v1/staff/" + (this.currentStaff().id()) + "/?format=json", {
           data: JSON.stringify(data),
