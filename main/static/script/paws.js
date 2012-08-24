@@ -1446,6 +1446,7 @@
           console.log("Enrichment successfully created!");
           locationsURL = jqXHR.getResponseHeader('Location');
           pieces = locationsURL.split("/");
+          subcategory.category = category;
           enrichment = {
             id: pieces[pieces.length - 2],
             name: newEnrichment.name,
@@ -1454,7 +1455,6 @@
           this.newEnrichmentIsCreating(false);
           this.newEnrichmentNameSuccessMessage(true);
           this.newEnrichmentNameErrorMessage(false);
-          newEnrichment.subcategory.category = category;
           this.enrichments.push(new Enrichment(enrichment));
           return resizeAllCarousels();
         }, this);
