@@ -1117,7 +1117,7 @@
           _this = this;
         newObservation = {
           enrichment: '/api/v1/enrichment/' + this.currentEnrichment().id() + '/',
-          staff: '/api/v1/enrichment/' + window.userId + '/',
+          staff: '/api/v1/staff/' + window.userId + '/',
           date_created: new Date().toISOString().split('.')[0]
         };
         if (this.newObservationAjaxLoad()) {
