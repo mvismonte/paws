@@ -1880,7 +1880,7 @@
             newData = _ref2[_j];
             staffTemp = {
               user: newData,
-              id: newData.id
+              id: newData.staff.split('/')[4]
             };
             staff = new Staff(staffTemp);
             console.log(staff);
@@ -1934,7 +1934,7 @@
           console.log("Staff successfully created!");
           staff = {
             user: data.object,
-            id: data.object.id
+            id: data.object.staff.split('/')[4]
           };
           this.staff.push(new Staff(staff));
           resizeAllCarousels();
