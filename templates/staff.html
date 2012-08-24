@@ -40,6 +40,7 @@
     </div>
 
     <div class="modal-body">
+      {% if user.is_superuser %}
       <div class="clearfix">
         <h3>Add a new Housing Group</h3>
         <div class="clearfix"></div>
@@ -75,6 +76,7 @@
           <button class="btn btn-primary pull-right" data-bind="click: addHousingGroup">Add Housing Group</button>
         </form>
       </div>
+      {% endif %}
       <h3>Current Housing Groups</h3>
       <!-- ko with: currentStaff -->
       <div data-bind="foreach: housingGroups">
@@ -82,7 +84,9 @@
         <dl>
           <dt>
             <h4><strong data-bind="text: name"></strong></h4>
+            {% if user.is_superuser %}
             <button class="btn btn-mini btn-danger pull-right" data-bind="click: $root.deleteHousingGroup">Remove</button>
+            {% endif %}
           </dt>
           <dd data-bind="foreach: animals">
             <span data-bind="text: name" class="label"></span>
