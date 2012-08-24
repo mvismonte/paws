@@ -88,7 +88,7 @@
     <script type="text/javascript" src="{{ STATIC_URL }}script/jquery_django_csrf.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}script/sammy.js"></script>
     <script type="text/javascript">
-      window.userId = {{ user.id }};
+      window.userId = {{ user.staff.id }};
     </script>
   {% compress js %}
     <script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}script/paws.js"></script>
