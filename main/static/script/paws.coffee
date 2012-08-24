@@ -1224,6 +1224,12 @@ $(document).ready ->
       @newEnrichmentAjaxLoad false
       @newEnrichmentIsCreating true
 
+    openCreateEnrichmentNote: () =>
+      @newEnrichmentNoteError false
+      @newEnrichmentNoteSuccess false
+      @newEnrichmentNoteAjaxLoad false
+      @newEnrichmentNoteIsCreating true
+
     openEnrichmentNote: (current) =>
       @currentEnrichment current
       console.log current.id()
@@ -1453,7 +1459,6 @@ $(document).ready ->
         type: 'POST'
         url: '/api/v1/enrichmentNote/?format=json'
         data: JSON.stringify newEN
-        success: @enrichmentCreated
         dataType: "json",
         processData:  false,
         contentType: "application/json"
@@ -1476,19 +1481,23 @@ $(document).ready ->
         @enrichmentNotes.push new EnrichmentNote noteToPush
 
         # Show success message and remove extra weight.
-        @newEnrichmentNoteIsCreating false
         @newEnrichmentNoteSuccess true
         @newEnrichmentNoteError false
 
-        # Add new enrichment to @subcategories and refresh.
+        # Refresh.
+        @newEnrichmentNote.instructions null
+        @newEnrichmentNote.limitations null
+        @newEnrichmentNote.species() null
+
+        @newEnrichmentNoteAjaxLoad false
 
       settings.error = (jqXHR, textStatus, errorThrown) =>
         console.log "Enrichment not created!"
         @newEnrichmentAjaxLoad false
-        @newEnrichmentNameError 'An unexpected error occured'
+        @newEnrichmentNoteError 'An unexpected error occured'
 
       # Make the ajax call.
-      @newEnrichmentAjaxLoad true
+      @newEnrichmentNoteAjaxLoad true
       $.ajax settings
 
   class ObservationListViewModel
