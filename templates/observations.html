@@ -1,4 +1,4 @@
-{# Copyright 2012 PAWS. All right reserved #}
+﻿{# Copyright 2012 PAWS. All right reserved #}
 {# Date: 5/25/2012 #}
 {# observations.html - For viewing observations #}
 
@@ -23,31 +23,26 @@
             </small>
           </h3>
         </dt>
-        <dd class="row">
+        <dd>
+          <form class="form-inline">
             {% comment %}
             Behavior
             <select data-bind="options: $root.behaviorType, value: behavior, optionsText: 'type', optionsValue: 'id'" class="span2"></select>
             {% endcomment %}
-          <label class="span1">
-            Indirect Use
+          <input data-bind="value: interaction_time" class="span2" placeholder="Interact. Time"></input>
+          <input data-bind="value: observation_time" class="span2" placeholder="Obs. Time"></input>
+          <label class="checkbox">
             <input type="checkbox" data-bind="checked: indirect_use" class="pull-right"></input>
+            Indirect Use
           </label>
-          <label class="span1">
-            Time
-            <input data-bind="value: interaction_time" class="span1"></input>
-          </label>
-          <label class="span1">
-            Obs. Time
-            <input data-bind="value: observation_time" class="span1"></input>
-          </label>
-          <label class="span7">
             {#<span data-bind="text: behavior().description"></span>#}
-            <button data-bind="click: $root.loadBehaviors.bind($data, $parent)" data-toggle="modal" data-target="#modal-add-behavior" class="btn pull-right">Edit Behavior</button>
+            <button data-bind="click: $root.loadBehaviors.bind($data, $parent)" data-toggle="modal" data-target="#modal-add-behavior" class="btn">Edit Behavior</button>
             {% comment %}
             Description
             <input data-bind="value: description" class="span7"></textarea>
             {% endcomment %}
           </label>
+          </form>
         </dd>
       </dl>
     </dd>
@@ -68,13 +63,18 @@
   <div class="modal hide fade" id="modal-add-behavior">
     <div class="modal-header">
       <button class="close" data-dismiss="modal">×</button>
-      <h3>Add Behavior</h3>
+      <h3>Behavior</h3>
     </div>
     <div class="modal-body">
-      <select data-bind="options: $root.activeBehaviors, optionsText: 'description', optionsCaption: 'Select a behavior', value: selectedBehavior" class="span2"></select>
-      <input data-bind="value: newBehaviorDesc" class="span7" placeholder="Add new behavior">
-      <select data-bind="options: $root.behaviorType, optionsText: 'type', optionsValue: 'id', value: newBehaviorType" class="span2"></select>
-      <button class="btn" data-bind="click: addNewBehavior">Add!</button>
+      <form class="form-inline">
+        <label>Select Behavior</label>
+        <select data-bind="options: $root.activeBehaviors, optionsText: 'description', optionsCaption: 'Select a behavior', value: selectedBehavior" class="span8"></select>
+        <hr>
+        <label>Add New Behavior</label>
+        <select data-bind="options: $root.behaviorType, optionsText: 'type', optionsValue: 'id', value: newBehaviorType" class="span2"></select>
+        <input data-bind="value: newBehaviorDesc" class="span6" placeholder="Add new behavior">
+        <button class="btn" data-bind="click: addNewBehavior">Add!</button>
+      </form>
     </div>
     <div class="modal-footer">
       <a href="#" class="btn" data-dismiss="modal">Cancel</a>
