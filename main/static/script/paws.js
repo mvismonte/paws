@@ -1229,6 +1229,8 @@
 
         this.openEnrichmentNote = __bind(this.openEnrichmentNote, this);
 
+        this.openCreateEnrichmentNote = __bind(this.openCreateEnrichmentNote, this);
+
         this.openCreateEnrichment = __bind(this.openCreateEnrichment, this);
 
         this.openCreateSubcategory = __bind(this.openCreateSubcategory, this);
@@ -1418,6 +1420,13 @@
         this.newEnrichmentNameMessageBody('');
         this.newEnrichmentAjaxLoad(false);
         return this.newEnrichmentIsCreating(true);
+      };
+
+      EnrichmentListViewModel.prototype.openCreateEnrichmentNote = function() {
+        this.newEnrichmentNoteError(false);
+        this.newEnrichmentNoteSuccess(false);
+        this.newEnrichmentNoteAjaxLoad(false);
+        return this.newEnrichmentNoteIsCreating(true);
       };
 
       EnrichmentListViewModel.prototype.openEnrichmentNote = function(current) {
@@ -1635,7 +1644,6 @@
           type: 'POST',
           url: '/api/v1/enrichmentNote/?format=json',
           data: JSON.stringify(newEN),
-          success: this.enrichmentCreated,
           dataType: "json",
           processData: false,
           contentType: "application/json"
@@ -1658,16 +1666,19 @@
           };
           console.log(noteToPush);
           _this.enrichmentNotes.push(new EnrichmentNote(noteToPush));
-          _this.newEnrichmentNoteIsCreating(false);
           _this.newEnrichmentNoteSuccess(true);
-          return _this.newEnrichmentNoteError(false);
+          _this.newEnrichmentNoteError(false);
+          _this.newEnrichmentNote.instructions(null);
+          _this.newEnrichmentNote.limitations(null);
+          _this.newEnrichmentNote.species()(null);
+          return _this.newEnrichmentNoteAjaxLoad(false);
         };
         settings.error = function(jqXHR, textStatus, errorThrown) {
           console.log("Enrichment not created!");
           _this.newEnrichmentAjaxLoad(false);
-          return _this.newEnrichmentNameError('An unexpected error occured');
+          return _this.newEnrichmentNoteError('An unexpected error occured');
         };
-        this.newEnrichmentAjaxLoad(true);
+        this.newEnrichmentNoteAjaxLoad(true);
         return $.ajax(settings);
       };
 
