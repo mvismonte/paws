@@ -1951,7 +1951,7 @@
         return $.ajax(settings);
       };
       StaffListViewModel.prototype.addHousingGroup = function() {
-        var data;
+        var data, hg, value, _i, _len, _ref;
         try {
           console.log("adding HG " + this.newHousingGroup.housingGroup().name());
         } catch (TypeError) {
@@ -1960,16 +1960,17 @@
         data = {
           housing_group: []
         };
-        $.each(this.currentStaff().housingGroups(), __bind(function(index, value) {
-          var hg;
+        _ref = this.currentStaff().housingGroups();
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          value = _ref[_i];
           hg = $.isFunction(value) ? value() : value;
           if (hg.id() === this.newHousingGroup.housingGroup().id()) {
             delete data;
             return;
           }
-          return data.housing_group.push('/api/v1/housingGroup/#{hg.id()}/');
-        }, this));
-        data.housing_group.push('/api/v1/housingGroup/#{@newHousingGroup.housingGroup().id()}/');
+          data.housing_group.push("/api/v1/housingGroup/" + (hg.id()) + "/");
+        }
+        data.housing_group.push("/api/v1/housingGroup/" + (this.newHousingGroup.housingGroup().id()) + "/");
         console.log(data);
         return $.ajax("/api/v1/staff/" + (this.currentStaff().id()) + "/?format=json", {
           data: JSON.stringify(data),
