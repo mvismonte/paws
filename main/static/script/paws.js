@@ -1957,16 +1957,20 @@
         } catch (TypeError) {
           return;
         }
-        data = {};
-        data.housing_group = ['/api/v1/housingGroup/' + this.newHousingGroup.housingGroup().id() + '/'];
+        data = {
+          housing_group: []
+        };
         $.each(this.currentStaff().housingGroups(), __bind(function(index, value) {
           var hg;
           hg = $.isFunction(value) ? value() : value;
-          if (data.housing_group.indexOf('api/v1/housingGroup/' + hg.id() + '/') === -1) {
-            return data.housing_group.push('/api/v1/housingGroup/' + hg.id() + '/');
+          if (hg.id() === this.newHousingGroup.housingGroup().id()) {
+            delete data;
+            return;
           }
+          return data.housing_group.push('/api/v1/housingGroup/#{hg.id()}/');
         }, this));
-        console.log(JSON.stringify(data));
+        data.housing_group = ['/api/v1/housingGroup/#{@newHousingGroup.housingGroup().id()}/'];
+        console.log(data);
         return $.ajax("/api/v1/staff/" + (this.currentStaff().id()) + "/?format=json", {
           data: JSON.stringify(data),
           dataType: "json",
@@ -1975,8 +1979,7 @@
           processData: false,
           success: __bind(function(result, status) {
             var newHG, target;
-            console.log("added HG?!");
-            console.log(status);
+            console.log("added HG", status);
             newHG = new HousingGroup(null);
             target = this.newHousingGroup.housingGroup;
             newHG.id(target().id());
