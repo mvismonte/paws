@@ -1446,12 +1446,19 @@
           console.log("Enrichment successfully created!");
           locationsURL = jqXHR.getResponseHeader('Location');
           pieces = locationsURL.split("/");
-          subcategory.category = category;
           enrichment = {
             id: pieces[pieces.length - 2],
             name: newEnrichment.name,
-            subcategory: subcategory
+            subcategory: {
+              id: subcategory.id(),
+              name: subcategory.name(),
+              category: {
+                id: category.id(),
+                name: category.name()
+              }
+            }
           };
+          console.log(enrichment);
           this.newEnrichmentIsCreating(false);
           this.newEnrichmentNameSuccessMessage(true);
           this.newEnrichmentNameErrorMessage(false);

@@ -1402,12 +1402,19 @@ $(document).ready ->
           # Extract the category id from the Location response header.
           locationsURL = jqXHR.getResponseHeader 'Location'
           pieces = locationsURL.split "/"
-          subcategory.category = category;
           enrichment = {
             id: pieces[pieces.length - 2]
             name: newEnrichment.name
-            subcategory: subcategory
+            subcategory: {
+              id: subcategory.id()
+              name: subcategory.name()
+              category: {
+                id: category.id(),
+                name: category.name()
+              }
+            }
           }
+          console.log enrichment
 
           # Show success message and remove extra weight.
           @newEnrichmentIsCreating false
