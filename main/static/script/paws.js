@@ -1450,7 +1450,7 @@
           this.newEnrichmentIsCreating(false);
           this.newEnrichmentNameSuccessMessage(true);
           this.newEnrichmentNameErrorMessage(false);
-          newEnrichment.subcategory.category = newEnrichment.category;
+          newEnrichment.subcategory.category = category;
           this.enrichments.push(new Enrichment(newEnrichment));
           return resizeAllCarousels();
         }, this);

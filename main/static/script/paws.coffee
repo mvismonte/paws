@@ -1410,7 +1410,7 @@ $(document).ready ->
           @newEnrichmentNameErrorMessage false
 
           # Add new enrichment to @subcategories and refresh.
-          newEnrichment.subcategory.category = newEnrichment.category
+          newEnrichment.subcategory.category = category
           @enrichments.push new Enrichment newEnrichment
           resizeAllCarousels()
 
