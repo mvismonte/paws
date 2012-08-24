@@ -1817,7 +1817,7 @@ $(document).ready ->
         for newData in data.objects
           staffTemp =
             user: newData
-            id: newData.id
+            id: newData.staff.split('/')[4]
           staff = new Staff staffTemp
           console.log staff
           @staff.push staff
@@ -1866,7 +1866,7 @@ $(document).ready ->
         console.log "Staff successfully created!"
         staff =
           user: data.object
-          id: data.object.id
+          id: data.object.staff.split('/')[4]
 
         # Create a staff members and insert.
         @staff.push new Staff staff
