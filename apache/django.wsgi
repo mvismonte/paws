@@ -2,9 +2,9 @@ import os
 import sys
 
 # Fix path
-path = '/paws/'
+path = 'c:/wamp/www/'
 if path not in sys.path:
-  sys.path.insert(1,path)
+  sys.path.append(path)
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'paws.settings'
 
