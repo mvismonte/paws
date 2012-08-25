@@ -25,22 +25,16 @@
         </dt>
         <dd>
           <form class="form-inline">
-            {% comment %}
-            Behavior
-            <select data-bind="options: $root.behaviorType, value: behavior, optionsText: 'type', optionsValue: 'id'" class="span2"></select>
-            {% endcomment %}
-          <input data-bind="value: interaction_time" class="span2" placeholder="Interact. Time"></input>
-          <input data-bind="value: observation_time" class="span2" placeholder="Obs. Time"></input>
-          <label class="checkbox">
-            <input type="checkbox" data-bind="checked: indirect_use" class="pull-right"></input>
-            Indirect Use
-          </label>
-            {#<span data-bind="text: behavior().description"></span>#}
-            <button data-bind="click: $root.loadBehaviors.bind($data, $parent)" data-toggle="modal" data-target="#modal-add-behavior" class="btn">Edit Behavior</button>
-            {% comment %}
-            Description
-            <input data-bind="value: description" class="span7"></textarea>
-            {% endcomment %}
+            <input data-bind="value: interaction_time, valueUpdate: 'keyup'" class="span2" placeholder="Interact. Time"></input>
+            <input data-bind="value: observation_time, valueUpdate: 'keyup'" class="span2" placeholder="Obs. Time"></input>
+            <label class="checkbox">
+              <input type="checkbox" data-bind="checked: indirect_use" class="pull-right"></input>
+              Indirect Use
+            </label>
+            <button data-bind="click: $root.loadBehaviors.bind($data, $parent)" data-toggle="modal" data-target="#modal-add-behavior" class="btn">Behavior:</button>
+            <!-- ko if: behavior -->
+              <span class="label" data-bind="text: behavior().description"></span>
+            <!-- /ko -->
           </label>
           </form>
         </dd>
