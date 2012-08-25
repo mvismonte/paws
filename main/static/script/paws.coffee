@@ -33,11 +33,15 @@ $(document).ready ->
         @animal = ko.observable new Animal data.animal
         @observation_id = ko.observable data.observation.id
         @interaction_time = ko.observable data.interaction_time
+        @throttled_interaction_time = ko.computed(@interaction_time)
+            .extend { throttle: 400 }
         @observation_time = ko.observable data.observation_time
+        @throttled_observation_time = ko.computed(@observation_time)
+            .extend { throttle: 400 }
         @indirect_use = ko.observable data.indirect_use
         @behavior = ko.observable data.behavior
 
-        @interaction_time.subscribe (value) =>
+        @throttled_interaction_time.subscribe (value) =>
           console.log "change interaction_time"
           d =
             id: @id
@@ -45,7 +49,7 @@ $(document).ready ->
             type: "interaction_time"
           console.log d
           updateAnimalObservation.notifySubscribers d, "saveAnimalObservation"
-        @observation_time.subscribe (value) =>
+        @throttled_observation_time.subscribe (value) =>
           console.log "change observation_time"
           d =
             id: @id
@@ -1570,6 +1574,7 @@ $(document).ready ->
         success: (result) =>
           console.log "finished saving behavior"
           console.log result
+          @activeAnimalObservation().behavior @selectedBehavior()
           @activeObservation null
           @activeBehaviors []
           @activeAnimalObservation null

@@ -41,10 +41,16 @@
           this.animal = ko.observable(new Animal(data.animal));
           this.observation_id = ko.observable(data.observation.id);
           this.interaction_time = ko.observable(data.interaction_time);
+          this.throttled_interaction_time = ko.computed(this.interaction_time).extend({
+            throttle: 400
+          });
           this.observation_time = ko.observable(data.observation_time);
+          this.throttled_observation_time = ko.computed(this.observation_time).extend({
+            throttle: 400
+          });
           this.indirect_use = ko.observable(data.indirect_use);
           this.behavior = ko.observable(data.behavior);
-          this.interaction_time.subscribe(__bind(function(value) {
+          this.throttled_interaction_time.subscribe(__bind(function(value) {
             var d;
             console.log("change interaction_time");
             d = {
@@ -55,7 +61,7 @@
             console.log(d);
             return updateAnimalObservation.notifySubscribers(d, "saveAnimalObservation");
           }, this));
-          this.observation_time.subscribe(__bind(function(value) {
+          this.throttled_observation_time.subscribe(__bind(function(value) {
             var d;
             console.log("change observation_time");
             d = {
@@ -1621,6 +1627,7 @@
           success: __bind(function(result) {
             console.log("finished saving behavior");
             console.log(result);
+            this.activeAnimalObservation().behavior(this.selectedBehavior());
             this.activeObservation(null);
             this.activeBehaviors([]);
             this.activeAnimalObservation(null);
