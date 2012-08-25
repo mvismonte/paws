@@ -73,7 +73,8 @@ class AnimalObservationResource(ModelResource):
   def obj_update(self, bundle, request=None, **kwargs):
     # PATCH fix
     bundle.data['animal'] = bundle.data['animal'].data['resource_uri']
-    bundle.data['behavior'] = bundle.data['behavior'].data['resource_uri']
+    if not isinstance(bundle.data['behavior'], basestring):
+      bundle.data['behavior'] = bundle.data['behavior'].data['resource_uri']
     # Make sure that the user can modifty.
     ao_id = int(kwargs.pop('pk', None))
     if not self.can_modify_observation(request, ao_id):
