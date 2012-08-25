@@ -30,9 +30,9 @@ class CustomAuthentication(BasicAuthentication):
     return request.user.is_authenticated()
 
 
-# AnimalObservation Resource.
 class AnimalObservationResource(ModelResource):
-  # Define foreign keys.
+  """AnimalObservation Resource."""
+
   animal = fields.ToOneField(
       'paws.api.resources.AnimalResource','animal', full=True, related_name='animal_observations')
   observation = fields.ToOneField(
@@ -41,17 +41,11 @@ class AnimalObservationResource(ModelResource):
       'paws.api.resources.BehaviorResource', 'behavior', full=True, null=True, blank=True)
 
   class Meta:
-    # authenticate the user
     authentication = CustomAuthentication()
     authorization = Authorization()
     queryset = models.AnimalObservation.objects.all()
     resource_name = 'animalObservation'
-    # allowed actions towards database
-    # get = getting animalObservation's information from the database
-    # post = adding new animalObservation into the database
-    # put = updating animalObservation's information in the database
-    # delete = delete animalObservation from the database
-    list_allowed_methods = ['get','post','put','delete']
+    list_allowed_methods = ['get','post','put', 'patch', 'delete']
 
   # A check to see if staff can modify this observation.
   def can_modify_observation(self, request, animalObservation_id):
@@ -66,7 +60,6 @@ class AnimalObservationResource(ModelResource):
     except ObjectDoesNotExist:
       return True
 
-  # creating new animalObservation into database
   def obj_create(self, bundle, request=None, **kwargs):
     # Get the user of the observation by fully hydrating the bundle and then
     # check if the user is allowed to add to this observation.
@@ -76,12 +69,11 @@ class AnimalObservationResource(ModelResource):
           HttpUnauthorized("Cannot add other users' animal observations")
       )
     return super(AnimalObservationResource, self).obj_create(bundle, request, **kwargs)
-    
-  # update animalObservation's information in the database
+
   def obj_update(self, bundle, request=None, **kwargs):
-    print bundle
+    # PATCH fix
     bundle.data['animal'] = bundle.data['animal'].data['resource_uri']
-    # bundle.data['behavior'] = bundle.data['behavior'].data['resource_uri']
+    bundle.data['behavior'] = bundle.data['behavior'].data['resource_uri']
     # Make sure that the user can modifty.
     ao_id = int(kwargs.pop('pk', None))
     if not self.can_modify_observation(request, ao_id):
@@ -90,7 +82,6 @@ class AnimalObservationResource(ModelResource):
       )
     return super(AnimalObservationResource, self).obj_update(bundle, request, **kwargs)
 
-  # delete animalObervation from the database
   def obj_delete(self, request=None, **kwargs):
     # Make sure that the user can modifty.
     observation_id = int(kwargs.pop('pk', None))
@@ -122,9 +113,9 @@ class AnimalObservationResource(ModelResource):
 
     return q_set
 
-  # Add useful numerical numbers for animal observation    
+  # Add useful numerical numbers for animal observation
   def dehydrate(self, bundle):
-    # If there is no observation, set the rate equals to 0 
+    # If there is no observation, set the rate equals to 0
     rate = 0
     if bundle.obj.interaction_time is not None and bundle.obj.observation_time is not None and bundle.obj.indirect_use is False and bundle.obj.observation_time != 0:
       # Add the rate of the interaction vs. total observation time
@@ -257,9 +248,9 @@ class AnimalObservationResource(ModelResource):
     return self.create_response(request, object_list)
 
 
-# Animal Resource.
 class AnimalResource(ModelResource):
-  # Define foreign keys.
+  """Animal Resource."""
+
   animal_observations = fields.ToManyField(
       'paws.api.resources.AnimalObservationResource', 'animalobservation_set',
       related_name='animal', blank=True)
@@ -270,29 +261,20 @@ class AnimalResource(ModelResource):
       full=False, blank=True)
 
   class Meta:
-    # authenticate the user
     queryset = models.Animal.objects.all()
     authentication = CustomAuthentication()
     authorization = DjangoAuthorization()
     resource_name = 'animal'
     always_return_data = True
-    # allowed actions towards database
-    # get = getting animal's information from the database
-    # post = adding new animal into the database
-    # put = updating animal's information in the database
-    # delete = delete animal from the database
     list_allowed_methods = ['get','post','put','delete']
 
-  # creating new animal into database
   def obj_create(self, bundle, request=None, **kwargs):
     if self._meta.authorization.is_authorized(request):
       return super(AnimalResource, self).obj_create(bundle, request, **kwargs)
     
-  # update animal's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
     return super(AnimalResource, self).obj_update(bundle, request, **kwargs)
 
-  # delete animal from the database
   def obj_delete(self, request=None, **kwargs):
     return super(AnimalResource, self).obj_delete( request, **kwargs)
 
@@ -325,9 +307,7 @@ class AnimalResource(ModelResource):
   def get_search(self, request, **kwargs):
     # checking user inputs' method
     self.method_check(request, allowed=['get'])
-    # checking if the user is authenticated
     self.is_authenticated(request)
-    # checking if the user should be throttled 
     self.throttle_check(request)
 
     # Provide the results for a search query
@@ -381,7 +361,7 @@ class AnimalResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
-    # Make user is superuser.
+    # Make sure user is superuser
     if not request.user.is_superuser:
       raise ImmediateHttpResponse(
           HttpUnauthorized("Cannot edit other users' observations")
@@ -412,22 +392,17 @@ class AnimalResource(ModelResource):
     return self.create_response(request, object_list)
 
 
-#Behavior Resource.
 class BehaviorResource(ModelResource):
-  #define foreign key.
+  """Behavior Resource."""
+
   enrichment = fields.ForeignKey(
       'paws.api.resources.EnrichmentResource','enrichment')
+
   class Meta:
-    # authenticate the user
     authentication = CustomAuthentication()
     authorization = Authorization()
     queryset = models.Behavior.objects.all()
     resource_name = 'behavior'
-    # allowed actions towards database
-    # get = getting behavior's information from the database
-    # post = adding new behavior into the database
-    # put = updating behavior's information in the database
-    # delete = delete behavior from the database
     list_allowed_methods = ['get','post','put','delete']
     always_return_data = True
   
@@ -446,41 +421,30 @@ class BehaviorResource(ModelResource):
     return q_set
 
 
-# Category Resource.
 class CategoryResource(ModelResource):
+  """Category Resource."""
+
   class Meta:
-    # authenticate the user
     authentication = CustomAuthentication()
     authorization = DjangoAuthorization()
     queryset = models.Category.objects.all()
     resource_name = 'category'
-    # allowed actions towards database
-    # get = getting category's information from the database
-    # post = adding new category into the database
-    # put = updating category's information in the database
-    # delete = delete category from the database
     list_allowed_methods = ['get','post','put','delete']
 
 
-# Enrichment Note Resource.
 class EnrichmentNoteResource(ModelResource):
-  # Define foreign keys.
+  """Enrichment Note Resource."""
+
   species = fields.ForeignKey(
       'paws.api.resources.SpeciesResource', 'species', full=True)
   enrichment = fields.ForeignKey(
       'paws.api.resources.EnrichmentResource','enrichment', full=True)
 
   class Meta:
-    # authenticate the user
     authentication = CustomAuthentication()
     authorization = DjangoAuthorization()
     queryset = models.EnrichmentNote.objects.all()
     resource_name = 'enrichmentNote'
-    # allowed actions towards database
-    # get = getting enrichmentNote's information from the database
-    # post = adding new enrichmentNote into the database
-    # put = updating enrichmentNote's information in the database
-    # delete = delete enrichmentNote from the database
     list_allowed_methods = ['get','post','put','delete']
 
   # Redefine get_object_list to filter for enrichment_id and species_id.
@@ -515,23 +479,17 @@ class EnrichmentNoteResource(ModelResource):
     return q_set
 
 
-# Enrichment Resource.
 class EnrichmentResource(ModelResource):
-  # Define foreign keys.
+  """Enrichment Resource."""
+
   subcategory = fields.ForeignKey(
     'paws.api.resources.SubcategoryResource','subcategory', full=True)
 
   class Meta:
-    # authenticate the user
     authentication = CustomAuthentication()
     authorization = DjangoAuthorization()
     queryset = models.Enrichment.objects.all()
     resource_name = 'enrichment'
-    # allowed actions towards database
-    # get = getting enrichment's information from the database
-    # post = adding new enrichment into the database
-    # put = updating enrichment's information in the database
-    # delete = delete enrichment from the database
     list_allowed_methods = ['get','post','put','delete']
 
   # override the url for a specific url path of searching
@@ -615,7 +573,7 @@ class EnrichmentResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
-    # Make user is superuser.
+    # Make sure user is superuser.
     if not request.user.is_superuser:
       raise ImmediateHttpResponse(
           HttpUnauthorized("Cannot bulk add")
@@ -646,46 +604,38 @@ class EnrichmentResource(ModelResource):
     return self.create_response(request, object_list)
 
 
-# Exhibit Resource.
 class ExhibitResource(ModelResource):
+  """Exhibit Resource."""
+
   housing_groups = fields.ToManyField(
       'paws.api.resources.HousingGroupResource', 'housinggroup_set',
       full=True, blank=True)
+
   class Meta:
-    # authenticate the user
     authentication = CustomAuthentication()
     authorization = DjangoAuthorization()
     queryset = models.Exhibit.objects.all()
     resource_name = 'exhibit'
     always_return_data = True
-    # allowed actions towards database
-    # get = getting exhibit's information from the database
-    # post = adding new exhibit into the database
-    # put = updating exhibit' information in the database
-    # delete = delete exhibit from the database
     list_allowed_methods = ['get','post','put','delete']
 
 
-# HousingGroup Resource
 class HousingGroupResource(ModelResource):
+  """HousingGroup Resource"""
+
   # exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
   staff = fields.ToManyField(
       'paws.api.resources.StaffResource', 'staff', blank=True)
   animals = fields.ToManyField(
       'paws.api.resources.AnimalResource', 'animal_set', full=True, blank=True)
   exhibit = fields.ToOneField('paws.api.resources.ExhibitResource', 'exhibit')
+
   class Meta:
-    # authenticate the user
     authentication = CustomAuthentication()
     authorization = DjangoAuthorization()
     queryset = models.HousingGroup.objects.all()
     resource_name = 'housingGroup'
     always_return_data = True
-    # allowed actions towards database
-    # get = getting HousingGroup's information from the database
-    # post = adding new HousingGroup into the database
-    # put = updating HousingGroup's information in the database
-    # delete = delete HousingGroup from the database
     list_allowed_methods = ['get','post','put','patch','delete']
 
   # Redefine get_object_list to filter for exhibit_id and staff_id.
@@ -720,9 +670,9 @@ class HousingGroupResource(ModelResource):
     return q_set
 
 
-# Observation Resource.
 class ObservationResource(ModelResource):
-  # Define foreign keys.
+  """Observation Resource."""
+
   animal_observations = fields.ToManyField(
       'paws.api.resources.AnimalObservationResource','animalobservation_set', full=True, null=True, related_name='observation')
   enrichment = fields.ForeignKey(
@@ -731,16 +681,10 @@ class ObservationResource(ModelResource):
       'paws.api.resources.StaffResource','staff')
 
   class Meta:
-    # authenticate the user
     authentication = CustomAuthentication()
     authorization = Authorization()
     queryset = models.Observation.objects.all()
     resource_name = 'observation'
-    # allowed actions towards database
-    # get = getting observation's information from the database
-    # post = adding new observation into the database
-    # put = updating observation's information in the database
-    # delete = delete observation from the database
     list_allowed_methods = ['get','post','put','delete']
 
   # A check to see if staff can modify this observation.
@@ -762,6 +706,7 @@ class ObservationResource(ModelResource):
   # update observation's information in the database
   def obj_update(self, bundle, request=None, **kwargs):
     # Clean related fields into URI's instead of bundles
+    # PATCH fix
     bundle.data['enrichment'] = bundle.data['enrichment'].data['resource_uri']
     for key, animalObservation in enumerate(bundle.data['animal_observations']):
       bundle.data['animal_observations'][key] = animalObservation.data['resource_uri']
@@ -811,40 +756,30 @@ class ObservationResource(ModelResource):
     return q_set
 
 
-# Species Resource.
 class SpeciesResource(ModelResource):
+  """Species Resource."""
+
   class Meta:
-    # authenticate the user
     authentication = CustomAuthentication()
     authorization = DjangoAuthorization()
     queryset = models.Species.objects.all()
     resource_name = 'species'
     always_return_data = True
-    # allowed actions towards database
-    # get = getting species' information from the database
-    # post = adding new species into the database
-    # put = updating species' information in the database
-    # delete = delete species from the database
     list_allowed_methods = ['get','post','put','delete']
 
 
-# Staff Resource.
 class StaffResource(ModelResource):
+  """Staff Resource."""
+
   user = fields.ToOneField(
       'paws.api.resources.UserResource', 'user', full=True)
   housing_group = fields.ToManyField('paws.api.resources.HousingGroupResource', 'housinggroup_set')
 
   class Meta:
-    # authenticate the user
     authentication = CustomAuthentication()
     authorization = DjangoAuthorization()
     queryset = models.Staff.objects.all()
     resource_name = 'staff'
-    # allowed actions towards database
-    # get = getting staff's information from the database
-    # post = adding new staff into the database
-    # put = updating staff's information in the database
-    # delete = delete staff from the database
     list_allowed_methods = ['get','post','put','patch','delete']
 
   # override the url for a specific url path of searching
@@ -920,23 +855,17 @@ class StaffResource(ModelResource):
     return q_set
 
 
-# Subcategory Resource.
 class SubcategoryResource(ModelResource):
-  # Define foreign keys.
+  """Subcategory Resource."""
+
   category = fields.ForeignKey(
       'paws.api.resources.CategoryResource', 'category', full=True)
 
   class Meta:
-    # authenticate the user
     authentication = CustomAuthentication()
     authorization = DjangoAuthorization()
     queryset = models.Subcategory.objects.all()
     resource_name = 'subcategory'
-    # allowed actions towards database
-    # get = getting subcategory information from the database
-    # post = adding new subcategory into the database
-    # put = update subcategory's information in the database
-    # delete = delete subcategory from the database
     list_allowed_methods = ['get','post','put','delete']
 
   # Redefine get_object_list to filter for category_id.
@@ -951,22 +880,18 @@ class SubcategoryResource(ModelResource):
     return q_set
 
 
-# User Resource.
 class UserResource(ModelResource):
+  """User Resource."""
+  
   staff = fields.ToOneField(
       'paws.api.resources.StaffResource', 'staff', null=True)
+
   class Meta:
-    # authenticate the user
     authentication = CustomAuthentication()
     authorization = DjangoAuthorization()
     queryset = User.objects.all()
     resource_name = 'user'
     excludes = ['email','password']
-    # list of allowed actions towards the database
-    # get = get the user from the database
-    # post = adding new user into the database
-    # put = updating user's information in the database
-    # delete = delete the user from the database
     list_allowed_methods = ['get','post','put','delete']
 
   def override_urls(self):
@@ -1008,7 +933,7 @@ class UserResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
-    # Make user is superuser.
+    # Make sure user is superuser.
     if not request.user.is_superuser:
       raise ImmediateHttpResponse(
           HttpUnauthorized("Cannot add user")
@@ -1046,7 +971,7 @@ class UserResource(ModelResource):
     self.is_authenticated(request)
     self.throttle_check(request)
 
-    # Make user is superuser.
+    # Make sure user is superuser.
     if not request.user.is_superuser:
       raise ImmediateHttpResponse(
           HttpUnauthorized("Cannot bulk add")
