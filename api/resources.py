@@ -124,7 +124,7 @@ class AnimalObservationResource(ModelResource):
     return bundle
 
   # override the url for a specific url path of searching
-  def override_urls(self):
+  def prepend_urls(self):
     return [
       url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/stats%s$"%
             (self._meta.resource_name, trailing_slash()), 
@@ -266,7 +266,7 @@ class AnimalResource(ModelResource):
     list_allowed_methods = ['get','post','put','delete']
 
   # override the url for a specific url path of searching
-  def override_urls(self):
+  def prepend_urls(self):
     return [
       url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % 
             (self._meta.resource_name, trailing_slash()), 
@@ -342,6 +342,7 @@ class AnimalResource(ModelResource):
     except ObjectDoesNotExist:
       pass
     return q_set
+
   # Bulk add view.
   def bulk_add(self, request, **kwargs):
     self.method_check(request, allowed=['post'])
@@ -480,7 +481,7 @@ class EnrichmentResource(ModelResource):
     list_allowed_methods = ['get','post','put','delete']
 
   # override the url for a specific url path of searching
-  def override_urls(self):
+  def prepend_urls(self):
     return [
       url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % 
             (self._meta.resource_name, trailing_slash()),
@@ -761,7 +762,7 @@ class StaffResource(ModelResource):
     list_allowed_methods = ['get','post','put','patch','delete']
 
   # override the url for a specific url path of searching
-  def override_urls(self):
+  def prepend_urls(self):
     return [
       url(r"^(?P<resource_name>%s)\.(?P<format>\w+)/search%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('get_search'), name="api_get_search"),
     ]
@@ -872,7 +873,7 @@ class UserResource(ModelResource):
     excludes = ['email','password']
     list_allowed_methods = ['get','post','put','delete']
 
-  def override_urls(self):
+  def prepend_urls(self):
     return [
         url(r"^(?P<resource_name>%s)/bulk%s$" % 
             (self._meta.resource_name, trailing_slash()), 
