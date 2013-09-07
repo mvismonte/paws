@@ -60,37 +60,33 @@ class AnimalObservationResource(ModelResource):
     except ObjectDoesNotExist:
       return True
 
-  def obj_create(self, bundle, request=None, **kwargs):
+  def obj_create(self, bundle, **kwargs):
     # Get the user of the observation by fully hydrating the bundle and then
     # check if the user is allowed to add to this observation.
     user = self.full_hydrate(bundle).obj.observation.staff.user
-    if not request.user.is_superuser and user != request.user:
+    if not bundle.request.user.is_superuser and user != bundle.request.user:
       raise ImmediateHttpResponse(
           HttpUnauthorized("Cannot add other users' animal observations")
       )
-    return super(AnimalObservationResource, self).obj_create(bundle, request, **kwargs)
+    return super(AnimalObservationResource, self).obj_create(bundle, **kwargs)
 
-  def obj_update(self, bundle, request=None, **kwargs):
-    # PATCH fix
-    bundle.data['animal'] = bundle.data['animal'].data['resource_uri']
-    if not isinstance(bundle.data['behavior'], basestring):
-      bundle.data['behavior'] = bundle.data['behavior'].data['resource_uri']
+  def obj_update(self, bundle, **kwargs):
     # Make sure that the user can modifty.
     ao_id = int(kwargs.pop('pk', None))
-    if not self.can_modify_observation(request, ao_id):
+    if not self.can_modify_observation(bundle.request, ao_id):
       raise ImmediateHttpResponse(
           HttpUnauthorized("Cannot edit other users' animal observations")
       )
-    return super(AnimalObservationResource, self).obj_update(bundle, request, **kwargs)
+    return super(AnimalObservationResource, self).obj_update(bundle, **kwargs)
 
-  def obj_delete(self, request=None, **kwargs):
+  def obj_delete(self, bundle, **kwargs):
     # Make sure that the user can modifty.
-    observation_id = int(kwargs.pop('pk', None))
-    if not self.can_modify_observation(request, observation_id):
+    ao_id = int(kwargs.pop('pk', None))
+    if not self.can_modify_observation(bundle.request, ao_id):
       raise ImmediateHttpResponse(
           HttpUnauthorized("Cannot delete other users' animal observations")
       )
-    return super(AnimalObservationResource, self).obj_delete( request, **kwargs)
+    return super(AnimalObservationResource, self).obj_delete(bundle, **kwargs)
 
   # Redefine get_object_list to filter for observation_id and animal_id.
   def get_object_list(self, request):
@@ -268,16 +264,6 @@ class AnimalResource(ModelResource):
     resource_name = 'animal'
     always_return_data = True
     list_allowed_methods = ['get','post','put','delete']
-
-  def obj_create(self, bundle, request=None, **kwargs):
-    if self._meta.authorization.is_authorized(request):
-      return super(AnimalResource, self).obj_create(bundle, request, **kwargs)
-    
-  def obj_update(self, bundle, request=None, **kwargs):
-    return super(AnimalResource, self).obj_update(bundle, request, **kwargs)
-
-  def obj_delete(self, request=None, **kwargs):
-    return super(AnimalResource, self).obj_delete( request, **kwargs)
 
   # override the url for a specific url path of searching
   def override_urls(self):
@@ -700,34 +686,25 @@ class ObservationResource(ModelResource):
     except ObjectDoesNotExist:
       return True
 
-  # creating new observation into database
-  def obj_create(self, bundle, request=None, **kwargs):
-    return super(ObservationResource, self).obj_create(bundle, request, **kwargs)
-    
   # update observation's information in the database
-  def obj_update(self, bundle, request=None, **kwargs):
-    # Clean related fields into URI's instead of bundles
-    # PATCH fix
-    bundle.data['enrichment'] = bundle.data['enrichment'].data['resource_uri']
-    for key, animalObservation in enumerate(bundle.data['animal_observations']):
-      bundle.data['animal_observations'][key] = animalObservation.data['resource_uri']
+  def obj_update(self, bundle, **kwargs):
     # Make sure that the user can modifty.
     observation_id = int(kwargs.pop('pk', None))
-    if not self.can_modify_observation(request, observation_id):
+    if not self.can_modify_observation(bundle.request, observation_id):
       raise ImmediateHttpResponse(
           HttpUnauthorized("Cannot edit other users' observations")
       )
-    return super(ObservationResource, self).obj_update(bundle, request, **kwargs)
+    return super(ObservationResource, self).obj_update(bundle, **kwargs)
 
   # delete observation from the database
-  def obj_delete(self, request=None, **kwargs):
+  def obj_delete(self, bundle, **kwargs):
     # Make sure that the user can modifty.
     observation_id = int(kwargs.pop('pk', None))
-    if not self.can_modify_observation(request, observation_id):
+    if not self.can_modify_observation(bundle.request, observation_id):
       raise ImmediateHttpResponse(
           HttpUnauthorized("Cannot edit other users' observations")
       )
-    return super(ObservationResource, self).obj_delete(request, **kwargs)
+    return super(ObservationResource, self).obj_delete(bundle, **kwargs)
 
   # Redefine get_object_list to filter for enrichment_id and staff_id.
   def get_object_list(self, request):
@@ -906,9 +883,9 @@ class UserResource(ModelResource):
     ]
 
   # Adding new user into the database
-  def obj_create(self, bundle, request=None, **kwargs):
+  def obj_create(self, bundle, **kwargs):
     try:
-      bundle = super(UserResource,self).obj_create(bundle, request, **kwargs)
+      bundle = super(UserResource,self).obj_create(bundle, **kwargs)
       bundle.obj.set_password(bundle.data.get('password'))
       bundle.obj.save()
     except IntegrityError:
@@ -916,18 +893,14 @@ class UserResource(ModelResource):
     return bundle
 
   # Updating user's information
-  def obj_update(self, bundle, request=None, **kwards):
+  def obj_update(self, bundle, **kwargs):
     try:
-      bundle = super(UserResource,self).obj_update(bundle, request, **kwargs)
+      bundle = super(UserResource,self).obj_update(bundle, **kwargs)
       bundle.obj.set_password(bundle.data.get('password'))
       bundle.obj.save()
     except IntegrityError:
       raise BadRequest('That username already exists')
     return bundle
-
-  # Deleting user from the database
-  def obj_delete(self, request=None, **kwargs):
-    return super(UserResource, self).obj_delete( request, **kwargs)
 
   def add_user(self, request, **kwargs):
     self.method_check(request, allowed=['post'])
